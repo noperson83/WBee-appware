@@ -1,23 +1,73 @@
 # WBee-appware
 Work Connection Convenience
-Completing Initial Project Setup
 
-Now, we can migrate the initial database schema to our PostgreSQL database using the management script:
+WBee new install
+Create a Database:
 
-~/myprojectdir/manage.py makemigrations
-~/myprojectdir/manage.py migrate
-Create an administrative user for the project by typing:
+sudo -u postgres psql
 
-~/myprojectdir/manage.py createsuperuser
-You will have to select a username, provide an email address, and choose and confirm a password.
+CREATE DATABASE newapp;
+CREATE USER newappuser WITH PASSWORD 'password';
+ALTER ROLE newappuser SET client_encoding TO 'utf8';
+ALTER ROLE newappuser SET default_transaction_isolation TO 'read committed';
+ALTER ROLE newappuser SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE  newapp TO  newappuser;
+\q
+mkdir ~/newapp.wbee.app
+sudo chown -R nope:www-data newapp.wbee.app
+cd ~/newapp.wbee.app
+virtualenv wbeenv
+source wbeenv/bin/activate
+pip install django gunicorn psycopg2-binary
 
-We can collect all of the static content into the directory location we configured by typing:
+Creating and Configuring a New Django Project
+django-admin.py startproject wbeeapp /var/www/wbeeapp.wbee.app
+nano /var/www/wbeeapp.wbee.app/wbeeapp/settings.py
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'USER': 'nope',
+        'NAME': 'wbeeapp',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '',
+    }
+}
+ALLOWED_HOSTS = ['wbeeapp.wbee.app']
 
-~/myprojectdir/manage.py collectstatic
-You will have to confirm the operation. The static files will then be placed in a directory called static within your project directory.
+python /var/www/j2.wbee.app/manage.py showmigrations
+python /var/www/j2.wbee.app/manage.py migrate hr
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py collectstatic
 
-If you followed the initial server setup guide, you should have a UFW firewall protecting your server. In order to test the development server, we'll have to allow access to the port we'll be using.
-
-Create an exception for port 8000 by typing:
-
-sudo ufw allow 8000
+pip install django-extensions
+pip install python-dateutil
+sudo ufw allow 9000
+sudo certbot --nginx -d j2.wbee.app
+sudo nano /etc/nginx/sites-available/wbee.app
+upstream wbeeapp_app_server {
+    server 127.0.0.1:9000 fail_timeout=0;
+}
+location / {
+proxy_pass http://wbeeapp_app_server;
+} 
+python manage.py runserver 127.0.0.1:9000
+gunicorn --bind 127.0.0.1:9000 wbeeapp.wsgi
+deactivate
+sudo nano /etc/systemd/system/wbeeapp.socket
+sudo nano /etc/systemd/system/wbeeapp.service
+sudo systemctl start wbeeapp.socket
+sudo systemctl enable wbeeapp.socket
+sudo systemctl status wbeeapp.socket
+file /run/wbeeapp.sock
+sudo systemctl status wbeeapp
+curl --unix-socket /run/wbeeapp.sock localhost
+sudo systemctl daemon-reload
+sudo systemctl restart wbeeapp
+sudo nano /etc/nginx/sites-available/wbee.app
+sudo nginx -t
+sudo systemctl restart nginx
+pip install xhtml2pdf
+pip install bleach
