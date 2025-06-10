@@ -145,7 +145,7 @@ class CompanyForm(forms.ModelForm):
         """Additional form validation"""
         cleaned_data = super().clean()
         parent_company = cleaned_data.get('parent_company')
-        is_multi_location = cleaned_data.get('is_multi_location')
+        #is_multi_location = cleaned_data.get('is_multi_location')
         
         # If parent company is set, this should be a subsidiary
         if parent_company and parent_company == self.instance:
