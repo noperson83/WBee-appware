@@ -1,0 +1,678 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ asset.name }} - Asset Details - {{ request.user.company.company_name|default:"WBEE" }}</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'asset' %}">Assets</a></li>
+<li class="breadcrumb-item active">{{ asset.asset_number }}</li>
+{% endblock %}
+
+{% block styler %}
+<link href="{% static 'home/css/asset-management.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Asset Header -->
+    <div class="asset-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center mb-3">
+                    <h1 class="h2 mb-0 me-3">{{ asset.name }}</h1>
+                    {% if asset.status == 'available' %}
+                        <span class="badge bg-success status-badge">{{ asset.status }}</span>
+                    {% elif asset.status == 'in_use' %}
+                        <span class="badge bg-primary status-badge">{{ asset.status }}</span>
+                    {% elif asset.status == 'maintenance' %}
+                        <span class="badge bg-warning status-badge">{{ asset.status }}</span>
+                    {% elif asset.status == 'repair' %}
+                        <span class="badge bg-danger status-badge">{{ asset.status }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary status-badge">{{ asset.status }}</span>
+                    {% endif %}
+                </div>
+                <p class="h5 mb-2">Asset #{{ asset.asset_number }}</p>
+                <div class="d-flex align-items-center">
+                    {% if asset.condition == 'excellent' %}
+                        <span class="condition-indicator bg-success"></span>
+                    {% elif asset.condition == 'good' %}
+                        <span class="condition-indicator bg-primary"></span>
+                    {% elif asset.condition == 'fair' %}
+                        <span class="condition-indicator bg-warning"></span>
+                    {% elif asset.condition == 'poor' %}
+                        <span class="condition-indicator bg-danger"></span>
+                    {% else %}
+                        <span class="condition-indicator bg-secondary"></span>
+                    {% endif %}
+                    <span class="h6 mb-0">{{ asset.get_condition_display }}</span>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                {% if asset.current_value %}
+                <div class="h3 mb-0">${{ asset.current_value|floatformat:0 }}</div>
+                <small class="opacity-75">Current Value</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Alert -->
+    {% if asset.is_maintenance_due %}
+    <div class="alert alert-warning maintenance-alert mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="alert-heading mb-2">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Maintenance Required
+                </h5>
+                <p class="mb-0">
+                    This asset is due for maintenance. 
+                    {% if asset.days_until_maintenance < 0 %}
+                        Overdue by {{ asset.days_until_maintenance|add:"-1" }} days.
+                    {% else %}
+                        Due {{ asset.next_maintenance_date|date:"M d, Y" }}.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'asset' %}" class="btn btn-warning action-btn">
+                    <i class="fas fa-wrench me-2"></i>Schedule Maintenance
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card info-card">
+                <div class="card-body">
+                    <h6 class="card-title mb-3">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{% url 'asset' %}" class="btn btn-primary action-btn">
+                            <i class="fas fa-edit me-1"></i>Edit Asset
+                        </a>
+                        {% if asset.status == 'available' %}
+                        <a href="{% url 'asset' %}" class="btn btn-success action-btn">
+                            <i class="fas fa-user-plus me-1"></i>Assign
+                        </a>
+                        {% elif asset.assigned_worker %}
+                        <a href="{% url 'asset' %}" class="btn btn-outline-warning action-btn">
+                            <i class="fas fa-user-minus me-1"></i>Unassign
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'asset' %}" class="btn btn-warning action-btn">
+                            <i class="fas fa-wrench me-1"></i>Maintenance
+                        </a>
+                        <a href="{% url 'asset' %}" class="btn btn-info action-btn">
+                            <i class="fas fa-copy me-1"></i>Duplicate
+                        </a>
+                        <button class="btn btn-secondary action-btn" onclick="window.print()">
+                            <i class="fas fa-print me-1"></i>Print QR
+                        </button>
+                        <a href="{% url 'asset' %}" class="btn btn-outline-danger action-btn">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Asset Image and QR Code -->
+        <div class="col-lg-4 mb-4">
+            <div class="card info-card">
+                <div class="card-body text-center">
+                    {% if asset.primary_image %}
+                    <img src="{{ asset.primary_image.url }}" alt="{{ asset.name }}" class="asset-image mb-3">
+                    {% else %}
+                    <div class="asset-image mb-3 d-flex align-items-center justify-content-center bg-light">
+                        <i class="fas fa-image text-muted" style="font-size: 4rem;"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- QR Code Section -->
+                    <h6 class="mt-4 mb-3">Asset QR Code</h6>
+                    <div class="d-flex justify-content-center mb-3">
+                        <!-- QR Code would be generated here -->
+                        <div class="qr-code bg-white p-3 d-flex align-items-center justify-content-center">
+                            <i class="fas fa-qrcode text-muted" style="font-size: 100px;"></i>
+                        </div>
+                    </div>
+                    <small class="text-muted">Scan to view asset details</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Asset Information -->
+        <div class="col-lg-8">
+            <div class="row">
+                <!-- Basic Information -->
+                <div class="col-md-6 mb-4">
+                    <div class="card info-card h-100">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>Basic Information
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td class="text-muted">Category:</td>
+                                    <td>
+                                        <span class="badge" style="background-color: {{ asset.category.color }};">
+                                            <i class="{{ asset.category.icon }} me-1"></i>
+                                            {{ asset.category.name }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% if asset.asset_type %}
+                                <tr>
+                                    <td class="text-muted">Type:</td>
+                                    <td>{{ asset.asset_type }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if asset.manufacturer %}
+                                <tr>
+                                    <td class="text-muted">Manufacturer:</td>
+                                    <td>{{ asset.manufacturer }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if asset.model %}
+                                <tr>
+                                    <td class="text-muted">Model:</td>
+                                    <td>{{ asset.model }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if asset.year %}
+                                <tr>
+                                    <td class="text-muted">Year:</td>
+                                    <td>{{ asset.year }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if asset.serial_number %}
+                                <tr>
+                                    <td class="text-muted">Serial #:</td>
+                                    <td>{{ asset.serial_number }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assignment Information -->
+                <div class="col-md-6 mb-4">
+                    <div class="card info-card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">
+                                <i class="fas fa-user-check me-2"></i>Assignment
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            {% if asset.assigned_worker or asset.current_project or asset.assigned_office %}
+                            <table class="table table-borderless">
+                                {% if asset.assigned_worker %}
+                                <tr>
+                                    <td class="text-muted">Worker:</td>
+                                    <td>
+                                        <i class="fas fa-user me-1"></i>
+                                        {{ asset.assigned_worker.get_full_name }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% if asset.current_project %}
+                                <tr>
+                                    <td class="text-muted">Project:</td>
+                                    <td>
+                                        <i class="fas fa-project-diagram me-1"></i>
+                                        {{ asset.current_project.name }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% if asset.assigned_office %}
+                                <tr>
+                                    <td class="text-muted">Office:</td>
+                                    <td>
+                                        <i class="fas fa-building me-1"></i>
+                                        {{ asset.assigned_office.office_name }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% if asset.assigned_department %}
+                                <tr>
+                                    <td class="text-muted">Department:</td>
+                                    <td>
+                                        <i class="fas fa-users me-1"></i>
+                                        {{ asset.assigned_department.name }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td class="text-muted">Location:</td>
+                                    <td>
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        {{ asset.location_status|title }}
+                                    </td>
+                                </tr>
+                            </table>
+                            {% else %}
+                            <div class="text-center text-muted py-4">
+                                <i class="fas fa-user-slash mb-3" style="font-size: 3rem;"></i>
+                                <p class="mb-0">Not currently assigned</p>
+                                <a href="{% url 'asset' %}" class="btn btn-sm btn-success mt-2">
+                                    <i class="fas fa-user-plus me-1"></i>Assign Now
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial and Depreciation Info -->
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card info-card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-dollar-sign me-2"></i>Financial Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <h4 class="text-primary mb-1">
+                                ${{ asset.purchase_price|floatformat:0|default:"—" }}
+                            </h4>
+                            <small class="text-muted">Purchase Price</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-success mb-1">
+                                ${{ asset.current_value|floatformat:0|default:"—" }}
+                            </h4>
+                            <small class="text-muted">Current Value</small>
+                        </div>
+                        <div class="col-4">
+                            <h4 class="text-warning mb-1">
+                                ${{ current_depreciation|floatformat:0|default:"—" }}
+                            </h4>
+                            <small class="text-muted">Depreciated Value</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Purchase Date:</strong></p>
+                            <p class="text-muted">{{ asset.purchase_date|date:"M d, Y"|default:"—" }}</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-1"><strong>Age:</strong></p>
+                            <p class="text-muted">{{ asset.age_in_years|floatformat:1 }} years</p>
+                        </div>
+                    </div>
+                    {% if asset.is_billable %}
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-dollar-sign me-2"></i>
+                        <strong>Billable Asset</strong>
+                        {% if asset.hourly_rate %}
+                        - ${{ asset.hourly_rate }}/hour
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card info-card">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Depreciation
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="depreciation-chart">
+                        <canvas id="depreciationChart"></canvas>
+                    </div>
+                    <div class="mt-3">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <h6 class="text-primary">
+                                    ${{ depreciation_rate|floatformat:0|default:"0" }}
+                                </h6>
+                                <small class="text-muted">Annual Depreciation</small>
+                            </div>
+                            <div class="col-6">
+                                <h6 class="text-info">
+                                    {{ asset.category.default_depreciation_years }} years
+                                </h6>
+                                <small class="text-muted">Depreciation Period</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Specifications and Description -->
+    {% if asset.description or asset.specifications %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card info-card">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Specifications & Description
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if asset.description %}
+                    <div class="mb-4">
+                        <h6>Description</h6>
+                        <p class="text-muted">{{ asset.description }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if asset.specifications %}
+                    <div class="specs-table">
+                        <h6 class="mb-3">Technical Specifications</h6>
+                        <div class="row">
+                            {% for key, value in asset.specifications.items %}
+                            <div class="col-md-6 mb-2">
+                                <strong>{{ key|title }}:</strong> {{ value }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Maintenance and Assignment History -->
+    <div class="row mb-4">
+        <!-- Maintenance History -->
+        <div class="col-lg-6 mb-4">
+            <div class="card info-card h-100">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-wrench me-2"></i>Maintenance History
+                    </h6>
+                    <a href="{% url 'asset' %}" class="btn btn-sm btn-outline-dark">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% for maintenance in maintenance_records %}
+                    <div class="timeline-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">{{ maintenance.maintenance_type|title }}</h6>
+                                <p class="text-muted mb-1">{{ maintenance.description|truncatechars:100 }}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>{{ maintenance.performed_by }}
+                                    <i class="fas fa-dollar-sign ms-2 me-1"></i>${{ maintenance.total_cost|floatformat:2 }}
+                                </small>
+                            </div>
+                            <small class="text-muted">{{ maintenance.performed_date|date:"M d" }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-wrench mb-3" style="font-size: 3rem;"></i>
+                        <p class="mb-0">No maintenance records</p>
+                        <a href="{% url 'asset' %}" class="btn btn-sm btn-warning mt-2">
+                            <i class="fas fa-plus me-1"></i>Add Maintenance
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignment History -->
+        <div class="col-lg-6 mb-4">
+            <div class="card info-card h-100">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-user-check me-2"></i>Assignment History
+                    </h6>
+                    <a href="{% url 'asset' %}" class="btn btn-sm btn-outline-light">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% for assignment in assignment_history %}
+                    <div class="timeline-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    {% if assignment.assigned_to_worker %}
+                                        <i class="fas fa-user me-1"></i>{{ assignment.assigned_to_worker.get_full_name }}
+                                    {% elif assignment.assigned_to_project %}
+                                        <i class="fas fa-project-diagram me-1"></i>{{ assignment.assigned_to_project.name }}
+                                    {% elif assignment.assigned_to_office %}
+                                        <i class="fas fa-building me-1"></i>{{ assignment.assigned_to_office.office_name }}
+                                    {% endif %}
+                                </h6>
+                                {% if assignment.purpose %}
+                                <p class="text-muted mb-1">{{ assignment.purpose }}</p>
+                                {% endif %}
+                                <small class="text-muted">
+                                    {{ assignment.start_date|date:"M d, Y" }} - 
+                                    {% if assignment.end_date %}
+                                        {{ assignment.end_date|date:"M d, Y" }}
+                                    {% else %}
+                                        Present
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% if assignment.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-user-slash mb-3" style="font-size: 3rem;"></i>
+                        <p class="mb-0">No assignment history</p>
+                        <a href="{% url 'asset' %}" class="btn btn-sm btn-success mt-2">
+                            <i class="fas fa-user-plus me-1"></i>Create Assignment
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle/Equipment Specific Information -->
+    {% if asset.license_plate or asset.mileage or asset.usage_hours %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card info-card">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-car me-2"></i>Vehicle/Equipment Details
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if asset.license_plate %}
+                        <div class="col-md-3">
+                            <h6>License Plate</h6>
+                            <p class="text-muted">{{ asset.license_plate }}</p>
+                        </div>
+                        {% endif %}
+                        {% if asset.mileage %}
+                        <div class="col-md-3">
+                            <h6>Mileage</h6>
+                            <p class="text-muted">{{ asset.mileage|floatformat:0 }} miles</p>
+                        </div>
+                        {% endif %}
+                        {% if asset.usage_hours %}
+                        <div class="col-md-3">
+                            <h6>Usage Hours</h6>
+                            <p class="text-muted">{{ asset.usage_hours|floatformat:1 }} hours</p>
+                        </div>
+                        {% endif %}
+                        {% if asset.registration_expiration %}
+                        <div class="col-md-3">
+                            <h6>Registration Expires</h6>
+                            <p class="text-muted">{{ asset.registration_expiration|date:"M d, Y" }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Warranty and Insurance -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card info-card">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Warranty Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if asset.warranty_expiration %}
+                    <div class="text-center">
+                        {% if asset.is_warranty_active %}
+                        <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                        <h5 class="text-success mt-2">Warranty Active</h5>
+                        <p class="text-muted">Expires {{ asset.warranty_expiration|date:"M d, Y" }}</p>
+                        {% else %}
+                        <i class="fas fa-times-circle text-danger" style="font-size: 3rem;"></i>
+                        <h5 class="text-danger mt-2">Warranty Expired</h5>
+                        <p class="text-muted">Expired {{ asset.warranty_expiration|date:"M d, Y" }}</p>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-question-circle mb-3" style="font-size: 3rem;"></i>
+                        <p class="mb-0">No warranty information</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-4">
+            <div class="card info-card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-file-contract me-2"></i>Insurance Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if asset.insurance_policy %}
+                    <div class="text-center">
+                        <i class="fas fa-file-contract text-info" style="font-size: 3rem;"></i>
+                        <h6 class="mt-2">Insurance Policy</h6>
+                        <p class="text-muted">{{ asset.insurance_policy }}</p>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-question-circle mb-3" style="font-size: 3rem;"></i>
+                        <p class="mb-0">No insurance information</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+    // Depreciation Chart
+    const depreciationCtx = document.getElementById('depreciationChart').getContext('2d');
+    
+    // Calculate depreciation over time
+    const purchasePrice = {{ asset.purchase_price|default:0 }};
+    const depreciationYears = {{ asset.category.default_depreciation_years|default:5 }};
+    const currentAge = {{ asset.age_in_years|default:0 }};
+    
+    const labels = [];
+    const values = [];
+    
+    for (let year = 0; year <= depreciationYears; year++) {
+        labels.push(`Year ${year}`);
+        const depreciation = (purchasePrice / depreciationYears) * year;
+        const value = Math.max(purchasePrice - depreciation, 0);
+        values.push(value);
+    }
+    
+    new Chart(depreciationCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Asset Value',
+                data: values,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return ' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    radius: 4,
+                    hoverRadius: 6
+                }
+            }
+        }
+    });
+
+    // Auto-refresh maintenance status
+    setInterval(function() {
+        // Check if maintenance is due and update alerts
+        const maintenanceDate = new Date('{{ asset.next_maintenance_date|date:"Y-m-d" }}');
+        const today = new Date();
+        
+        if (maintenanceDate <= today) {
+            const alerts = document.querySelectorAll('.maintenance-alert');
+            alerts.forEach(alert => {
+                alert.style.animation = 'pulse 2s infinite';
+            });
+        }
+    }, 60000); // Check every minute
+</script>
+{% endblock %}

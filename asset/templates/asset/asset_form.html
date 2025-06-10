@@ -1,0 +1,555 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{% if object %}Edit {{ object.name }}{% else %}Add New Asset{% endif %} - {{ request.user.company.company_name|default:"WBEE" }}</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'asset' %}">Assets</a></li>
+{% if object %}
+<li class="breadcrumb-item"><a href="{{ object.get_absolute_url }}">{{ object.asset_number }}</a></li>
+<li class="breadcrumb-item active">Edit</li>
+{% else %}
+<li class="breadcrumb-item active">Add New</li>
+{% endif %}
+{% endblock %}
+
+{% block styler %}
+<link href="{% static 'home/css/asset-management.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h2 mb-2">
+                {% if object %}
+                    <i class="fas fa-edit me-2"></i>Edit Asset: {{ object.name }}
+                {% else %}
+                    <i class="fas fa-plus me-2"></i>Add New Asset
+                {% endif %}
+            </h1>
+            <p class="text-muted">
+                {% if object %}
+                    Update asset information and settings
+                {% else %}
+                    Create a new asset in your inventory
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+    <!-- Progress Steps (for new assets) -->
+    {% if not object %}
+    <div class="progress-steps">
+        <div class="step active" id="step-1">
+            <i class="fas fa-info-circle mb-2 d-block"></i>
+            <div>Basic Info</div>
+        </div>
+        <div class="step" id="step-2">
+            <i class="fas fa-industry mb-2 d-block"></i>
+            <div>Details</div>
+        </div>
+        <div class="step" id="step-3">
+            <i class="fas fa-dollar-sign mb-2 d-block"></i>
+            <div>Financial</div>
+        </div>
+        <div class="step" id="step-4">
+            <i class="fas fa-user-check mb-2 d-block"></i>
+            <div>Assignment</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="post" enctype="multipart/form-data" id="asset-form">
+        {% csrf_token %}
+        
+        <!-- Error Messages -->
+        {% if form.errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <h6 class="alert-heading">
+                <i class="fas fa-exclamation-triangle me-2"></i>Please correct the following errors:
+            </h6>
+            <ul class="mb-0">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                    <li>{{ field|title }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endif %}
+
+        <!-- Section 1: Basic Information -->
+        <div class="form-section" id="section-1">
+            <div class="section-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                </h5>
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating required-field">
+                            {{ form.asset_number }}
+                            <label for="{{ form.asset_number.id_for_label }}">Asset Number</label>
+                            <div class="field-help">Unique identifier for this asset (auto-generated if empty)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating required-field">
+                            {{ form.name }}
+                            <label for="{{ form.name.id_for_label }}">Asset Name</label>
+                            <div class="field-help">Descriptive name for this asset</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating required-field">
+                            {{ form.category }}
+                            <label for="{{ form.category.id_for_label }}">Category</label>
+                            <div class="field-help">Asset category determines default settings</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.asset_type }}
+                            <label for="{{ form.asset_type.id_for_label }}">Asset Type</label>
+                            <div class="field-help">Specific type within the category</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-floating">
+                    {{ form.description }}
+                    <label for="{{ form.description.id_for_label }}">Description</label>
+                    <div class="field-help">Detailed description of the asset</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Asset Image -->
+        <div class="form-section" id="section-2">
+            <div class="section-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-camera me-2"></i>Asset Image
+                </h5>
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="drag-drop-area" id="image-drop-area">
+                            <i class="fas fa-cloud-upload-alt mb-3" style="font-size: 3rem; color: #007bff;"></i>
+                            <h5>Drag & Drop Image Here</h5>
+                            <p class="text-muted mb-3">or click to browse files</p>
+                            {{ form.primary_image }}
+                            <div class="field-help">Upload a primary image for this asset (JPG, PNG, max 10MB)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div id="image-preview" class="text-center">
+                            {% if object and object.primary_image %}
+                            <img src="{{ object.primary_image.url }}" alt="Current image" class="image-preview">
+                            <p class="mt-2 text-muted">Current Image</p>
+                            {% else %}
+                            <div class="text-muted py-5">
+                                <i class="fas fa-image mb-3" style="font-size: 3rem;"></i>
+                                <p>No image uploaded</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Manufacturer Details -->
+        <div class="form-section" id="section-3">
+            <div class="section-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-industry me-2"></i>Manufacturer Details
+                </h5>
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.manufacturer }}
+                            <label for="{{ form.manufacturer.id_for_label }}">Manufacturer</label>
+                            <div class="field-help">Brand or manufacturer name</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.model }}
+                            <label for="{{ form.model.id_for_label }}">Model</label>
+                            <div class="field-help">Model number or name</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.year }}
+                            <label for="{{ form.year.id_for_label }}">Year</label>
+                            <div class="field-help">Year manufactured</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-floating">
+                    {{ form.serial_number }}
+                    <label for="{{ form.serial_number.id_for_label }}">Serial Number</label>
+                    <div class="field-help">Manufacturer's serial number</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Financial Information -->
+        <div class="form-section" id="section-4">
+            <div class="section-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-dollar-sign me-2"></i>Financial Information
+                </h5>
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.purchase_price }}
+                            <label for="{{ form.purchase_price.id_for_label }}">Purchase Price</label>
+                            <div class="field-help">Original purchase cost</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.current_value }}
+                            <label for="{{ form.current_value.id_for_label }}">Current Value</label>
+                            <div class="field-help">Current estimated value</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.purchase_date }}
+                            <label for="{{ form.purchase_date.id_for_label }}">Purchase Date</label>
+                            <div class="field-help">Date of purchase</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.warranty_expiration }}
+                            <label for="{{ form.warranty_expiration.id_for_label }}">Warranty Expiration</label>
+                            <div class="field-help">When warranty expires</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.hourly_rate }}
+                            <label for="{{ form.hourly_rate.id_for_label }}">Hourly Rate</label>
+                            <div class="field-help">Billing rate per hour (if billable)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            {{ form.is_billable }}
+                            <label class="form-check-label" for="{{ form.is_billable.id_for_label }}">
+                                This asset can be billed to clients
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            {{ form.is_personal }}
+                            <label class="form-check-label" for="{{ form.is_personal.id_for_label }}">
+                                This is a personal asset
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 5: Assignment & Location -->
+        <div class="form-section" id="section-5">
+            <div class="section-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-check me-2"></i>Assignment & Location
+                </h5>
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.assigned_office }}
+                            <label for="{{ form.assigned_office.id_for_label }}">Assigned Office</label>
+                            <div class="field-help">Office location of this asset</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.assigned_department }}
+                            <label for="{{ form.assigned_department.id_for_label }}">Assigned Department</label>
+                            <div class="field-help">Department responsible for this asset</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.assigned_worker }}
+                            <label for="{{ form.assigned_worker.id_for_label }}">Assigned Worker</label>
+                            <div class="field-help">Worker currently using this asset</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.current_project }}
+                            <label for="{{ form.current_project.id_for_label }}">Current Project</label>
+                            <div class="field-help">Project currently using this asset</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.status }}
+                            <label for="{{ form.status.id_for_label }}">Status</label>
+                            <div class="field-help">Current asset status</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.location_status }}
+                            <label for="{{ form.location_status.id_for_label }}">Location</label>
+                            <div class="field-help">Physical location type</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.condition }}
+                            <label for="{{ form.condition.id_for_label }}">Condition</label>
+                            <div class="field-help">Physical condition of asset</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 6: Usage & Tracking -->
+        <div class="form-section" id="section-6">
+            <div class="section-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Usage & Tracking
+                </h5>
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.usage_hours }}
+                            <label for="{{ form.usage_hours.id_for_label }}">Usage Hours</label>
+                            <div class="field-help">Total hours of usage (for equipment)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            {{ form.mileage }}
+                            <label for="{{ form.mileage.id_for_label }}">Mileage</label>
+                            <div class="field-help">Current mileage (for vehicles)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 7: Vehicle/Equipment Specific -->
+        <div class="form-section dynamic-field" id="section-7">
+            <div class="section-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-car me-2"></i>Vehicle/Equipment Details
+                </h5>
+            </div>
+            <div class="section-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.insurance_policy }}
+                            <label for="{{ form.insurance_policy.id_for_label }}">Insurance Policy</label>
+                            <div class="field-help">Insurance policy number</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.license_plate }}
+                            <label for="{{ form.license_plate.id_for_label }}">License Plate</label>
+                            <div class="field-help">Vehicle license plate number</div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-floating">
+                            {{ form.registration_expiration }}
+                            <label for="{{ form.registration_expiration.id_for_label }}">Registration Expires</label>
+                            <div class="field-help">Vehicle registration expiration</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-section">
+            <div class="section-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary btn-cancel me-2" onclick="history.back()">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        {% if object %}
+                        <a href="{{ object.get_absolute_url }}" class="btn btn-outline-info">
+                            <i class="fas fa-eye me-1"></i>View Asset
+                        </a>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <button type="submit" name="save_and_continue" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-save me-1"></i>Save & Continue Editing
+                        </button>
+                        <button type="submit" class="btn btn-save">
+                            <i class="fas fa-check me-1"></i>
+                            {% if object %}Save Changes{% else %}Create Asset{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script>
+    // Form validation and interaction
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('asset-form');
+        const categoryField = document.getElementById('{{ form.category.id_for_label }}');
+        const imageInput = document.getElementById('{{ form.primary_image.id_for_label }}');
+        const dropArea = document.getElementById('image-drop-area');
+        const imagePreview = document.getElementById('image-preview');
+
+        // Category change handler - show/hide relevant fields
+        if (categoryField) {
+            categoryField.addEventListener('change', function() {
+                const selectedText = this.options[this.selectedIndex].text.toLowerCase();
+                const vehicleSection = document.getElementById('section-7');
+                
+                if (selectedText.includes('vehicle') || selectedText.includes('truck') || selectedText.includes('car')) {
+                    vehicleSection.classList.add('show');
+                } else {
+                    vehicleSection.classList.remove('show');
+                }
+            });
+            
+            // Trigger on page load
+            categoryField.dispatchEvent(new Event('change'));
+        }
+
+        // Drag and drop for image upload
+        if (dropArea && imageInput) {
+            dropArea.addEventListener('click', () => imageInput.click());
+            
+            dropArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropArea.classList.add('dragover');
+            });
+            
+            dropArea.addEventListener('dragleave', () => {
+                dropArea.classList.remove('dragover');
+            });
+            
+            dropArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    imageInput.files = files;
+                    previewImage(files[0]);
+                }
+            });
+            
+            imageInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    previewImage(this.files[0]);
+                }
+            });
+        }
+
+        // Image preview function
+        function previewImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview" class="image-preview">
+                    <p class="mt-2 text-muted">New Image Preview</p>
+                `;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Form submission with validation
+        form.addEventListener('submit', function(e) {
+            let isValid = true;
+            const requiredFields = form.querySelectorAll('[required]');
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                showToast('Please fill in all required fields', 'error');
+            }
+        });
+
+        // Auto-generate asset number if empty
+        const assetNumberField = document.getElementById('{{ form.asset_number.id_for_label }}');
+        const nameField = document.getElementById('{{ form.name.id_for_label }}');
+        
+        if (assetNumberField && nameField && !assetNumberField.value) {
+            nameField.addEventListener('input', function() {
+                if (!assetNumberField.value) {
+                    const prefix = 'AST-';
+                    const timestamp = new Date().getTime().toString().slice(-6);
+                    assetNumberField.value = prefix + timestamp;
+                }
+            });
+        }
+    });
+
+    function showToast(message, type = 'info') {
+        // Use the base template's toast function if available
+        if (typeof window.showToast === 'function') {
+            window.showToast(message, type);
+        } else {
+            alert(message);
+        }
+    }
+</script>
+{% endblock %}

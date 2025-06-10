@@ -1,0 +1,40 @@
+<!-- empty_states/no_locations.html - Empty State for No Locations -->
+{% load static %}
+
+<div class="empty-state-container">
+    <div class="empty-state-content text-center">
+        <!-- Illustration -->
+        <div class="empty-state-illustration mb-4">
+            <div class="illustration-wrapper">
+                <i class="fas fa-map-marked-alt empty-state-icon"></i>
+                <div class="illustration-background"></div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="empty-state-text">
+            <h3 class="empty-state-title">No Locations Found</h3>
+            
+            {% if search_query or filters_applied %}
+                <!-- Filtered empty state -->
+                <p class="empty-state-subtitle text-muted">
+                    No locations match your current search or filter criteria.
+                </p>
+                
+                <div class="empty-state-details mb-4">
+                    {% if search_query %}
+                        <div class="filter-detail">
+                            <strong>Search:</strong> "{{ search_query }}"
+                        </div>
+                    {% endif %}
+                    {% if selected_business_category %}
+                        <div class="filter-detail">
+                            <strong>Business Category:</strong> {{ selected_business_category }}
+                        </div>
+                    {% endif %}
+                    {% if selected_status %}
+                        <div class="filter-detail">
+                            <strong>Status:</strong> {{ selected_status|title }}
+                        </div>
+                    {% endif %}
+                </div>

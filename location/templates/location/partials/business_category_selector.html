@@ -1,0 +1,587 @@
+<!-- partials/business_category_selector.html - Dynamic Business Category Selector -->
+<!-- Usage: {% include 'location/partials/business_category_selector.html' with field_name='business_category' %} -->
+
+{% load static %}
+
+<div class="business-category-selector" data-field-name="{{ field_name|default:'business_category' }}">
+    <div class="category-grid" id="categoryGrid">
+        <!-- Categories will be populated here -->
+    </div>
+    
+    <!-- Selected Category Display -->
+    <div class="selected-category-display" id="selectedCategoryDisplay" style="display: none;">
+        <div class="alert alert-info">
+            <div class="d-flex align-items-center">
+                <div class="category-icon mr-3">
+                    <i class="fas fa-building fa-2x"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1">Selected: <span class="category-name"></span></h6>
+                    <p class="mb-1 small category-description"></p>
+                    <div class="category-terminology small text-muted"></div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearCategorySelection()">
+                    <i class="fas fa-times mr-1"></i>Change
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden input for form submission -->
+    <input type="hidden" name="{{ field_name|default:'business_category' }}" id="categoryInput">
+    
+    <!-- Loading State -->
+    <div class="loading-state text-center py-4" id="loadingState">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Loading business categories...</p>
+    </div>
+    
+    <!-- Error State -->
+    <div class="error-state text-center py-4" id="errorState" style="display: none;">
+        <i class="fas fa-exclamation-triangle fa-2x text-danger mb-3"></i>
+        <h6 class="text-danger">Error Loading Categories</h6>
+        <p class="text-muted mb-3">Unable to load business categories. Please try again.</p>
+        <button type="button" class="btn btn-outline-primary" onclick="loadBusinessCategories()">
+            <i class="fas fa-redo mr-2"></i>Retry
+        </button>
+    </div>
+    
+    <!-- Add New Category -->
+    <div class="add-category-section mt-3" id="addCategorySection" style="display: none;">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-plus mr-2"></i>Add New Business Category
+                </h6>
+            </div>
+            <div class="card-body">
+                <form id="newCategoryForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Category Name</label>
+                                <input type="text" class="form-control" id="newCategoryName" 
+                                       placeholder="e.g., Healthcare Services">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Icon Class</label>
+                                <input type="text" class="form-control" id="newCategoryIcon" 
+                                       placeholder="e.g., fas fa-heartbeat">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" id="newCategoryDescription" rows="2"
+                                  placeholder="Brief description of this business category"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Project Term (Plural)</label>
+                                <input type="text" class="form-control" id="newCategoryProjects" 
+                                       placeholder="e.g., Appointments, Deliveries">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Project Term (Singular)</label>
+                                <input type="text" class="form-control" id="newCategoryProject" 
+                                       placeholder="e.g., Appointment, Delivery">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-outline-secondary" onclick="hideAddCategoryForm()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save mr-2"></i>Create Category
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.business-category-selector {
+    width: 100%;
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.category-card {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--category-color, #6c757d);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.category-card:hover {
+    border-color: var(--category-color, #007bff);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.category-card:hover::before {
+    transform: scaleX(1);
+}
+
+.category-card.selected {
+    border-color: var(--category-color, #007bff);
+    background: rgba(var(--category-color-rgb, 0, 123, 255), 0.05);
+}
+
+.category-card.selected::before {
+    transform: scaleX(1);
+}
+
+.category-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 1.5rem;
+    background: rgba(var(--category-color-rgb, 0, 123, 255), 0.1);
+    color: var(--category-color, #007bff);
+}
+
+.category-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.category-description {
+    font-size: 0.9rem;
+    color: #6c757d;
+    text-align: center;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.category-terminology {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-align: center;
+    background: #f8f9fa;
+    padding: 5px 10px;
+    border-radius: 15px;
+    display: inline-block;
+    width: 100%;
+}
+
+.add-category-card {
+    border: 2px dashed #dee2e6;
+    border-radius: 12px;
+    padding: 40px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafafa;
+    text-align: center;
+    color: #6c757d;
+}
+
+.add-category-card:hover {
+    border-color: #007bff;
+    background: #f8f9ff;
+    color: #007bff;
+}
+
+.selected-category-display .category-icon {
+    background: rgba(var(--category-color-rgb, 0, 123, 255), 0.1);
+    color: var(--category-color, #007bff);
+}
+
+@media (max-width: 768px) {
+    .category-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .category-card {
+        padding: 15px;
+    }
+    
+    .category-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+}
+</style>
+
+<script>
+class BusinessCategorySelector {
+    constructor(fieldName = 'business_category') {
+        this.fieldName = fieldName;
+        this.categories = [];
+        this.selectedCategory = null;
+        
+        this.init();
+    }
+    
+    init() {
+        this.loadBusinessCategories();
+        this.setupEventListeners();
+    }
+    
+    async loadBusinessCategories() {
+        this.showLoading();
+        
+        try {
+            // In a real implementation, this would be an API call
+            // For now, we'll use mock data
+            await this.delay(1000); // Simulate API call
+            
+            this.categories = [
+                {
+                    id: 1,
+                    name: 'Construction & AV',
+                    description: 'Construction, electrical, AV installation, security systems',
+                    icon: 'fas fa-hard-hat',
+                    color: '#f39c12',
+                    project_nickname: 'Installs',
+                    project_nickname_singular: 'Install'
+                },
+                {
+                    id: 2,
+                    name: 'Entertainment',
+                    description: 'Concerts, events, touring, venues, production',
+                    icon: 'fas fa-music',
+                    color: '#e91e63',
+                    project_nickname: 'Shows',
+                    project_nickname_singular: 'Show'
+                },
+                {
+                    id: 3,
+                    name: 'Investigation',
+                    description: 'Private investigation, security, surveillance',
+                    icon: 'fas fa-search',
+                    color: '#34495e',
+                    project_nickname: 'Cases',
+                    project_nickname_singular: 'Case'
+                },
+                {
+                    id: 4,
+                    name: 'Healthcare Services',
+                    description: 'Home healthcare, medical equipment, patient care',
+                    icon: 'fas fa-heartbeat',
+                    color: '#e74c3c',
+                    project_nickname: 'Appointments',
+                    project_nickname_singular: 'Appointment'
+                },
+                {
+                    id: 5,
+                    name: 'Distribution & Logistics',
+                    description: 'Liquid distribution, delivery, warehousing, supply chain',
+                    icon: 'fas fa-truck',
+                    color: '#27ae60',
+                    project_nickname: 'Deliveries',
+                    project_nickname_singular: 'Delivery'
+                }
+            ];
+            
+            this.renderCategories();
+            this.hideLoading();
+            
+        } catch (error) {
+            console.error('Error loading business categories:', error);
+            this.showError();
+        }
+    }
+    
+    renderCategories() {
+        const grid = document.getElementById('categoryGrid');
+        grid.innerHTML = '';
+        
+        // Render existing categories
+        this.categories.forEach(category => {
+            const card = this.createCategoryCard(category);
+            grid.appendChild(card);
+        });
+        
+        // Add "Add New" card (only for admin users)
+        if (this.canAddCategories()) {
+            const addCard = this.createAddCategoryCard();
+            grid.appendChild(addCard);
+        }
+    }
+    
+    createCategoryCard(category) {
+        const card = document.createElement('div');
+        card.className = 'category-card';
+        card.dataset.categoryId = category.id;
+        card.style.setProperty('--category-color', category.color);
+        card.style.setProperty('--category-color-rgb', this.hexToRgb(category.color));
+        
+        card.innerHTML = `
+            <div class="category-icon">
+                <i class="${category.icon}"></i>
+            </div>
+            <div class="category-name">${category.name}</div>
+            <div class="category-description">${category.description}</div>
+            <div class="category-terminology">
+                Projects called "${category.project_nickname}"
+            </div>
+        `;
+        
+        card.addEventListener('click', () => this.selectCategory(category));
+        
+        return card;
+    }
+    
+    createAddCategoryCard() {
+        const card = document.createElement('div');
+        card.className = 'add-category-card';
+        
+        card.innerHTML = `
+            <i class="fas fa-plus fa-2x mb-3"></i>
+            <h6>Add New Category</h6>
+            <p class="mb-0">Create a custom business category</p>
+        `;
+        
+        card.addEventListener('click', () => this.showAddCategoryForm());
+        
+        return card;
+    }
+    
+    selectCategory(category) {
+        this.selectedCategory = category;
+        
+        // Update visual selection
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.querySelector(`[data-category-id="${category.id}"]`).classList.add('selected');
+        
+        // Update hidden input
+        document.getElementById('categoryInput').value = category.id;
+        
+        // Show selected category display
+        this.updateSelectedDisplay(category);
+        
+        // Trigger change event
+        this.triggerChangeEvent();
+        
+        // Hide category grid and show selected display
+        document.getElementById('categoryGrid').style.display = 'none';
+        document.getElementById('selectedCategoryDisplay').style.display = 'block';
+    }
+    
+    updateSelectedDisplay(category) {
+        const display = document.getElementById('selectedCategoryDisplay');
+        const icon = display.querySelector('.category-icon i');
+        const name = display.querySelector('.category-name');
+        const description = display.querySelector('.category-description');
+        const terminology = display.querySelector('.category-terminology');
+        
+        icon.className = category.icon;
+        name.textContent = category.name;
+        description.textContent = category.description;
+        terminology.textContent = `Projects will be called "${category.project_nickname}"`;
+        
+        // Update color
+        display.style.setProperty('--category-color', category.color);
+        display.style.setProperty('--category-color-rgb', this.hexToRgb(category.color));
+    }
+    
+    clearCategorySelection() {
+        this.selectedCategory = null;
+        
+        // Clear visual selection
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        
+        // Clear hidden input
+        document.getElementById('categoryInput').value = '';
+        
+        // Hide selected display and show grid
+        document.getElementById('selectedCategoryDisplay').style.display = 'none';
+        document.getElementById('categoryGrid').style.display = 'grid';
+        
+        // Trigger change event
+        this.triggerChangeEvent();
+    }
+    
+    showAddCategoryForm() {
+        document.getElementById('addCategorySection').style.display = 'block';
+        document.getElementById('newCategoryName').focus();
+    }
+    
+    hideAddCategoryForm() {
+        document.getElementById('addCategorySection').style.display = 'none';
+        document.getElementById('newCategoryForm').reset();
+    }
+    
+    async submitNewCategory(formData) {
+        try {
+            // Mock API call to create new category
+            await this.delay(1000);
+            
+            const newCategory = {
+                id: Math.max(...this.categories.map(c => c.id)) + 1,
+                name: formData.name,
+                description: formData.description,
+                icon: formData.icon || 'fas fa-building',
+                color: this.generateRandomColor(),
+                project_nickname: formData.projects || 'Projects',
+                project_nickname_singular: formData.project || 'Project'
+            };
+            
+            this.categories.push(newCategory);
+            this.renderCategories();
+            this.hideAddCategoryForm();
+            
+            // Auto-select the new category
+            this.selectCategory(newCategory);
+            
+            this.showNotification('New business category created successfully!', 'success');
+            
+        } catch (error) {
+            console.error('Error creating category:', error);
+            this.showNotification('Error creating category. Please try again.', 'error');
+        }
+    }
+    
+    showLoading() {
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('categoryGrid').style.display = 'none';
+        document.getElementById('errorState').style.display = 'none';
+    }
+    
+    hideLoading() {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('categoryGrid').style.display = 'grid';
+    }
+    
+    showError() {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('categoryGrid').style.display = 'none';
+        document.getElementById('errorState').style.display = 'block';
+    }
+    
+    triggerChangeEvent() {
+        const event = new CustomEvent('categoryChanged', {
+            detail: { category: this.selectedCategory }
+        });
+        document.dispatchEvent(event);
+    }
+    
+    setupEventListeners() {
+        // New category form submission
+        document.getElementById('newCategoryForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('newCategoryName').value,
+                description: document.getElementById('newCategoryDescription').value,
+                icon: document.getElementById('newCategoryIcon').value,
+                projects: document.getElementById('newCategoryProjects').value,
+                project: document.getElementById('newCategoryProject').value
+            };
+            
+            if (!formData.name.trim()) {
+                this.showNotification('Category name is required', 'error');
+                return;
+            }
+            
+            this.submitNewCategory(formData);
+        });
+    }
+    
+    // Utility methods
+    canAddCategories() {
+        // Check if user has permission to add categories
+        // This would typically check user roles/permissions
+        return true; // For demo purposes
+    }
+    
+    hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? 
+            `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : 
+            '0, 123, 255';
+    }
+    
+    generateRandomColor() {
+        const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#34495e'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
+    
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    showNotification(message, type = 'info') {
+        // Create notification (you can integrate with your existing notification system)
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+}
+
+// Global functions for onclick handlers
+function clearCategorySelection() {
+    window.businessCategorySelector.clearCategorySelection();
+}
+
+function hideAddCategoryForm() {
+    window.businessCategorySelector.hideAddCategoryForm();
+}
+
+function loadBusinessCategories() {
+    window.businessCategorySelector.loadBusinessCategories();
+}
+
+// Initialize when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    const fieldName = document.querySelector('.business-category-selector').dataset.fieldName;
+    window.businessCategorySelector = new BusinessCategorySelector(fieldName);
+});
+</script>

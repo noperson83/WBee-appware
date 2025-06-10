@@ -1,0 +1,782 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Locations{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'location/css/list.css' %}" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
+    <li class="breadcrumb-item active" aria-current="page">All Locations</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-0 text-gray-800">
+        <i class="fas fa-map-marker-alt text-primary me-2"></i>
+        Locations
+      </h1>
+      <p class="text-muted mb-0">
+        {% if locations %}
+          Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} locations
+        {% else %}
+          No locations found
+        {% endif %}
+      </p>
+    </div>
+    <div class="btn-group" role="group">
+      <a href="{% url 'location:location-create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Add Location
+      </a>
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+          <i class="fas fa-tools me-1"></i> Tools
+        </button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item" href="{% url 'location:locations-map' %}">
+            <i class="fas fa-map me-2"></i>View Map
+          </a></li>
+          <li><a class="dropdown-item" href="{% url 'location:location-export' %}">
+            <i class="fas fa-download me-2"></i>Export Data
+          </a></li>
+          <li><a class="dropdown-item" href="{% url 'location:location-import' %}">
+            <i class="fas fa-upload me-2"></i>Import Locations
+          </a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#bulkActionModal">
+            <i class="fas fa-tasks me-2"></i>Bulk Actions
+          </a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Panel -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-3" id="filterForm">
+        <!-- Search -->
+        <div class="col-md-4">
+          <label for="search" class="form-label">Search</label>
+          <div class="input-group">
+            <input type="text" 
+                   class="form-control" 
+                   id="search" 
+                   name="search" 
+                   value="{{ current_filters.search }}"
+                   placeholder="Search locations, clients, addresses...">
+            <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Business Category Filter -->
+        <div class="col-md-3">
+          <label for="business_category" class="form-label">Business Category</label>
+          <select name="business_category" id="business_category" class="form-select select2">
+            <option value="">All Categories</option>
+            {% for category in business_categories %}
+            <option value="{{ category.id }}" 
+                    data-color="{{ category.color }}"
+                    {% if category.id|stringformat:"s" == current_filters.business_category %}selected{% endif %}>
+              {{ category.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="col-md-2">
+          <label for="status" class="form-label">Status</label>
+          <select name="status" id="status" class="form-select">
+            <option value="">All Statuses</option>
+            <option value="prospect" {% if current_filters.status == "prospect" %}selected{% endif %}>Prospect</option>
+            <option value="active" {% if current_filters.status == "active" %}selected{% endif %}>Active</option>
+            <option value="complete" {% if current_filters.status == "complete" %}selected{% endif %}>Complete</option>
+            <option value="inactive" {% if current_filters.status == "inactive" %}selected{% endif %}>Inactive</option>
+          </select>
+        </div>
+
+        <!-- Client Filter -->
+        <div class="col-md-3">
+          <label for="client" class="form-label">Client</label>
+          <select name="client" id="client" class="form-select select2">
+            <option value="">All Clients</option>
+            {% for client in clients %}
+            <option value="{{ client.id }}" {% if client.id|stringformat:"s" == current_filters.client %}selected{% endif %}>
+              {{ client.company_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Advanced Filters Toggle -->
+        <div class="col-12">
+          <button type="button" class="btn btn-link p-0" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+            <i class="fas fa-chevron-down me-1"></i> Advanced Filters
+          </button>
+        </div>
+
+        <!-- Advanced Filters -->
+        <div class="collapse" id="advancedFilters">
+          <div class="row g-3 mt-2 pt-3 border-top">
+            <!-- Date Range -->
+            <div class="col-md-3">
+              <label for="date_from" class="form-label">Contract Date From</label>
+              <input type="date" class="form-control" id="date_from" name="date_from" value="{{ current_filters.date_from }}">
+            </div>
+            <div class="col-md-3">
+              <label for="date_to" class="form-label">Contract Date To</label>
+              <input type="date" class="form-control" id="date_to" name="date_to" value="{{ current_filters.date_to }}">
+            </div>
+
+            <!-- GPS Coordinates Filter -->
+            <div class="col-md-3">
+              <label for="has_coordinates" class="form-label">GPS Coordinates</label>
+              <select name="has_coordinates" id="has_coordinates" class="form-select">
+                <option value="">Any</option>
+                <option value="true" {% if current_filters.has_coordinates == "true" %}selected{% endif %}>With Coordinates</option>
+                <option value="false" {% if current_filters.has_coordinates == "false" %}selected{% endif %}>Without Coordinates</option>
+              </select>
+            </div>
+
+            <!-- Sort Order -->
+            <div class="col-md-3">
+              <label for="sort" class="form-label">Sort By</label>
+              <select name="sort" id="sort" class="form-select">
+                <option value="-created_at" {% if current_filters.sort == "-created_at" %}selected{% endif %}>Newest First</option>
+                <option value="created_at" {% if current_filters.sort == "created_at" %}selected{% endif %}>Oldest First</option>
+                <option value="name" {% if current_filters.sort == "name" %}selected{% endif %}>Name A-Z</option>
+                <option value="-name" {% if current_filters.sort == "-name" %}selected{% endif %}>Name Z-A</option>
+                <option value="client__company_name" {% if current_filters.sort == "client__company_name" %}selected{% endif %}>Client A-Z</option>
+                <option value="-contract_signed_date" {% if current_filters.sort == "-contract_signed_date" %}selected{% endif %}>Contract Date (Newest)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Actions -->
+        <div class="col-12">
+          <div class="btn-group" role="group">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search me-1"></i> Apply Filters
+            </button>
+            <a href="{% url 'location:location-list' %}" class="btn btn-outline-secondary">
+              <i class="fas fa-times me-1"></i> Clear All
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Active Filters Display -->
+  {% if current_filters.search or current_filters.business_category or current_filters.status or current_filters.client or current_filters.has_coordinates or current_filters.date_from or current_filters.date_to %}
+  <div class="mb-3">
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <span class="text-muted small">Active filters:</span>
+      
+      {% if current_filters.search %}
+      <span class="badge bg-primary">
+        Search: "{{ current_filters.search }}"
+        <a href="?{% for key, value in current_filters.items %}{% if key != 'search' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="text-white ms-1">×</a>
+      </span>
+      {% endif %}
+
+      {% if current_filters.business_category %}
+      <span class="badge bg-info">
+        Category: {{ business_categories|dictsort:"id"|first.name }}
+        <a href="?{% for key, value in current_filters.items %}{% if key != 'business_category' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="text-white ms-1">×</a>
+      </span>
+      {% endif %}
+
+      {% if current_filters.status %}
+      <span class="badge bg-success">
+        Status: {{ current_filters.status|title }}
+        <a href="?{% for key, value in current_filters.items %}{% if key != 'status' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="text-white ms-1">×</a>
+      </span>
+      {% endif %}
+
+      <a href="{% url 'location:location-list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-times me-1"></i> Clear All
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Location Cards/Table Toggle -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="btn-group btn-group-sm" role="group" aria-label="View toggle">
+      <input type="radio" class="btn-check" name="viewType" id="cardView" checked>
+      <label class="btn btn-outline-primary" for="cardView">
+        <i class="fas fa-th-large"></i> Cards
+      </label>
+      
+      <input type="radio" class="btn-check" name="viewType" id="tableView">
+      <label class="btn btn-outline-primary" for="tableView">
+        <i class="fas fa-list"></i> Table
+      </label>
+    </div>
+
+    <div class="d-flex align-items-center">
+      {% if locations %}
+      <div class="form-check me-3">
+        <input class="form-check-input" type="checkbox" id="selectAll">
+        <label class="form-check-label" for="selectAll">
+          Select All
+        </label>
+      </div>
+      {% endif %}
+      
+      <small class="text-muted">
+        {{ page_obj.paginator.count }} total location{{ page_obj.paginator.count|pluralize }}
+      </small>
+    </div>
+  </div>
+
+  <!-- Card View -->
+  <div id="cardContainer" class="row">
+    {% for location in locations %}
+    <div class="col-xl-4 col-lg-6 col-md-6 mb-4">
+      <div class="card h-100 shadow-sm location-card" data-location-id="{{ location.id }}">
+        <!-- Card Header with Business Category -->
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-2">
+          <div class="d-flex align-items-center">
+            {% if location.business_category %}
+            <i class="{{ location.business_category.icon }} me-2" style="color: {{ location.business_category.color }}"></i>
+            <small class="text-muted">{{ location.business_category.name }}</small>
+            {% else %}
+            <i class="fas fa-map-marker-alt text-muted me-2"></i>
+            <small class="text-muted">No Category</small>
+            {% endif %}
+          </div>
+          <div class="form-check">
+            <input class="form-check-input location-checkbox" type="checkbox" value="{{ location.id }}">
+          </div>
+        </div>
+
+        <!-- Profile Image -->
+        {% if location.profile_image %}
+        <div class="card-img-container" style="height: 200px; overflow: hidden;">
+          <img src="{{ location.profile_image.url }}" 
+               class="card-img-top" 
+               style="height: 100%; object-fit: cover;"
+               alt="{{ location.name }}">
+        </div>
+        {% endif %}
+
+        <div class="card-body d-flex flex-column">
+          <!-- Location Name and Status -->
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h5 class="card-title mb-0">
+              <a href="{{ location.get_absolute_url }}" class="text-decoration-none">
+                {{ location.name|truncatechars:30 }}
+              </a>
+            </h5>
+            <span class="badge {% if location.status == 'active' %}bg-success{% elif location.status == 'prospect' %}bg-warning{% elif location.status == 'complete' %}bg-secondary{% else %}bg-danger{% endif %}">
+              {{ location.status|title }}
+            </span>
+          </div>
+
+          <!-- Client -->
+          <p class="text-muted mb-2">
+            <i class="fas fa-building me-1"></i>
+            <a href="{{ location.client.get_absolute_url }}" class="text-decoration-none">
+              {{ location.client.company_name }}
+            </a>
+          </p>
+
+          <!-- Description -->
+          {% if location.description %}
+          <p class="card-text small text-muted flex-grow-1">
+            {{ location.description|truncatechars:100 }}
+          </p>
+          {% endif %}
+
+          <!-- Address -->
+          {% if location.primary_address %}
+          <p class="text-muted small mb-2">
+            <i class="fas fa-map-marker-alt me-1"></i>
+            {{ location.primary_address.city }}, {{ location.primary_address.state_province }}
+          </p>
+          {% endif %}
+
+          <!-- Coordinates Badge -->
+          {% if location.coordinates %}
+          <div class="mb-2">
+            <span class="badge bg-info">
+              <i class="fas fa-map-marked-alt me-1"></i>
+              GPS: {{ location.coordinates.0|floatformat:4 }}, {{ location.coordinates.1|floatformat:4 }}
+            </span>
+          </div>
+          {% endif %}
+
+          <!-- Project Count and Contract Value -->
+          <div class="row text-center mt-auto">
+            <div class="col-6">
+              <div class="border-end">
+                <div class="h6 mb-0 text-primary">{{ location.total_projects_count }}</div>
+                <small class="text-muted">{{ location.project_term }}</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="h6 mb-0 text-success">
+                {% if location.total_contract_value %}
+                  ${{ location.total_contract_value|floatformat:0|intcomma }}
+                {% else %}
+                  $0
+                {% endif %}
+              </div>
+              <small class="text-muted">Total Value</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Footer with Actions -->
+        <div class="card-footer bg-transparent">
+          <div class="btn-group w-100" role="group">
+            <a href="{{ location.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-eye"></i> View
+            </a>
+            <a href="{% url 'location:location-update' location.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="fas fa-edit"></i> Edit
+            </a>
+            {% if location.coordinates %}
+            <a href="https://www.google.com/maps?q={{ location.coordinates.0 }},{{ location.coordinates.1 }}" 
+               target="_blank" class="btn btn-sm btn-outline-info">
+              <i class="fas fa-map"></i> Map
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <!-- Empty State -->
+    <div class="col-12">
+      <div class="text-center py-5">
+        <i class="fas fa-map-marker-alt fa-4x text-gray-300 mb-4"></i>
+        <h4 class="text-gray-600">No Locations Found</h4>
+        {% if current_filters.search or current_filters.business_category or current_filters.status %}
+        <p class="text-muted mb-4">Try adjusting your search criteria or filters.</p>
+        <a href="{% url 'location:location-list' %}" class="btn btn-outline-primary me-2">
+          <i class="fas fa-times me-1"></i> Clear Filters
+        </a>
+        {% else %}
+        <p class="text-muted mb-4">Get started by creating your first location.</p>
+        {% endif %}
+        <a href="{% url 'location:location-create' %}" class="btn btn-primary">
+          <i class="fas fa-plus me-1"></i> Add Location
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Table View (Hidden by default) -->
+  <div id="tableContainer" class="d-none">
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th width="30">
+                <input type="checkbox" id="selectAllTable" class="form-check-input">
+              </th>
+              <th>Location</th>
+              <th>Client</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Address</th>
+              <th>{{ locations.0.project_term|default:"Projects" }}</th>
+              <th>Value</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for location in locations %}
+            <tr>
+              <td>
+                <input type="checkbox" class="form-check-input location-checkbox" value="{{ location.id }}">
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  {% if location.business_category %}
+                  <i class="{{ location.business_category.icon }} me-2" style="color: {{ location.business_category.color }}"></i>
+                  {% endif %}
+                  <div>
+                    <a href="{{ location.get_absolute_url }}" class="text-decoration-none fw-bold">
+                      {{ location.name }}
+                    </a>
+                    {% if location.coordinates %}
+                    <br><small class="text-muted">
+                      <i class="fas fa-map-marked-alt me-1"></i>GPS Available
+                    </small>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <a href="{{ location.client.get_absolute_url }}" class="text-decoration-none">
+                  {{ location.client.company_name }}
+                </a>
+              </td>
+              <td>
+                {% if location.business_category %}
+                <span class="badge" style="background-color: {{ location.business_category.color }}">
+                  {{ location.business_category.name }}
+                </span>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge {% if location.status == 'active' %}bg-success{% elif location.status == 'prospect' %}bg-warning{% elif location.status == 'complete' %}bg-secondary{% else %}bg-danger{% endif %}">
+                  {{ location.status|title }}
+                </span>
+              </td>
+              <td>
+                {% if location.primary_address %}
+                <small>
+                  {{ location.primary_address.city }}, {{ location.primary_address.state_province }}
+                </small>
+                {% else %}
+                <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-primary">{{ location.total_projects_count }}</span>
+              </td>
+              <td>
+                {% if location.total_contract_value %}
+                <span class="text-success fw-bold">
+                  ${{ location.total_contract_value|floatformat:0|intcomma }}
+                </span>
+                {% else %}
+                <span class="text-muted">$0</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm" role="group">
+                  <a href="{{ location.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a href="{% url 'location:location-update' location.pk %}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  {% if location.coordinates %}
+                  <a href="https://www.google.com/maps?q={{ location.coordinates.0 }},{{ location.coordinates.1 }}" 
+                     target="_blank" class="btn btn-outline-info btn-sm">
+                    <i class="fas fa-map"></i>
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if is_paginated %}
+  <div class="d-flex justify-content-between align-items-center mt-4">
+    <div class="text-muted">
+      Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} locations
+    </div>
+    
+    <nav aria-label="Location pagination">
+      <ul class="pagination mb-0">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?{% for key, value in current_filters.items %}{% if value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">
+            <i class="fas fa-angle-double-left"></i>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?{% for key, value in current_filters.items %}{% if value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+            <i class="fas fa-angle-left"></i>
+          </a>
+        </li>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+          <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+          <a class="page-link" href="?{% for key, value in current_filters.items %}{% if value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?{% for key, value in current_filters.items %}{% if value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+            <i class="fas fa-angle-right"></i>
+          </a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?{% for key, value in current_filters.items %}{% if value %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">
+            <i class="fas fa-angle-double-right"></i>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Bulk Action Modal -->
+<div class="modal fade" id="bulkActionModal" tabindex="-1" aria-labelledby="bulkActionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bulkActionModalLabel">
+          <i class="fas fa-tasks me-2"></i>Bulk Actions
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="bulkActionForm" method="post" action="{% url 'location:location-bulk-update' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Selected Locations</label>
+            <div id="selectedLocationsList" class="border rounded p-2 bg-light">
+              <em class="text-muted">No locations selected</em>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="bulkAction" class="form-label">Action</label>
+            <select class="form-select" id="bulkAction" name="action" required>
+              <option value="">Select Action</option>
+              <option value="update_status">Update Status</option>
+              <option value="update_category">Update Business Category</option>
+              <option value="add_note">Add Note to All</option>
+              <option value="recalculate_totals">Recalculate Contract Totals</option>
+              <option value="export">Export Selected</option>
+            </select>
+          </div>
+
+          <!-- Conditional Fields -->
+          <div id="statusUpdate" class="mb-3 d-none">
+            <label for="newStatus" class="form-label">New Status</label>
+            <select class="form-select" id="newStatus" name="new_status">
+              <option value="prospect">Prospect</option>
+              <option value="active">Active</option>
+              <option value="complete">Complete</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div id="categoryUpdate" class="mb-3 d-none">
+            <label for="newCategory" class="form-label">New Business Category</label>
+            <select class="form-select" id="newCategory" name="new_business_category">
+              {% for category in business_categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div id="noteAdd" class="d-none">
+            <div class="mb-3">
+              <label for="noteTitle" class="form-label">Note Title</label>
+              <input type="text" class="form-control" id="noteTitle" name="bulk_note_title" placeholder="Note title">
+            </div>
+            <div class="mb-3">
+              <label for="noteContent" class="form-label">Note Content</label>
+              <textarea class="form-control" id="noteContent" name="bulk_note_content" rows="3" placeholder="Note content"></textarea>
+            </div>
+          </div>
+
+          <input type="hidden" id="selectedLocationIds" name="location_ids">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" form="bulkActionForm" class="btn btn-primary">Apply Action</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select option...'
+    });
+
+    // View Toggle
+    const cardView = document.getElementById('cardView');
+    const tableView = document.getElementById('tableView');
+    const cardContainer = document.getElementById('cardContainer');
+    const tableContainer = document.getElementById('tableContainer');
+
+    cardView.addEventListener('change', function() {
+        if (this.checked) {
+            cardContainer.classList.remove('d-none');
+            tableContainer.classList.add('d-none');
+        }
+    });
+
+    tableView.addEventListener('change', function() {
+        if (this.checked) {
+            cardContainer.classList.add('d-none');
+            tableContainer.classList.remove('d-none');
+        }
+    });
+
+    // Select All Functionality
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const selectAllTableCheckbox = document.getElementById('selectAllTable');
+    const locationCheckboxes = document.querySelectorAll('.location-checkbox');
+
+    function updateSelectAll() {
+        const checkedBoxes = document.querySelectorAll('.location-checkbox:checked');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = checkedBoxes.length === locationCheckboxes.length;
+            selectAllCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < locationCheckboxes.length;
+        }
+        if (selectAllTableCheckbox) {
+            selectAllTableCheckbox.checked = checkedBoxes.length === locationCheckboxes.length;
+            selectAllTableCheckbox.indeterminate = checkedBoxes.length > 0 && checkedBoxes.length < locationCheckboxes.length;
+        }
+        updateBulkActionButton();
+    }
+
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            locationCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActionButton();
+        });
+    }
+
+    if (selectAllTableCheckbox) {
+        selectAllTableCheckbox.addEventListener('change', function() {
+            locationCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActionButton();
+        });
+    }
+
+    locationCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectAll);
+    });
+
+    // Bulk Actions
+    function updateBulkActionButton() {
+        const checkedBoxes = document.querySelectorAll('.location-checkbox:checked');
+        const bulkActionBtn = document.querySelector('[data-bs-target="#bulkActionModal"]');
+        
+        if (bulkActionBtn) {
+            if (checkedBoxes.length > 0) {
+                bulkActionBtn.classList.remove('disabled');
+                bulkActionBtn.textContent = `Bulk Actions (${checkedBoxes.length})`;
+            } else {
+                bulkActionBtn.classList.add('disabled');
+                bulkActionBtn.textContent = 'Bulk Actions';
+            }
+        }
+    }
+
+    // Bulk Action Modal
+    const bulkActionModal = document.getElementById('bulkActionModal');
+    if (bulkActionModal) {
+        bulkActionModal.addEventListener('show.bs.modal', function() {
+            const checkedBoxes = document.querySelectorAll('.location-checkbox:checked');
+            const selectedLocationsList = document.getElementById('selectedLocationsList');
+            const selectedLocationIds = document.getElementById('selectedLocationIds');
+            
+            if (checkedBoxes.length > 0) {
+                const locationNames = Array.from(checkedBoxes).map(checkbox => {
+                    const card = checkbox.closest('.location-card') || checkbox.closest('tr');
+                    return card.querySelector('a').textContent.trim();
+                });
+                
+                selectedLocationsList.innerHTML = locationNames.map(name => 
+                    `<span class="badge bg-primary me-1">${name}</span>`
+                ).join('');
+                
+                selectedLocationIds.value = Array.from(checkedBoxes).map(cb => cb.value).join(',');
+            } else {
+                selectedLocationsList.innerHTML = '<em class="text-muted">No locations selected</em>';
+            }
+        });
+    }
+
+    // Bulk Action Type Change
+    const bulkActionSelect = document.getElementById('bulkAction');
+    if (bulkActionSelect) {
+        bulkActionSelect.addEventListener('change', function() {
+            // Hide all conditional fields
+            document.querySelectorAll('#statusUpdate, #categoryUpdate, #noteAdd').forEach(el => {
+                el.classList.add('d-none');
+            });
+            
+            // Show relevant field
+            switch(this.value) {
+                case 'update_status':
+                    document.getElementById('statusUpdate').classList.remove('d-none');
+                    break;
+                case 'update_category':
+                    document.getElementById('categoryUpdate').classList.remove('d-none');
+                    break;
+                case 'add_note':
+                    document.getElementById('noteAdd').classList.remove('d-none');
+                    break;
+            }
+        });
+    }
+
+    // Clear Search
+    const clearSearchBtn = document.getElementById('clearSearch');
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', function() {
+            document.getElementById('search').value = '';
+            document.getElementById('filterForm').submit();
+        });
+    }
+
+    // Auto-submit form on filter change
+    document.querySelectorAll('#business_category, #status, #client, #has_coordinates, #sort').forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('filterForm').submit();
+        });
+    });
+
+    // Initialize tooltips and popovers
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

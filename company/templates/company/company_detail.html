@@ -1,0 +1,482 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}{{ company.company_name }}{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+<li class="breadcrumb-item active">{{ company.company_name }}</li>
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center">
+                    {% if company.logo %}
+                        <img src="{{ company.logo.url }}" alt="{{ company.company_name }}" class="logo-preview me-3" style="max-width: 80px; max-height: 60px;">
+                    {% else %}
+                        <i class="fas fa-building fa-3x me-3"></i>
+                    {% endif %}
+                    <div>
+                        <h1 class="mb-0">{{ company.company_name }}</h1>
+                        {% if company.legal_name and company.legal_name != company.company_name %}
+                            <p class="mb-0 opacity-75">Legal Name: {{ company.legal_name }}</p>
+                        {% endif %}
+                        {% if company.business_category %}
+                            <span class="badge bg-light text-dark">{{ company.business_category.name }}</span>
+                        {% endif %}
+                        {% if company.business_type %}
+                            <span class="badge bg-light text-dark">{{ company.get_business_type_display }}</span>
+                        {% endif %}
+                        <span class="badge {% if company.is_active %}bg-success{% else %}bg-secondary{% endif %} ms-2">
+                            {% if company.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'company:dashboard' company.pk %}" class="btn btn-light">
+                        <i class="fas fa-chart-bar"></i> Dashboard
+                    </a>
+                    {% if user.is_staff %}
+                        <a href="{% url 'company:update' company.pk %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Company Information -->
+    <div class="col-lg-8">
+        <!-- Company Overview -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Company Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Primary Contact</h6>
+                        <p class="mb-3">
+                            <strong>{{ company.primary_contact_name }}</strong>
+                            {% if company.primary_contact_title %}
+                                <br><small class="text-muted">{{ company.primary_contact_title }}</small>
+                            {% endif %}
+                            {% if company.primary_email %}
+                                <br><i class="fas fa-envelope text-muted"></i> 
+                                <a href="mailto:{{ company.primary_email }}">{{ company.primary_email }}</a>
+                            {% endif %}
+                            {% if company.primary_phone %}
+                                <br><i class="fas fa-phone text-muted"></i> 
+                                <a href="tel:{{ company.primary_phone }}">{{ company.primary_phone }}</a>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Company Details</h6>
+                        {% if company.company_url %}
+                            <p><i class="fas fa-globe text-muted"></i> 
+                                <a href="{{ company.company_url }}" target="_blank" rel="noopener">{{ company.company_url }}</a>
+                            </p>
+                        {% endif %}
+                        {% if company.founded_date %}
+                            <p><i class="fas fa-calendar text-muted"></i> Founded: {{ company.founded_date|date:"F d, Y" }}</p>
+                        {% endif %}
+                        {% if company.tax_id %}
+                            <p><i class="fas fa-id-card text-muted"></i> Tax ID: {{ company.tax_id }}</p>
+                        {% endif %}
+                        {% if company.business_license %}
+                            <p><i class="fas fa-certificate text-muted"></i> License: {{ company.business_license }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if company.description %}
+                    <div class="mt-3">
+                        <h6 class="text-muted">Description</h6>
+                        <p>{{ company.description|linebreaks }}</p>
+                    </div>
+                {% endif %}
+                
+                {% if company.mission_statement %}
+                    <div class="mt-3">
+                        <h6 class="text-muted">Mission Statement</h6>
+                        <blockquote class="blockquote">
+                            <p class="mb-0">{{ company.mission_statement }}</p>
+                        </blockquote>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Addresses -->
+        {% if addresses %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Addresses</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for address in addresses %}
+                    <div class="col-md-6 mb-3">
+                        <div class="border rounded p-3 {% if address.is_primary %}border-primary{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h6 class="mb-1">
+                                    {{ address.get_label_display|capfirst }}
+                                    {% if address.is_primary %}
+                                        <span class="badge bg-primary">Primary</span>
+                                    {% endif %}
+                                </h6>
+                            </div>
+                            {% if address.attention_line %}
+                                <p class="mb-1">{{ address.attention_line }}</p>
+                            {% endif %}
+                            <p class="mb-0">
+                                {{ address.line1 }}<br>
+                                {% if address.line2 %}{{ address.line2 }}<br>{% endif %}
+                                {{ address.city }}, {{ address.state_province }} {{ address.postal_code }}
+                                {% if address.country and address.country != 'United States' %}
+                                    <br>{{ address.country }}
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Offices -->
+        {% if offices %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-building"></i> Offices ({{ offices.count }})</h5>
+                {% if user.is_staff %}
+                    <a href="{% url 'company:office-create' company.pk %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-plus"></i> Add Office
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for office in offices %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="card-title">
+                                            <a href="{% url 'company:office-detail' office.pk %}">{{ office.office_name }}</a>
+                                            {% if office.office_code %}
+                                                <small class="text-muted">({{ office.office_code }})</small>
+                                            {% endif %}
+                                        </h6>
+                                        <span class="badge office-type-badge {% if office.office_type == 'headquarters' %}bg-primary{% elif office.office_type == 'branch' %}bg-info{% else %}bg-secondary{% endif %}">
+                                            {{ office.get_office_type_display }}
+                                        </span>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">{{ office.employee_count }} employees</small>
+                                        {% if office.employee_capacity %}
+                                            <br><small class="text-muted">Capacity: {{ office.employee_capacity }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if office.office_manager %}
+                                    <p class="card-text mt-2 mb-1">
+                                        <small><i class="fas fa-user text-muted"></i> {{ office.office_manager }}</small>
+                                    </p>
+                                {% endif %}
+                                {% if office.phone_number %}
+                                    <p class="card-text mb-1">
+                                        <small><i class="fas fa-phone text-muted"></i> {{ office.phone_number }}</small>
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Departments -->
+        {% if departments %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-sitemap"></i> Departments ({{ departments.count }})</h5>
+                {% if user.is_staff %}
+                    <a href="{% url 'company:department-create' company.pk %}" class="btn btn-dark btn-sm">
+                        <i class="fas fa-plus"></i> Add Department
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% for department in departments %}
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                        <strong>
+                            <a href="{% url 'company:department-detail' department.pk %}">{{ department.name }}</a>
+                        </strong>
+                        {% if department.department_code %}
+                            <small class="text-muted">({{ department.department_code }})</small>
+                        {% endif %}
+                        {% if department.parent_department %}
+                            <div class="department-hierarchy">
+                                <i class="fas fa-level-up-alt"></i> {{ department.parent_department.name }}
+                            </div>
+                        {% endif %}
+                        {% if department.department_head %}
+                            <div><small class="text-muted"><i class="fas fa-user-tie"></i> {{ department.department_head }}</small></div>
+                        {% endif %}
+                    </div>
+                    <div class="text-end">
+                        <div>
+                            <span class="badge {% if department.is_billable %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if department.is_billable %}Billable{% else %}Non-billable{% endif %}
+                            </span>
+                        </div>
+                        <small class="text-muted">{{ department.employee_count }} employees</small>
+                        {% if department.annual_budget %}
+                            <br><small class="text-muted">${{ department.annual_budget|floatformat:0 }} budget</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Additional Contacts -->
+        {% if contacts %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-address-book"></i> Additional Contacts</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for contact in contacts %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    {{ contact.first_name }} {{ contact.last_name }}
+                                    {% if contact.is_primary %}
+                                        <span class="badge bg-primary">Primary</span>
+                                    {% endif %}
+                                </h6>
+                                {% if contact.title %}
+                                    <p class="text-muted mb-1">{{ contact.title }}</p>
+                                {% endif %}
+                                {% if contact.department %}
+                                    <p class="text-muted mb-1">{{ contact.department }}</p>
+                                {% endif %}
+                                {% if contact.email %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-envelope text-muted"></i> 
+                                        <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+                                    </p>
+                                {% endif %}
+                                {% if contact.phone %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-phone text-muted"></i> 
+                                        <a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>
+                                    </p>
+                                {% endif %}
+                                {% if contact.mobile %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-mobile-alt text-muted"></i> 
+                                        <a href="tel:{{ contact.mobile }}">{{ contact.mobile }}</a>
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Statistics Card -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Company Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="stat-card blue">
+                            <div class="h3 mb-0">{{ statistics.total_offices }}</div>
+                            <small>Office Locations</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-card green">
+                            <div class="h3 mb-0">{{ statistics.total_departments }}</div>
+                            <small>Departments</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-card orange">
+                            <div class="h3 mb-0">{{ statistics.total_employees }}</div>
+                            <small>Total Employees</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-card">
+                            <div class="h3 mb-0">
+                                {% if statistics.revenue_growth > 0 %}+{% endif %}{{ statistics.revenue_growth|floatformat:1 }}%
+                            </div>
+                            <small>Revenue Growth</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Financial Information -->
+                {% if company.current_year_revenue or company.previous_year_revenue %}
+                <hr>
+                <h6 class="text-muted">Financial Overview</h6>
+                {% if company.current_year_revenue %}
+                    <div class="d-flex justify-content-between">
+                        <span>Current Year Revenue:</span>
+                        <strong>${{ company.current_year_revenue|floatformat:0 }}</strong>
+                    </div>
+                {% endif %}
+                {% if company.previous_year_revenue %}
+                    <div class="d-flex justify-content-between">
+                        <span>Previous Year Revenue:</span>
+                        <strong>${{ company.previous_year_revenue|floatformat:0 }}</strong>
+                    </div>
+                {% endif %}
+                {% endif %}
+                
+                <!-- Company Settings -->
+                <hr>
+                <h6 class="text-muted">Settings</h6>
+                <div class="small">
+                    <div class="d-flex justify-content-between">
+                        <span>Timezone:</span>
+                        <span>{{ company.get_timezone_display }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Currency:</span>
+                        <span>{{ company.get_currency_display }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Fiscal Year Start:</span>
+                        <span>{{ company.get_fiscal_year_start_display|default:"January" }}</span>
+                    </div>
+                    {% if company.default_payment_terms %}
+                    <div class="d-flex justify-content-between">
+                        <span>Payment Terms:</span>
+                        <span>{{ company.default_payment_terms }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Company Hierarchy -->
+        {% if company.is_subsidiary or company.has_subsidiaries %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-sitemap"></i> Company Structure</h5>
+            </div>
+            <div class="card-body">
+                {% if company.is_subsidiary %}
+                    <h6 class="text-muted">Parent Company</h6>
+                    <p class="mb-3">
+                        <a href="{% url 'company:detail' company.parent_company.pk %}">
+                            <i class="fas fa-building"></i> {{ company.parent_company.company_name }}
+                        </a>
+                    </p>
+                {% endif %}
+                
+                {% if company.has_subsidiaries %}
+                    <h6 class="text-muted">Subsidiaries ({{ subsidiaries.count }})</h6>
+                    {% for subsidiary in subsidiaries %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-1">
+                            <a href="{% url 'company:detail' subsidiary.pk %}">
+                                <i class="fas fa-building"></i> {{ subsidiary.company_name }}
+                            </a>
+                            <span class="badge {% if subsidiary.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if subsidiary.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-lightning-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'company:dashboard' company.pk %}" class="btn btn-outline-primary">
+                        <i class="fas fa-chart-bar"></i> View Dashboard
+                    </a>
+                    {% if user.is_staff %}
+                        <a href="{% url 'company:office-create' company.pk %}" class="btn btn-outline-success">
+                            <i class="fas fa-building"></i> Add Office
+                        </a>
+                        <a href="{% url 'company:department-create' company.pk %}" class="btn btn-outline-warning">
+                            <i class="fas fa-sitemap"></i> Add Department
+                        </a>
+                        <a href="{% url 'company:update' company.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit"></i> Edit Company
+                        </a>
+                        <a href="{% url 'company:setup-defaults' company.pk %}" class="btn btn-outline-info">
+                            <i class="fas fa-cog"></i> Setup Defaults
+                        </a>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                        <button type="button" class="btn btn-outline-danger" 
+                                onclick="CompanyUtils.confirmDelete('{{ company.company_name }}', '{% url 'company:delete' company.pk %}')">
+                            <i class="fas fa-trash"></i> Delete Company
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        {% if recent_clients %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-clock"></i> Recent Clients</h5>
+            </div>
+            <div class="card-body">
+                {% for client in recent_clients %}
+                <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                    <div>
+                        <strong>{{ client.name }}</strong>
+                        <br><small class="text-muted">{{ client.created_at|date:"M d, Y" }}</small>
+                    </div>
+                    <a href="{{ client.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

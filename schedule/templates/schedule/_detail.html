@@ -1,0 +1,87 @@
+{% load i18n %}
+{% load scheduletags %}
+
+<div class="modal fade" id="{% hash_occurrence occurrence %}" tabindex="-1" role="dialog" >
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <a style="color:black;font-weight:bold;" href="{{ occurrence.event.get_absolute_url }}"><h4 class="modal-title" id="myModalLabel" style="float:left;">{{occurrence.title}}</h4></a>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        
+      </div>
+      <div class="modal-body">
+        <table class="table table-striped">
+            {% if occurrence.event.project %}
+            <tr>
+                <td class="left">Project</td>
+                <td><a style="color:black;font-weight:bold;" href="{{ occurrence.event.project.get_absolute_url }}">{{occurrence.event.project.job_name}}</a></td>
+            </tr>
+            {% endif %}
+            {% if occurrence.event.start_time %}
+            <tr>
+                <td class="left">Office</td>
+                <td>{{ occurrence.event.start_time }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td class="left">{% trans "Starts" %}</td>
+                <td>{% blocktrans with occurrence.start|date:_("DATETIME_FORMAT") as start_date %}{{ start_date }}{% endblocktrans %}</td>
+            </tr>
+            <tr>
+                <td class="left">{% trans "Ends" %}</td>
+                <td>{% blocktrans with occurrence.end|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}</td>
+            </tr>
+            {% if occurrence.event.rule %}
+                {% if not occurrence.id %}
+                    <tr>
+                        <td class="left">{% trans "Reoccurs" %}</td><td>{{occurrence.event.rule}}</td>
+                    </tr>
+                    {% if occurrence.event.end_recurring_period %}
+                        <tr>
+                            <td class="left">{% trans "Until" %}</td>
+                            <td>{% blocktrans with occurrence.event.end_recurring_period|date:_("DATETIME_FORMAT") as end_date %}{{ end_date }}{% endblocktrans %}</td>
+                        </tr>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+            <tr>
+                <td colspan="2">
+                    {% if occurrence.description %}
+                    <h3>{% trans "Description" %}</h3>
+                    <p>{{occurrence.description}}</p>
+                    {% endif %}
+                </td>
+            </tr>
+            {% if occurrence.event.text %}
+            <tr>
+                <td colspan="2">
+                    <h3>Contractor Notes:</h3>
+                    <p>{{occurrence.event.text}}</p>
+                </td>
+            </tr>
+            {% endif %}
+            {% if occurrence.event.workers %}
+            <tr>
+                <td colspan="2">
+                    <h3>Workers:</h3>
+                    <ul>
+                        {% for workers in occurrence.event.workers.all %}
+                        <li>
+                            <a style="color:black;font-weight:bold;" href="{{ workers.get_absolute_url }}">
+                            {{ workers.first_name }} {{ workers.last_name }} :</a> 
+                            <a style="color:black;font-weight:bold;" href="tel:{{ workers.phone_number }}">
+                            {{ workers.phone_number }}</a></li>
+                        {% if not forloop.last %} {% endif %}
+                        {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+      </div>
+      <div class="modal-footer">
+       <button type="button" class="btn btn-default" data-dismiss="modal">{% trans "Close" %}</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,454 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}{% if company %}{{ company.company_name }} Departments{% else %}All Departments{% endif %}{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+{% if company %}
+    <li class="breadcrumb-item"><a href="{% url 'company:detail' company.pk %}">{{ company.company_name }}</a></li>
+    <li class="breadcrumb-item active">Departments</li>
+{% else %}
+    <li class="breadcrumb-item active">All Departments</li>
+{% endif %}
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="fas fa-sitemap"></i> 
+                    {% if company %}{{ company.company_name }} Departments{% else %}All Departments{% endif %}
+                </h1>
+                <p class="mb-0 mt-2">
+                    {% if company %}
+                        Manage organizational departments for {{ company.company_name }}
+                    {% else %}
+                        View and manage all departments across companies
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                {% if company and user.is_staff %}
+                    <a href="{% url 'company:department-create' company.pk %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-plus"></i> Add Department
+                    </a>
+                {% endif %}
+                {% if company %}
+                    <a href="{% url 'company:detail' company.pk %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Back to Company
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Statistics -->
+{% if departments %}
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card blue">
+            <div class="h3 mb-0">{{ departments.count }}</div>
+            <small>Total Departments</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card green">
+            <div class="h3 mb-0">
+                {% for dept in departments %}{% if dept.is_billable %}{{ forloop.counter }}{% endif %}{% endfor %}
+            </div>
+            <small>Billable Departments</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card orange">
+            <div class="h3 mb-0">
+                {% for dept in departments %}{{ dept.employee_count|add:0 }}{% endfor %}
+            </div>
+            <small>Total Employees</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card">
+            <div class="h3 mb-0">
+                {% for dept in departments %}
+                    {% if dept.annual_budget %}{{ dept.annual_budget|floatformat:0|add:0 }}{% endif %}
+                {% endfor %}
+            </div>
+            <small>Total Budget</small>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Department Hierarchy View -->
+<div class="row">
+    <div class="col-12">
+        <div class="card company-card mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-sitemap"></i> Department Structure</h5>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-light btn-sm active" onclick="toggleView('hierarchy')">
+                        <i class="fas fa-sitemap"></i> Hierarchy
+                    </button>
+                    <button type="button" class="btn btn-outline-light btn-sm" onclick="toggleView('grid')">
+                        <i class="fas fa-th"></i> Grid
+                    </button>
+                    <button type="button" class="btn btn-outline-light btn-sm" onclick="toggleView('table')">
+                        <i class="fas fa-table"></i> Table
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Hierarchy View -->
+                <div id="hierarchy-view">
+                    {% regroup departments by parent_department as department_groups %}
+                    
+                    <!-- Top-level departments (no parent) -->
+                    {% for group in department_groups %}
+                        {% if not group.grouper %}
+                            {% for dept in group.list %}
+                                <div class="department-node" data-dept-id="{{ dept.id }}">
+                                    <div class="department-card top-level">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-sitemap text-primary me-2"></i>
+                                                <div>
+                                                    <h6 class="mb-0">
+                                                        <a href="{% url 'company:department-detail' dept.pk %}" class="text-decoration-none">
+                                                            {{ dept.name }}
+                                                        </a>
+                                                        {% if dept.department_code %}
+                                                            <small class="text-muted">({{ dept.department_code }})</small>
+                                                        {% endif %}
+                                                    </h6>
+                                                    {% if dept.department_head %}
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user-tie"></i> {{ dept.department_head }}
+                                                        </small>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge {% if dept.is_billable %}bg-success{% else %}bg-secondary{% endif %} me-2">
+                                                    {% if dept.is_billable %}Billable{% else %}Non-billable{% endif %}
+                                                </span>
+                                                <span class="badge bg-info">{{ dept.employee_count }} employees</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Sub-departments -->
+                                    {% for sub_group in department_groups %}
+                                        {% if sub_group.grouper.id == dept.id %}
+                                            <div class="sub-departments">
+                                                {% for sub_dept in sub_group.list %}
+                                                    <div class="department-card sub-level">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="fas fa-level-up-alt text-info me-2"></i>
+                                                                <div>
+                                                                    <h6 class="mb-0">
+                                                                        <a href="{% url 'company:department-detail' sub_dept.pk %}" class="text-decoration-none">
+                                                                            {{ sub_dept.name }}
+                                                                        </a>
+                                                                        {% if sub_dept.department_code %}
+                                                                            <small class="text-muted">({{ sub_dept.department_code }})</small>
+                                                                        {% endif %}
+                                                                    </h6>
+                                                                    {% if sub_dept.department_head %}
+                                                                        <small class="text-muted">
+                                                                            <i class="fas fa-user-tie"></i> {{ sub_dept.department_head }}
+                                                                        </small>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                            <div class="d-flex align-items-center">
+                                                                <span class="badge {% if sub_dept.is_billable %}bg-success{% else %}bg-secondary{% endif %} me-2">
+                                                                    {% if sub_dept.is_billable %}Billable{% else %}Non-billable{% endif %}
+                                                                </span>
+                                                                <span class="badge bg-info">{{ sub_dept.employee_count }} employees</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Grid View -->
+                <div id="grid-view" style="display: none;">
+                    <div class="row">
+                        {% for dept in departments %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0">
+                                            <a href="{% url 'company:department-detail' dept.pk %}" class="text-decoration-none">
+                                                {{ dept.name }}
+                                            </a>
+                                            {% if dept.department_code %}
+                                                <small class="text-muted">({{ dept.department_code }})</small>
+                                            {% endif %}
+                                        </h6>
+                                        {% if dept.parent_department %}
+                                            <small class="text-muted">
+                                                <i class="fas fa-level-up-alt"></i> {{ dept.parent_department.name }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+                                    <span class="badge {% if dept.is_billable %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {% if dept.is_billable %}Billable{% else %}Non-billable{% endif %}
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center mb-3">
+                                        <div class="col-6">
+                                            <div class="p-2 bg-light rounded">
+                                                <div class="h5 mb-0 text-primary">{{ dept.employee_count }}</div>
+                                                <small class="text-muted">Employees</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="p-2 bg-light rounded">
+                                                <div class="h5 mb-0 text-success">
+                                                    {% if dept.annual_budget %}${{ dept.annual_budget|floatformat:0 }}{% else %}—{% endif %}
+                                                </div>
+                                                <small class="text-muted">Budget</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if dept.department_head %}
+                                        <p class="mb-2">
+                                            <i class="fas fa-user-tie text-muted"></i> 
+                                            <strong>Head:</strong> {{ dept.department_head }}
+                                        </p>
+                                    {% endif %}
+                                    
+                                    {% if dept.primary_office %}
+                                        <p class="mb-2">
+                                            <i class="fas fa-building text-muted"></i> 
+                                            <strong>Office:</strong> {{ dept.primary_office.office_name }}
+                                        </p>
+                                    {% endif %}
+                                    
+                                    {% if dept.cost_center_code %}
+                                        <p class="mb-2">
+                                            <i class="fas fa-code text-muted"></i> 
+                                            <strong>Cost Center:</strong> {{ dept.cost_center_code }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <div class="btn-group w-100" role="group">
+                                        <a href="{% url 'company:department-detail' dept.pk %}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                        {% if user.is_staff %}
+                                            <a href="#" class="btn btn-outline-warning btn-sm">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Table View -->
+                <div id="table-view" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Department</th>
+                                    <th>Parent</th>
+                                    <th>Head</th>
+                                    <th>Employees</th>
+                                    <th>Budget</th>
+                                    <th>Office</th>
+                                    <th>Billable</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dept in departments %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ dept.name }}</strong>
+                                        {% if dept.department_code %}
+                                            <br><small class="text-muted">{{ dept.department_code }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if dept.parent_department %}
+                                            {{ dept.parent_department.name }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ dept.department_head|default:"—" }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ dept.employee_count }}</span>
+                                    </td>
+                                    <td>
+                                        {% if dept.annual_budget %}
+                                            ${{ dept.annual_budget|floatformat:0 }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if dept.primary_office %}
+                                            {{ dept.primary_office.office_name }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if dept.is_billable %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if dept.is_billable %}Yes{% else %}No{% endif %}
+                                        </span>
+                                    </td>
+                                    <td class="table-actions">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'company:department-detail' dept.pk %}" class="btn btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if user.is_staff %}
+                                                <a href="#" class="btn btn-outline-warning">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Empty State -->
+{% if not departments %}
+<div class="text-center py-5">
+    <i class="fas fa-sitemap fa-3x text-muted mb-3"></i>
+    <h4 class="text-muted">No Departments Found</h4>
+    <p class="text-muted">
+        {% if company %}
+            {{ company.company_name }} doesn't have any departments yet.
+        {% else %}
+            No departments have been created yet.
+        {% endif %}
+    </p>
+    {% if company and user.is_staff %}
+        <a href="{% url 'company:department-create' company.pk %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add First Department
+        </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+function toggleView(viewType) {
+    // Hide all views
+    document.getElementById('hierarchy-view').style.display = 'none';
+    document.getElementById('grid-view').style.display = 'none';
+    document.getElementById('table-view').style.display = 'none';
+    
+    // Show selected view
+    document.getElementById(viewType + '-view').style.display = 'block';
+    
+    // Update button states
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+}
+
+// Add interactive features for hierarchy view
+document.addEventListener('DOMContentLoaded', function() {
+    // Add expand/collapse functionality to department nodes
+    const departmentNodes = document.querySelectorAll('.department-node');
+    departmentNodes.forEach(node => {
+        const subDepts = node.querySelector('.sub-departments');
+        if (subDepts) {
+            const topLevel = node.querySelector('.top-level');
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'btn btn-sm btn-outline-secondary ms-2';
+            toggleBtn.innerHTML = '<i class="fas fa-chevron-down"></i>';
+            toggleBtn.onclick = function() {
+                if (subDepts.style.display === 'none') {
+                    subDepts.style.display = 'block';
+                    this.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                } else {
+                    subDepts.style.display = 'none';
+                    this.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+            };
+            topLevel.querySelector('.d-flex').appendChild(toggleBtn);
+        }
+    });
+});
+</script>
+
+<style>
+.department-card {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.department-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.department-card.top-level {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-left: 4px solid #007bff;
+}
+
+.department-card.sub-level {
+    margin-left: 2rem;
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    border-left: 4px solid #17a2b8;
+}
+
+.sub-departments {
+    margin-top: 0.5rem;
+}
+
+.department-node {
+    margin-bottom: 1rem;
+}
+
+.table-actions .btn-group {
+    white-space: nowrap;
+}
+
+.stat-card {
+    position: relative;
+    z-index: 1;
+}
+</style>
+{% endblock %}

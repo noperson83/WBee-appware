@@ -1,0 +1,618 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Company{% else %}Create Company{% endif %}{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+{% if form.instance.pk %}
+    <li class="breadcrumb-item"><a href="{% url 'company:detail' form.instance.pk %}">{{ form.instance.company_name }}</a></li>
+    <li class="breadcrumb-item active">Edit</li>
+{% else %}
+    <li class="breadcrumb-item active">Create</li>
+{% endif %}
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus{% endif %}"></i>
+                    {% if form.instance.pk %}Edit Company{% else %}Create New Company{% endif %}
+                </h1>
+                <p class="mb-0 mt-2">
+                    {% if form.instance.pk %}
+                        Update {{ form.instance.company_name }}'s information
+                    {% else %}
+                        Add a new company to your organization
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                {% if form.instance.pk %}
+                    <a href="{% url 'company:detail' form.instance.pk %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Back to Company
+                    </a>
+                {% else %}
+                    <a href="{% url 'company:list' %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Back to Companies
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            <h6><i class="fas fa-exclamation-triangle"></i> Please correct the following errors:</h6>
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Main Form -->
+        <div class="col-lg-8">
+            <!-- Basic Information -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="{{ form.company_name.id_for_label }}" class="form-label required">Company Name</label>
+                                {{ form.company_name }}
+                                {% if form.company_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.company_name.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">The primary name your company is known by</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.business_type.id_for_label }}" class="form-label">Business Type</label>
+                                {{ form.business_type }}
+                                {% if form.business_type.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.business_type.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="{{ form.legal_name.id_for_label }}" class="form-label">Legal Name</label>
+                                {{ form.legal_name }}
+                                {% if form.legal_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.legal_name.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Legal business name if different from company name</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.business_category.id_for_label }}" class="form-label">Business Category</label>
+                                {{ form.business_category }}
+                                {% if form.business_category.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.business_category.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.company_url.id_for_label }}" class="form-label">Company Website</label>
+                        {{ form.company_url }}
+                        {% if form.company_url.errors %}
+                            <div class="invalid-feedback d-block">{{ form.company_url.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.tax_id.id_for_label }}" class="form-label">Tax ID / EIN</label>
+                                {{ form.tax_id }}
+                                {% if form.tax_id.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.tax_id.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.business_license.id_for_label }}" class="form-label">Business License</label>
+                                {{ form.business_license }}
+                                {% if form.business_license.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.business_license.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-address-book"></i> Primary Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="{{ form.primary_contact_name.id_for_label }}" class="form-label required">Primary Contact Name</label>
+                                {{ form.primary_contact_name }}
+                                {% if form.primary_contact_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.primary_contact_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.primary_contact_title.id_for_label }}" class="form-label">Title</label>
+                                {{ form.primary_contact_title }}
+                                {% if form.primary_contact_title.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.primary_contact_title.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.primary_email.id_for_label }}" class="form-label">Email Address</label>
+                                {{ form.primary_email }}
+                                {% if form.primary_email.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.primary_email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.primary_phone.id_for_label }}" class="form-label">Phone Number</label>
+                                {{ form.primary_phone }}
+                                {% if form.primary_phone.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.primary_phone.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Format: +1234567890</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Company Description -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Company Description</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Brief overview of your company and what you do</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.mission_statement.id_for_label }}" class="form-label">Mission Statement</label>
+                        {{ form.mission_statement }}
+                        {% if form.mission_statement.errors %}
+                            <div class="invalid-feedback d-block">{{ form.mission_statement.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Your company's mission and values</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.founded_date.id_for_label }}" class="form-label">Founded Date</label>
+                        {{ form.founded_date }}
+                        {% if form.founded_date.errors %}
+                            <div class="invalid-feedback d-block">{{ form.founded_date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Settings -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs"></i> Advanced Settings
+                        <button type="button" class="btn btn-sm btn-outline-light float-end" data-bs-toggle="collapse" data-bs-target="#advancedSettings">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse" id="advancedSettings">
+                    <div class="card-body">
+                        <!-- Financial Information -->
+                        <h6 class="text-muted mb-3"><i class="fas fa-dollar-sign"></i> Financial Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.current_year_revenue.id_for_label }}" class="form-label">Current Year Revenue</label>
+                                    {{ form.current_year_revenue }}
+                                    {% if form.current_year_revenue.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.current_year_revenue.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.previous_year_revenue.id_for_label }}" class="form-label">Previous Year Revenue</label>
+                                    {{ form.previous_year_revenue }}
+                                    {% if form.previous_year_revenue.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.previous_year_revenue.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- System Settings -->
+                        <h6 class="text-muted mb-3 mt-4"><i class="fas fa-cog"></i> System Settings</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.timezone.id_for_label }}" class="form-label">Timezone</label>
+                                    {{ form.timezone }}
+                                    {% if form.timezone.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.timezone.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.currency.id_for_label }}" class="form-label">Currency</label>
+                                    {{ form.currency }}
+                                    {% if form.currency.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.currency.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.fiscal_year_start.id_for_label }}" class="form-label">Fiscal Year Start</label>
+                                    {{ form.fiscal_year_start }}
+                                    {% if form.fiscal_year_start.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.fiscal_year_start.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">Month number (1=Jan, 4=Apr, etc.)</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.default_payment_terms.id_for_label }}" class="form-label">Default Payment Terms</label>
+                            {{ form.default_payment_terms }}
+                            {% if form.default_payment_terms.errors %}
+                                <div class="invalid-feedback d-block">{{ form.default_payment_terms.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Company Structure -->
+                        <h6 class="text-muted mb-3 mt-4"><i class="fas fa-sitemap"></i> Company Structure</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form.is_multi_location }}
+                                        <label class="form-check-label" for="{{ form.is_multi_location.id_for_label }}">
+                                            Multi-location Company
+                                        </label>
+                                    </div>
+                                    <div class="form-text">Check if this company has multiple offices</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.parent_company.id_for_label }}" class="form-label">Parent Company</label>
+                                    {{ form.parent_company }}
+                                    {% if form.parent_company.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.parent_company.errors.0 }}</div>
+                                    {% endif %}
+                                    <div class="form-text">Select if this is a subsidiary</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Fields -->
+                        <h6 class="text-muted mb-3 mt-4"><i class="fas fa-code"></i> Custom Data</h6>
+                        <div class="mb-3">
+                            <label for="{{ form.custom_fields.id_for_label }}" class="form-label">Custom Fields</label>
+                            {{ form.custom_fields }}
+                            {% if form.custom_fields.errors %}
+                                <div class="invalid-feedback d-block">{{ form.custom_fields.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">JSON format for additional company data</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Visual Branding -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-palette"></i> Visual Branding</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.logo.id_for_label }}" class="form-label">Company Logo</label>
+                        {{ form.logo }}
+                        {% if form.logo.errors %}
+                            <div class="invalid-feedback d-block">{{ form.logo.errors.0 }}</div>
+                        {% endif %}
+                        {% if form.instance.logo %}
+                            <div class="mt-2">
+                                <img src="{{ form.instance.logo.url }}" alt="Current logo" class="img-fluid" style="max-height: 100px;">
+                                <div class="form-text">Current logo</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.button_image.id_for_label }}" class="form-label">Button Image</label>
+                        {{ form.button_image }}
+                        {% if form.button_image.errors %}
+                            <div class="invalid-feedback d-block">{{ form.button_image.errors.0 }}</div>
+                        {% endif %}
+                        {% if form.instance.button_image %}
+                            <div class="mt-2">
+                                <img src="{{ form.instance.button_image.url }}" alt="Current button image" class="img-fluid" style="max-height: 50px;">
+                                <div class="form-text">Current button image</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.brand_colors.id_for_label }}" class="form-label">Brand Colors</label>
+                        {{ form.brand_colors }}
+                        {% if form.brand_colors.errors %}
+                            <div class="invalid-feedback d-block">{{ form.brand_colors.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">JSON format: {"primary": "#color", "secondary": "#color"}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-save"></i> Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> 
+                            {% if form.instance.pk %}Update Company{% else %}Create Company{% endif %}
+                        </button>
+                        
+                        {% if form.instance.pk %}
+                            <a href="{% url 'company:detail' form.instance.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        {% else %}
+                            <a href="{% url 'company:list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        {% endif %}
+                        
+                        {% if form.instance.pk and user.is_superuser %}
+                            <hr>
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="CompanyUtils.confirmDelete('{{ form.instance.company_name }}', '{% url 'company:delete' form.instance.pk %}')">
+                                <i class="fas fa-trash"></i> Delete Company
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help & Tips -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Company Name:</strong> Use the name your company is commonly known by
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Primary Contact:</strong> This should be the main person responsible for the company account
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Logo:</strong> Upload a high-quality logo for professional appearance
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Description:</strong> Keep it concise but informative for better search results
+                        </li>
+                        {% if not form.instance.pk %}
+                        <li class="mb-0">
+                            <i class="fas fa-info-circle text-info"></i>
+                            <strong>After Creation:</strong> You can add offices, departments, and additional contacts
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Required Fields Legend -->
+            <div class="card company-card">
+                <div class="card-body text-center">
+                    <small class="text-muted">
+                        <span class="required">*</span> Required fields
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<style>
+.required::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.form-control:invalid {
+    border-color: #dc3545;
+}
+
+.form-control:valid {
+    border-color: #28a745;
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+.was-validated .form-control:valid {
+    border-color: #28a745;
+}
+</style>
+
+<script>
+// Form validation and enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    // Bootstrap form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+    
+    // Preview logo on change
+    const logoInput = document.getElementById('{{ form.logo.id_for_label }}');
+    if (logoInput) {
+        logoInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Create or update preview
+                    let preview = document.getElementById('logo-preview');
+                    if (!preview) {
+                        preview = document.createElement('img');
+                        preview.id = 'logo-preview';
+                        preview.className = 'img-fluid mt-2';
+                        preview.style.maxHeight = '100px';
+                        logoInput.parentNode.appendChild(preview);
+                    }
+                    preview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Auto-generate legal name suggestion
+    const companyNameInput = document.getElementById('{{ form.company_name.id_for_label }}');
+    const legalNameInput = document.getElementById('{{ form.legal_name.id_for_label }}');
+    const businessTypeSelect = document.getElementById('{{ form.business_type.id_for_label }}');
+    
+    if (companyNameInput && legalNameInput && businessTypeSelect) {
+        function suggestLegalName() {
+            const companyName = companyNameInput.value.trim();
+            const businessType = businessTypeSelect.value;
+            
+            if (companyName && businessType && !legalNameInput.value) {
+                let suggestion = companyName;
+                switch(businessType) {
+                    case 'corporation':
+                        suggestion += ' Corporation';
+                        break;
+                    case 'llc':
+                        suggestion += ' LLC';
+                        break;
+                    case 'partnership':
+                        suggestion += ' Partnership';
+                        break;
+                }
+                legalNameInput.placeholder = `Suggestion: ${suggestion}`;
+            }
+        }
+        
+        companyNameInput.addEventListener('blur', suggestLegalName);
+        businessTypeSelect.addEventListener('change', suggestLegalName);
+    }
+    
+    // Phone number formatting
+    const phoneInput = document.getElementById('{{ form.primary_phone.id_for_label }}');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 10) {
+                if (value.length === 10) {
+                    value = `+1${value}`;
+                } else if (value.length === 11 && value.startsWith('1')) {
+                    value = `+${value}`;
+                }
+            }
+            e.target.value = value;
+        });
+    }
+    
+    // JSON validation for custom fields and brand colors
+    function validateJSON(input) {
+        input.addEventListener('blur', function() {
+            if (this.value.trim()) {
+                try {
+                    JSON.parse(this.value);
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } catch (e) {
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                }
+            } else {
+                this.classList.remove('is-invalid', 'is-valid');
+            }
+        });
+    }
+    
+    const customFieldsInput = document.getElementById('{{ form.custom_fields.id_for_label }}');
+    const brandColorsInput = document.getElementById('{{ form.brand_colors.id_for_label }}');
+    
+    if (customFieldsInput) validateJSON(customFieldsInput);
+    if (brandColorsInput) validateJSON(brandColorsInput);
+    
+    // Fiscal year start validation
+    const fiscalYearInput = document.getElementById('{{ form.fiscal_year_start.id_for_label }}');
+    if (fiscalYearInput) {
+        fiscalYearInput.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            if (value < 1 || value > 12) {
+                this.setCustomValidity('Fiscal year start must be between 1 and 12');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

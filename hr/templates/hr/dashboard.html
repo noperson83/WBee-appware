@@ -1,0 +1,196 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}<title>HR Dashboard</title>{% endblock %}
+{% block breadcrumb %} / <a href="{% url 'hr:index' %}">HR</a> / Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Quick Stats Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Active Workers</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_workers }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Time Off</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_time_off }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Expiring Clearances</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ expiring_clearances }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-id-badge fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            <a href="{% url 'hr:worker-list' %}" class="text-info text-decoration-none">View All Staff</a>
+                        </div>
+                        <div class="h6 mb-0 font-weight-bold text-gray-800">Manage Workers</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-cog fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Hires -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Hires (Last 30 Days)</h6>
+                <a href="{% url 'hr:worker-create' %}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus"></i> Add Worker
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_hires %}
+                    <div class="list-group list-group-flush">
+                        {% for worker in recent_hires %}
+                        <div class="list-group-item">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    {% if worker.profile_picture %}
+                                        <img src="{{ worker.profile_picture.url }}" alt="Profile" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            {{ worker.first_name|first }}{{ worker.last_name|first }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col">
+                                    <div class="font-weight-bold">
+                                        <a href="{% url 'hr:worker-detail' worker.pk %}" class="text-decoration-none">
+                                            {{ worker.get_full_name }}
+                                        </a>
+                                    </div>
+                                    <div class="text-muted small">
+                                        {{ worker.position.title|default:"No position assigned" }} • 
+                                        Hired: {{ worker.date_of_hire|date:"M d, Y" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No recent hires in the last 30 days.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Reviews -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Upcoming Reviews</h6>
+                <a href="{% url 'hr:review-list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if upcoming_reviews %}
+                    <div class="list-group list-group-flush">
+                        {% for review in upcoming_reviews %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="font-weight-bold">{{ review.worker.get_full_name }}</div>
+                                    <div class="text-muted small">{{ review.get_review_type_display }}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="small text-muted">Due:</div>
+                                    <div class="font-weight-bold">{{ review.next_review_date|date:"M d" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No upcoming reviews scheduled.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'hr:worker-list' %}" class="btn btn-outline-primary btn-block">
+                            <i class="fas fa-users"></i><br>
+                            View All Workers
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'hr:timeoff-list' %}" class="btn btn-outline-warning btn-block">
+                            <i class="fas fa-calendar-times"></i><br>
+                            Time Off Requests
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'hr:position-list' %}" class="btn btn-outline-info btn-block">
+                            <i class="fas fa-briefcase"></i><br>
+                            Job Positions
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'hr:reports' %}" class="btn btn-outline-success btn-block">
+                            <i class="fas fa-chart-bar"></i><br>
+                            Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,821 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Documents - {{ location.name }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'location/css/document-list.css' %}" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
+    <li class="breadcrumb-item"><a href="{{ location.get_absolute_url }}">{{ location.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Documents</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="h3 mb-2">
+            <i class="fas fa-file-alt text-primary me-2"></i>
+            Documents for {{ location.name }}
+          </h1>
+          <p class="text-muted mb-0">
+            <a href="{{ location.client.get_absolute_url }}" class="text-decoration-none">
+              {{ location.client.company_name }}
+            </a>
+            <span class="mx-2">•</span>
+            {% if documents %}
+              {{ documents|length }} document{{ documents|length|pluralize }}
+            {% else %}
+              No documents
+            {% endif %}
+          </p>
+        </div>
+        <div class="btn-group" role="group">
+          <a href="{% url 'location:document-create' location.pk %}" class="btn btn-primary">
+            <i class="fas fa-upload me-1"></i>Upload Document
+          </a>
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+              <i class="fas fa-tools me-1"></i>Tools
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" id="bulkDownload">
+                <i class="fas fa-download me-2"></i>Bulk Download
+              </a></li>
+              <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#bulkActionModal">
+                <i class="fas fa-tasks me-2"></i>Bulk Actions
+              </a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'location:location-export' %}?format=documents">
+                <i class="fas fa-file-export me-2"></i>Export List
+              </a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-body py-3">
+          <form method="get" class="row g-3 align-items-center" id="filterForm">
+            <!-- Search -->
+            <div class="col-md-4">
+              <div class="input-group">
+                <input type="text" class="form-control" name="search" 
+                       value="{{ request.GET.search }}" 
+                       placeholder="Search documents...">
+                <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Document Type Filter -->
+            <div class="col-md-3">
+              <select name="document_type" class="form-select">
+                <option value="">All Document Types</option>
+                {% for type_choice in document_types %}
+                <option value="{{ type_choice.0 }}" {% if type_choice.0 == request.GET.document_type %}selected{% endif %}>
+                  {{ type_choice.1 }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="col-md-2">
+              <select name="status" class="form-select">
+                <option value="">All Versions</option>
+                <option value="current" {% if request.GET.status == "current" %}selected{% endif %}>Current Only</option>
+                <option value="archived" {% if request.GET.status == "archived" %}selected{% endif %}>Archived Only</option>
+              </select>
+            </div>
+
+            <!-- View Toggle -->
+            <div class="col-md-2">
+              <select name="visibility" class="form-select">
+                <option value="">All Documents</option>
+                <option value="public" {% if request.GET.visibility == "public" %}selected{% endif %}>Client Visible</option>
+                <option value="private" {% if request.GET.visibility == "private" %}selected{% endif %}>Internal Only</option>
+              </select>
+            </div>
+
+            <!-- Filter Button -->
+            <div class="col-md-1">
+              <button type="submit" class="btn btn-outline-primary w-100">
+                <i class="fas fa-filter"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Toggle -->
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="btn-group btn-group-sm" role="group">
+          <input type="radio" class="btn-check" name="viewType" id="cardView" checked>
+          <label class="btn btn-outline-primary" for="cardView">
+            <i class="fas fa-th-large"></i> Cards
+          </label>
+          
+          <input type="radio" class="btn-check" name="viewType" id="tableView">
+          <label class="btn btn-outline-primary" for="tableView">
+            <i class="fas fa-list"></i> Table
+          </label>
+        </div>
+
+        <div class="d-flex align-items-center">
+          {% if documents %}
+          <div class="form-check me-3">
+            <input class="form-check-input" type="checkbox" id="selectAll">
+            <label class="form-check-label" for="selectAll">
+              Select All
+            </label>
+          </div>
+          {% endif %}
+          
+          <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle btn-sm" type="button" data-bs-toggle="dropdown">
+              <i class="fas fa-sort me-1"></i>Sort
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="?sort=title">Name A-Z</a></li>
+              <li><a class="dropdown-item" href="?sort=-title">Name Z-A</a></li>
+              <li><a class="dropdown-item" href="?sort=-created_at">Newest First</a></li>
+              <li><a class="dropdown-item" href="?sort=created_at">Oldest First</a></li>
+              <li><a class="dropdown-item" href="?sort=document_type">Type</a></li>
+              <li><a class="dropdown-item" href="?sort=-version">Version</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documents Grid View -->
+  <div id="cardContainer" class="row">
+    {% for document in documents %}
+    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+      <div class="card h-100 shadow-sm document-card" data-document-id="{{ document.id }}">
+        <!-- Document Icon/Preview -->
+        <div class="card-img-top document-preview">
+          {% if document.file %}
+            {% with file_ext=document.file.name|slice:"-4:" %}
+              {% if file_ext == ".jpg" or file_ext == ".png" or file_ext == ".gif" %}
+                <a href="{{ document.file.url }}" data-lightbox="document-gallery" data-title="{{ document.title }}">
+                  <img src="{{ document.file.url }}" alt="{{ document.title }}" class="preview-image">
+                </a>
+              {% else %}
+                <div class="file-icon-container">
+                  {% if file_ext == ".pdf" %}
+                    <i class="fas fa-file-pdf fa-4x text-danger"></i>
+                  {% elif file_ext == ".doc" or file_ext == "docx" %}
+                    <i class="fas fa-file-word fa-4x text-primary"></i>
+                  {% elif file_ext == ".xls" or file_ext == "xlsx" %}
+                    <i class="fas fa-file-excel fa-4x text-success"></i>
+                  {% elif file_ext == ".txt" %}
+                    <i class="fas fa-file-alt fa-4x text-info"></i>
+                  {% else %}
+                    <i class="fas fa-file fa-4x text-secondary"></i>
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endwith %}
+          {% else %}
+            <div class="file-icon-container">
+              <i class="fas fa-file-times fa-4x text-muted"></i>
+            </div>
+          {% endif %}
+          
+          <!-- Overlay with actions -->
+          <div class="preview-overlay">
+            <div class="overlay-actions">
+              {% if document.file %}
+              <a href="{% url 'location:document-download' document.pk %}" class="btn btn-light btn-sm" title="Download">
+                <i class="fas fa-download"></i>
+              </a>
+              {% endif %}
+              <a href="{% url 'location:document-detail' document.pk %}" class="btn btn-light btn-sm" title="View Details">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a href="{% url 'location:document-update' document.pk %}" class="btn btn-light btn-sm" title="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Selection Checkbox -->
+          <div class="selection-checkbox">
+            <input type="checkbox" class="form-check-input document-checkbox" value="{{ document.id }}">
+          </div>
+        </div>
+
+        <div class="card-body d-flex flex-column">
+          <!-- Document Header -->
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h6 class="card-title mb-0">
+              <a href="{% url 'location:document-detail' document.pk %}" class="text-decoration-none">
+                {{ document.title|truncatechars:30 }}
+              </a>
+            </h6>
+            <div class="document-badges">
+              {% if document.is_current %}
+              <span class="badge bg-success">Current</span>
+              {% endif %}
+              {% if document.is_public %}
+              <span class="badge bg-info">
+                <i class="fas fa-eye"></i>
+              </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Document Type and Version -->
+          <div class="mb-2">
+            <span class="badge bg-primary">{{ document.get_document_type_display }}</span>
+            <span class="badge bg-light text-dark">v{{ document.version }}</span>
+          </div>
+
+          <!-- Description -->
+          {% if document.description %}
+          <p class="card-text small text-muted flex-grow-1">
+            {{ document.description|truncatechars:80 }}
+          </p>
+          {% endif %}
+
+          <!-- File Info -->
+          {% if document.file %}
+          <div class="file-info small text-muted mb-2">
+            <i class="fas fa-file me-1"></i>
+            {{ document.file.size|filesizeformat }}
+            <span class="mx-1">•</span>
+            {% with file_ext=document.file.name|slice:"-4:" %}
+              {{ file_ext|upper|slice:"1:" }}
+            {% endwith %}
+          </div>
+          {% endif %}
+
+          <!-- Upload Info -->
+          <div class="upload-info small text-muted mt-auto">
+            <div class="d-flex justify-content-between">
+              <span>{{ document.uploaded_by|default:"System" }}</span>
+              <span>{{ document.created_at|date:"M d, Y" }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <!-- Empty State -->
+    <div class="col-12">
+      <div class="text-center py-5">
+        <i class="fas fa-file-alt fa-4x text-gray-300 mb-4"></i>
+        <h4 class="text-gray-600">No Documents Found</h4>
+        {% if request.GET.search or request.GET.document_type or request.GET.status %}
+        <p class="text-muted mb-4">Try adjusting your search criteria or filters.</p>
+        <a href="{% url 'location:document-list' location.pk %}" class="btn btn-outline-primary me-2">
+          <i class="fas fa-times me-1"></i>Clear Filters
+        </a>
+        {% else %}
+        <p class="text-muted mb-4">Upload your first document to get started.</p>
+        {% endif %}
+        <a href="{% url 'location:document-create' location.pk %}" class="btn btn-primary">
+          <i class="fas fa-upload me-1"></i>Upload Document
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Table View (Hidden by default) -->
+  <div id="tableContainer" class="d-none">
+    <div class="card">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th width="30">
+                <input type="checkbox" id="selectAllTable" class="form-check-input">
+              </th>
+              <th>Document</th>
+              <th>Type</th>
+              <th>Version</th>
+              <th>Status</th>
+              <th>Size</th>
+              <th>Uploaded</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for document in documents %}
+            <tr>
+              <td>
+                <input type="checkbox" class="form-check-input document-checkbox" value="{{ document.id }}">
+              </td>
+              <td>
+                <div class="d-flex align-items-center">
+                  {% if document.file %}
+                    {% with file_ext=document.file.name|slice:"-4:" %}
+                      {% if file_ext == ".pdf" %}
+                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                      {% elif file_ext == ".doc" or file_ext == "docx" %}
+                        <i class="fas fa-file-word text-primary me-2"></i>
+                      {% elif file_ext == ".xls" or file_ext == "xlsx" %}
+                        <i class="fas fa-file-excel text-success me-2"></i>
+                      {% elif file_ext == ".jpg" or file_ext == ".png" or file_ext == ".gif" %}
+                        <i class="fas fa-file-image text-warning me-2"></i>
+                      {% else %}
+                        <i class="fas fa-file text-secondary me-2"></i>
+                      {% endif %}
+                    {% endwith %}
+                  {% endif %}
+                  <div>
+                    <a href="{% url 'location:document-detail' document.pk %}" class="text-decoration-none fw-bold">
+                      {{ document.title }}
+                    </a>
+                    {% if document.description %}
+                    <br><small class="text-muted">{{ document.description|truncatechars:50 }}</small>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-primary">{{ document.get_document_type_display }}</span>
+              </td>
+              <td>
+                <span class="fw-bold">{{ document.version }}</span>
+              </td>
+              <td>
+                {% if document.is_current %}
+                <span class="badge bg-success">Current</span>
+                {% else %}
+                <span class="badge bg-secondary">Archived</span>
+                {% endif %}
+                {% if document.is_public %}
+                <span class="badge bg-info ms-1">
+                  <i class="fas fa-eye"></i>
+                </span>
+                {% endif %}
+              </td>
+              <td>
+                {% if document.file %}
+                  {{ document.file.size|filesizeformat }}
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td>
+                <div>{{ document.created_at|date:"M d, Y" }}</div>
+                <small class="text-muted">{{ document.uploaded_by|default:"System" }}</small>
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm" role="group">
+                  {% if document.file %}
+                  <a href="{% url 'location:document-download' document.pk %}" class="btn btn-outline-primary btn-sm" title="Download">
+                    <i class="fas fa-download"></i>
+                  </a>
+                  {% endif %}
+                  <a href="{% url 'location:document-detail' document.pk %}" class="btn btn-outline-secondary btn-sm" title="View">
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <a href="{% url 'location:document-update' document.pk %}" class="btn btn-outline-secondary btn-sm" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Action Modal -->
+<div class="modal fade" id="bulkActionModal" tabindex="-1" aria-labelledby="bulkActionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bulkActionModalLabel">
+          <i class="fas fa-tasks me-2"></i>Bulk Actions
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="bulkActionForm">
+          <div class="mb-3">
+            <label class="form-label">Selected Documents</label>
+            <div id="selectedDocumentsList" class="border rounded p-2 bg-light">
+              <em class="text-muted">No documents selected</em>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="bulkAction" class="form-label">Action</label>
+            <select class="form-select" id="bulkAction" required>
+              <option value="">Select Action</option>
+              <option value="download">Download Selected</option>
+              <option value="mark_current">Mark as Current</option>
+              <option value="mark_archived">Mark as Archived</option>
+              <option value="toggle_visibility">Toggle Client Visibility</option>
+              <option value="delete">Delete Selected</option>
+            </select>
+          </div>
+
+          <div class="alert alert-warning d-none" id="deleteWarning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> This action cannot be undone.
+          </div>
+
+          <input type="hidden" id="selectedDocumentIds">
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="executeBulkAction">Apply Action</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize view toggle
+    initializeViewToggle();
+    
+    // Initialize selection
+    initializeSelection();
+    
+    // Initialize bulk actions
+    initializeBulkActions();
+    
+    // Initialize filters
+    initializeFilters();
+
+    function initializeViewToggle() {
+        const cardView = document.getElementById('cardView');
+        const tableView = document.getElementById('tableView');
+        const cardContainer = document.getElementById('cardContainer');
+        const tableContainer = document.getElementById('tableContainer');
+
+        cardView.addEventListener('change', function() {
+            if (this.checked) {
+                cardContainer.classList.remove('d-none');
+                tableContainer.classList.add('d-none');
+                localStorage.setItem('documentViewType', 'card');
+            }
+        });
+
+        tableView.addEventListener('change', function() {
+            if (this.checked) {
+                cardContainer.classList.add('d-none');
+                tableContainer.classList.remove('d-none');
+                localStorage.setItem('documentViewType', 'table');
+            }
+        });
+
+        // Restore saved view type
+        const savedViewType = localStorage.getItem('documentViewType');
+        if (savedViewType === 'table') {
+            tableView.click();
+        }
+    }
+
+    function initializeSelection() {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const selectAllTableCheckbox = document.getElementById('selectAllTable');
+        const documentCheckboxes = document.querySelectorAll('.document-checkbox');
+
+        function updateSelectAll() {
+            const checkedBoxes = document.querySelectorAll('.document-checkbox:checked');
+            const hasChecked = checkedBoxes.length > 0;
+            const allChecked = checkedBoxes.length === documentCheckboxes.length;
+            
+            if (selectAllCheckbox) {
+                selectAllCheckbox.checked = allChecked;
+                selectAllCheckbox.indeterminate = hasChecked && !allChecked;
+            }
+            if (selectAllTableCheckbox) {
+                selectAllTableCheckbox.checked = allChecked;
+                selectAllTableCheckbox.indeterminate = hasChecked && !allChecked;
+            }
+            
+            updateBulkActionButton();
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                documentCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBulkActionButton();
+            });
+        }
+
+        if (selectAllTableCheckbox) {
+            selectAllTableCheckbox.addEventListener('change', function() {
+                documentCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+                updateBulkActionButton();
+            });
+        }
+
+        documentCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', updateSelectAll);
+        });
+
+        function updateBulkActionButton() {
+            const checkedBoxes = document.querySelectorAll('.document-checkbox:checked');
+            const bulkActionBtn = document.querySelector('[data-bs-target="#bulkActionModal"]');
+            
+            if (bulkActionBtn) {
+                if (checkedBoxes.length > 0) {
+                    bulkActionBtn.classList.remove('disabled');
+                    bulkActionBtn.textContent = `Bulk Actions (${checkedBoxes.length})`;
+                } else {
+                    bulkActionBtn.classList.add('disabled');
+                    bulkActionBtn.textContent = 'Bulk Actions';
+                }
+            }
+        }
+    }
+
+    function initializeBulkActions() {
+        const bulkActionModal = document.getElementById('bulkActionModal');
+        const bulkActionSelect = document.getElementById('bulkAction');
+        const deleteWarning = document.getElementById('deleteWarning');
+
+        if (bulkActionModal) {
+            bulkActionModal.addEventListener('show.bs.modal', function() {
+                const checkedBoxes = document.querySelectorAll('.document-checkbox:checked');
+                const selectedDocumentsList = document.getElementById('selectedDocumentsList');
+                const selectedDocumentIds = document.getElementById('selectedDocumentIds');
+                
+                if (checkedBoxes.length > 0) {
+                    const documentNames = Array.from(checkedBoxes).map(checkbox => {
+                        const card = checkbox.closest('.document-card') || checkbox.closest('tr');
+                        return card.querySelector('a').textContent.trim();
+                    });
+                    
+                    selectedDocumentsList.innerHTML = documentNames.map(name => 
+                        `<span class="badge bg-primary me-1">${name}</span>`
+                    ).join('');
+                    
+                    selectedDocumentIds.value = Array.from(checkedBoxes).map(cb => cb.value).join(',');
+                } else {
+                    selectedDocumentsList.innerHTML = '<em class="text-muted">No documents selected</em>';
+                }
+            });
+        }
+
+        if (bulkActionSelect) {
+            bulkActionSelect.addEventListener('change', function() {
+                if (this.value === 'delete') {
+                    deleteWarning.classList.remove('d-none');
+                } else {
+                    deleteWarning.classList.add('d-none');
+                }
+            });
+        }
+
+        document.getElementById('executeBulkAction')?.addEventListener('click', function() {
+            const action = bulkActionSelect.value;
+            const selectedIds = document.getElementById('selectedDocumentIds').value;
+            
+            if (!action || !selectedIds) {
+                alert('Please select an action and documents');
+                return;
+            }
+
+            // In a real app, you'd submit this to your bulk action endpoint
+            console.log('Bulk action:', action, 'Documents:', selectedIds);
+            
+            // Close modal and show success message
+            bootstrap.Modal.getInstance(bulkActionModal).hide();
+            
+            // Show success message (you can replace with a toast notification)
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+            alert.style.top = '20px';
+            alert.style.right = '20px';
+            alert.style.zIndex = '9999';
+            alert.innerHTML = `
+                <i class="fas fa-check me-2"></i>Bulk action completed successfully!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alert);
+            
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 3000);
+        });
+    }
+
+    function initializeFilters() {
+        // Auto-submit form on filter change
+        document.querySelectorAll('#filterForm select').forEach(select => {
+            select.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        });
+
+        // Clear search
+        document.getElementById('clearSearch')?.addEventListener('click', function() {
+            document.querySelector('input[name="search"]').value = '';
+            document.getElementById('filterForm').submit();
+        });
+
+        // Search on enter
+        document.querySelector('input[name="search"]')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('filterForm').submit();
+            }
+        });
+    }
+
+    // Bulk download functionality
+    document.getElementById('bulkDownload')?.addEventListener('click', function() {
+        const checkedBoxes = document.querySelectorAll('.document-checkbox:checked');
+        
+        if (checkedBoxes.length === 0) {
+            alert('Please select documents to download');
+            return;
+        }
+
+        // In a real app, you'd create a zip file or similar
+        checkedBoxes.forEach(checkbox => {
+            const documentId = checkbox.value;
+            // Trigger individual downloads
+            window.open(`/location/documents/${documentId}/download/`, '_blank');
+        });
+    });
+
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+
+<style>
+/* Custom CSS for document list */
+.document-card {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.document-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
+}
+
+.document-preview {
+    position: relative;
+    height: 200px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.file-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.document-card:hover .preview-overlay {
+    opacity: 1;
+}
+
+.overlay-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.selection-checkbox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+}
+
+.selection-checkbox input {
+    width: 18px;
+    height: 18px;
+}
+
+.document-badges {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.file-info {
+    border-top: 1px solid #e9ecef;
+    padding-top: 0.5rem;
+}
+
+.upload-info {
+    border-top: 1px solid #e9ecef;
+    padding-top: 0.5rem;
+}
+
+.table-responsive .btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.document-list-empty {
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.alert.position-fixed {
+    z-index: 1055;
+    max-width: 400px;
+}
+
+@media (max-width: 768px) {
+    .document-preview {
+        height: 150px;
+    }
+    
+    .file-icon-container i {
+        font-size: 3rem !important;
+    }
+    
+    .overlay-actions {
+        flex-direction: column;
+    }
+    
+    .btn-group-vertical {
+        width: 100%;
+    }
+}
+
+/* Lightbox customization */
+.lb-data .lb-caption {
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.4;
+}
+
+.lb-data .lb-number {
+    font-size: 12px;
+}
+</style>
+{% endblock %}

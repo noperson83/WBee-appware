@@ -1,0 +1,82 @@
+{% extends "home/base.html" %}
+
+{% block title %}<title>Day event details</title>{% endblock %}
+
+{% block breadcrumb %} / <a href="{% url 'schedule' %}">Schedule</a> / Day event detail{% endblock %}
+
+ 
+{% block content %}
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header">
+        <h4>
+          <a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">
+          <i class="fa fa-fw fa-calendar"></i> {{dayevent.day_of_event|date:"SHORT_DATE_FORMAT"}}</a><br>{{dayevent.days_of_event}}
+          {% if request.user.staff %}
+            <div class="add_jobsite"><a href="{% url 'update-dayevent' dayevent.pk %}"> edit </a></div>
+          {% else %}
+          {% endif %}
+        </h4>
+      </div>
+      <div class="card-body">
+        <h5>
+          <i class="fa fa-clock-o"></i> Office @ {{ dayevent.start_time }} <br>
+          <i class="fa fa-clock-o"></i> Site @ {{ dayevent.site_datetime }} <br>
+          <i class="fa fa-clock-o"></i> End @ {{ dayevent.end_time }} <br> 
+          Contractor notes: {{ dayevent.text }} <br>
+          Equipment: {{ dayevent.equip }}<br>
+          <br>
+          
+          travel to site {{ dayevent.travel }} <br>
+          site time {{ dayevent.labor_per }} <br>
+          travel to office {{ dayevent.travel }} <br>
+          <br>
+
+        </h5>
+        
+        <h4>
+          <a href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.job_name }} : {{ dayevent.project.job_num }}</a>
+        </h4>
+        <p class="
+          {% if dayevent.project.job_status == 'p' %}statusProspect
+          {% elif dayevent.project.job_status == 'q' %}statusQuoted
+          {% elif dayevent.project.job_status == 'o' %}statusInstalling
+          {% elif dayevent.project.job_status == 'c' %}statusComplete
+          {% elif dayevent.project.job_status == 's' %}statusService
+          {% elif dayevent.project.job_status == 't' %}statusTm
+          {% elif dayevent.project.job_status == 'm' %}statusPaid
+          {% elif dayevent.project.job_status == 'i' %}statusInvoiced
+          {% else %}statusLost
+          {% endif %} ">Install: {{ dayevent.project.get_job_status_display }}</p>
+        
+        <strong><a href="{{ dayevent.project.jobsite.get_absolute_url }}">{{ dayevent.project.jobsite }}</a></strong> - 
+            (<a href="{{ dayevent.project.jobsite.job_client.get_absolute_url }}">{{ dayevent.project.jobsite.job_client }}</a>)
+        <br> 
+        <a href="{{ dayevent.project.jobsite.google_maps_link }}">
+          <h6>
+            {{ dayevent.project.jobsite.street_address }}<br>
+            {{ dayevent.project.jobsite.city }}, {{ dayevent.project.jobsite.state }} {{ dayevent.project.jobsite.zipcode }}
+          </h6>
+        </a>
+        {% if dayevent.project.job_status != 'c' %}
+        <strong>Due date:</strong> {{dayevent.project.due_date}}{% endif %}<br>
+        <strong>Date of completion:</strong> {{ dayevent.project.finished_date }}
+      </div>
+    </div></div>
+    <div class="card mb-3">
+      <div class="card-header"><b>Worker</b> - <a href="">details</a></div>
+        <div class="card-body">
+          <ul>
+            {% for workers in dayevent.workers.all %}
+              <li>
+                <a style="color:black;font-weight:bold;" href="{{ workers.get_absolute_url }}">
+                {{ workers.first_name }} {{ workers.last_name }} :</a> 
+                <a style="color:black;font-weight:bold;" href="tel:{{ workers.phone_number }}">
+                  {{ workers.phone_number }}</a></li>
+            {% if not forloop.last %} {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+      </div></div>
+{% endblock %}

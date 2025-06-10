@@ -1,0 +1,43 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}" xml:lang="{{ LANGUAGE_CODE }}" lang="{{ LANGUAGE_CODE }}">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>{% if site_name %}{{ site_name }} : {% endif %}{% block head_title %}{% endblock %}</title>
+        
+  <link href="{% static 'home/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" type="text/css">
+  <link href="{% static 'home/vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="{% static 'home/vendor/bootstrap/css/bootstrap.css' %}" type="text/css" media="screen">
+        <script type="text/javascript" src="{% static 'home/vendor/jquery/jquery.js' %}"></script>
+        <script type="text/javascript" src="{% static 'home/vendor/jquery-ui.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'home/vendor/bootstrap/js/bootstrap.js' %}"></script>
+        <script type="text/javascript" src="{% static 'schedule/schedule.js' %}"></script>
+        <link rel="stylesheet" href="{% static 'schedule/schedule.css' %}" type="text/css" media="screen">
+        <link rel="stylesheet" href="{% static 'schedule/jquery-ui.css' %}" type="text/css" media="screen">
+    <script src="{% static 'home/vendor/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'home/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+        {% block extrahead %}
+        {% endblock %}
+    </head>
+
+    <body>
+    <p style="clear:both">
+
+        <div id="body">
+            {% if messages %}
+                <ul id="messages">
+                    {% for message in messages %}
+                    <li id="message_{{ forloop.counter }}"><a href="#" onclick="$('#message_{{ forloop.counter }}').fadeOut(); return false;"><small>{% trans "clear" %}</small></a> {{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+
+        </div>
+
+        <div id="footer">{% block footer %}{% endblock %}</div>
+
+    </body>
+</html>

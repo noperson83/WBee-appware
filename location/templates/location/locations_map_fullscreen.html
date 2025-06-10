@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Locations Map - Fullscreen</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Marker Cluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        #map {
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            min-width: 300px;
+        }
+        
+        .map-header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .location-popup {
+            min-width: 250px;
+        }
+        
+        .location-popup h6 {
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .status-prospect { background-color: #ffc107; }
+        .status-active { background-color: #28a745; }
+        .status-complete { background-color: #6c757d; }
+        .status-inactive { background-color: #dc3545; }
+        
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .stats-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .location-search {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            max-width: 90vw;
+        }
+        
+        .search-results {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background: white;
+            display: none;
+        }
+        
+        .search-result-item {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .search-result-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+        
+        .custom-marker {
+            border-radius: 50%;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .close-fullscreen {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1001;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .close-fullscreen:hover {
+            background: white;
+        }
+        
+        @media (max-width: 768px) {
+            .map-controls {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin: 10px;
+                width: calc(100% - 20px);
+            }
+            
+            .map-header {
+                position: relative;
+                top: auto;
+                left: auto;
+                margin: 10px;
+                width: calc(100% - 20px);
+            }
+            
+            .location-search {
+                position: relative;
+                top: auto;
+                left: auto;
+                transform: none;
+                margin: 10px;
+                width: calc(100% - 20px);
+            }
+            
+            .legend, .stats-panel {
+                display: none;
+            }
+            
+            #map {
+                height: calc(100vh - 200px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="text-center">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <h5>Loading locations...</h5>
+        </div>
+    </div>
+    
+    <!-- Close Fullscreen Button -->
+    <button class="close-fullscreen" onclick="window.close();" title="Close Fullscreen">
+        <i class="fas fa-times"></i>
+    </button>
+    
+    <!-- Map Header -->
+    <div class="map-header">
+        <h5 class="mb-0">
+            <i class="fas fa-map-marked-alt text-primary mr-2"></i>
+            Locations Map - Fullscreen View
+        </h5>
+    </div>
+    
+    <!-- Search Panel -->
+    <div class="location-search">
+        <div class="input-group input-group-sm">
+            <input type="text" class="form-control" id="search-input" 
+                   placeholder="Search locations or clients...">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" id="clear-search">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="search-results" id="search-results"></div>
+    </div>
+    
+    <!-- Map Controls -->
+    <div class="map-controls">
+        <div class="row">
+            <div class="col-12 mb-2">
+                <label class="small font-weight-bold">Filters</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <select class="form-control form-control-sm" id="business-category-filter">
+                    <option value="">All Business Types</option>
+                    {% for category in business_categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6">
+                <select class="form-control form-control-sm" id="status-filter">
+                    <option value="">All Statuses</option>
+                    <option value="prospect">Prospect</option>
+                    <option value="active">Active</option>
+                    <option value="complete">Complete</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-12">
+                <button class="btn btn-sm btn-outline-primary btn-block" id="reset-view">
+                    <i class="fas fa-home mr-1"></i>Reset View
+                </button>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-12">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Use filters above to narrow results
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="legend">
+        <h6 class="mb-2">Status Legend</h6>
+        <div class="legend-item">
+            <span class="status-indicator status-prospect"></span>
+            <span>Prospect</span>
+        </div>
+        <div class="legend-item">
+            <span class="status-indicator status-active"></span>
+            <span>Active</span>
+        </div>
+        <div class="legend-item">
+            <span class="status-indicator status-complete"></span>
+            <span>Complete</span>
+        </div>
+        <div class="legend-item">
+            <span class="status-indicator status-inactive"></span>
+            <span>Inactive</span>
+        </div>
+        <div class="mt-2 pt-2 border-top">
+            <small class="text-muted">
+                <i class="fas fa-mouse-pointer mr-1"></i>
+                Click markers for details
+            </small>
+        </div>
+    </div>
+    
+    <!-- Statistics Panel -->
+    <div class="stats-panel">
+        <h6 class="mb-2">
+            <i class="fas fa-chart-bar mr-1"></i>
+            Statistics
+        </h6>
+        <div class="small">
+            <div class="d-flex justify-content-between mb-1">
+                <span><i class="fas fa-map-marker-alt text-primary mr-1"></i>Total:</span>
+                <span id="total-locations" class="font-weight-bold">0</span>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+                <span><i class="fas fa-eye text-success mr-1"></i>Visible:</span>
+                <span id="visible-locations" class="font-weight-bold">0</span>
+            </div>
+            <div class="d-flex justify-content-between mb-1">
+                <span><i class="fas fa-filter text-warning mr-1"></i>Filtered:</span>
+                <span id="filtered-locations" class="font-weight-bold">0</span>
+            </div>
+            <div class="d-flex justify-content-between">
+                <span><i class="fas fa-mouse-pointer text-info mr-1"></i>Selected:</span>
+                <span id="selected-locations" class="font-weight-bold">0</span>
+            </div>
+        </div>
+        <div class="mt-2 pt-2 border-top">
+            <div class="progress" style="height: 5px;">
+                <div class="progress-bar bg-success" id="visibility-progress" style="width: 0%"></div>
+            </div>
+            <small class="text-muted">Visibility %</small>
+        </div>
+    </div>
+    
+    <!-- Map Container -->
+    <div id="map"></div>
+    
+    <!-- Keyboard Shortcuts Help -->
+    <div class="position-fixed" style="bottom: 70px; right: 20px; z-index: 1000;">
+        <button class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#shortcutsModal">
+            <i class="fas fa-keyboard"></i>
+        </button>
+    </div>
+    
+    <!-- Shortcuts Modal -->
+    <div class="modal fade" id="shortcutsModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h6 class="modal-title">Keyboard Shortcuts</h6>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body small">
+                    <div class="mb-2">
+                        <kbd>Esc</kbd> - Close search/popups
+                    </div>
+                    <div class="mb-2">
+                        <kbd>Enter</kbd> - Go to first search result
+                    </div>
+                    <div class="mb-2">
+                        <kbd>Ctrl</kbd> + <kbd>F</kbd> - Focus search
+                    </div>
+                    <div class="mb-2">
+                        <kbd>R</kbd> - Reset view
+                    </div>
+                    <div class="mb-2">
+                        <kbd>M</kbd> - Toggle map layers
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    
+    <script>
+    class FullscreenLocationMap {
+        constructor() {
+            this.map = null;
+            this.markers = L.markerClusterGroup({
+                chunkedLoading: true,
+                maxClusterRadius: 50,
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false
+            });
+            this.allLocations = [];
+            this.filteredLocations = [];
+            this.searchResults = [];
+            
+            this.init();
+        }
+        
+        init() {
+            this.initMap();
+            this.loadLocations();
+            this.setupEventListeners();
+        }
+        
+        initMap() {
+            // Initialize map
+            this.map = L.map('map', {
+                zoomControl: true,
+                fullscreenControl: false
+            }).setView([39.8283, -98.5795], 4);
+            
+            // Add tile layers with layer control
+            const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            });
+            
+            const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '© Esri',
+                maxZoom: 19
+            });
+            
+            const terrainLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenTopoMap contributors',
+                maxZoom: 17
+            });
+            
+            // Default layer
+            osmLayer.addTo(this.map);
+            
+            // Layer control
+            const baseMaps = {
+                "Street Map": osmLayer,
+                "Satellite": satelliteLayer,
+                "Terrain": terrainLayer
+            };
+            
+            L.control.layers(baseMaps).addTo(this.map);
+            
+            // Add markers cluster group
+            this.map.addLayer(this.markers);
+            
+            // Add scale control
+            L.control.scale({ position: 'bottomleft' }).addTo(this.map);
+            
+            // Add coordinates display on click
+            this.map.on('click', (e) => {
+                const lat = e.latlng.lat.toFixed(6);
+                const lng = e.latlng.lng.toFixed(6);
+                L.popup()
+                    .setLatLng(e.latlng)
+                    .setContent(`<strong>Coordinates:</strong><br>Lat: ${lat}<br>Lng: ${lng}`)
+                    .openOn(this.map);
+            });
+        }
+        
+        async loadLocations() {
+            try {
+                const response = await fetch('{% url "location:map-data" %}');
+                const data = await response.json();
+                this.allLocations = data.locations;
+                this.filteredLocations = [...this.allLocations];
+                
+                this.updateMap();
+                this.updateStats();
+                this.fitMapToMarkers();
+                
+            } catch (error) {
+                console.error('Error loading locations:', error);
+                alert('Error loading location data. Please refresh the page.');
+            } finally {
+                $('#loadingOverlay').fadeOut();
+            }
+        }
+        
+        updateMap() {
+            this.markers.clearLayers();
+            
+            this.filteredLocations.forEach(location => {
+                const marker = this.createMarker(location);
+                this.markers.addLayer(marker);
+            });
+        }
+        
+        createMarker(location) {
+            const icon = this.getStatusIcon(location.status);
+            
+            const marker = L.marker([location.lat, location.lng], { icon })
+                .bindPopup(this.createPopupContent(location));
+            
+            marker.locationData = location;
+            
+            return marker;
+        }
+        
+        getStatusIcon(status) {
+            const colors = {
+                'prospect': '#ffc107',
+                'active': '#28a745',
+                'complete': '#6c757d',
+                'inactive': '#dc3545'
+            };
+            
+            const color = colors[status] || '#007bff';
+            
+            return L.divIcon({
+                className: 'custom-marker',
+                html: `<div style="
+                    background-color: ${color};
+                    border: 3px solid white;
+                    border-radius: 50%;
+                    width: 24px;
+                    height: 24px;
+                    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+                "></div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            });
+        }
+        
+        createPopupContent(location) {
+            return `
+                <div class="location-popup">
+                    <h6>${location.name}</h6>
+                    <p class="mb-1"><strong>Client:</strong> ${location.client}</p>
+                    <p class="mb-1">
+                        <span class="badge badge-${this.getStatusBadgeClass(location.status)}">
+                            ${location.status.charAt(0).toUpperCase() + location.status.slice(1)}
+                        </span>
+                    </p>
+                    ${location.business_category ? `<p class="mb-1"><strong>Type:</strong> ${location.business_category}</p>` : ''}
+                    <p class="mb-1 small text-muted">
+                        <i class="fas fa-map-marker-alt mr-1"></i>
+                        ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}
+                    </p>
+                    <div class="mt-2">
+                        <a href="${location.url}" class="btn btn-sm btn-primary" target="_blank">
+                            <i class="fas fa-external-link-alt mr-1"></i>View Details
+                        </a>
+                        <button class="btn btn-sm btn-outline-secondary ml-1" onclick="window.locationsMap.zoomToLocation(${location.lat}, ${location.lng})">
+                            <i class="fas fa-crosshairs mr-1"></i>Center
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        getStatusBadgeClass(status) {
+            const classes = {
+                'prospect': 'warning',
+                'active': 'success',
+                'complete': 'secondary',
+                'inactive': 'danger'
+            };
+            return classes[status] || 'primary';
+        }
+        
+        updateStats() {
+            $('#total-locations').text(this.allLocations.length);
+            $('#visible-locations').text(this.filteredLocations.length);
+            $('#selected-locations').text(this.allLocations.length - this.filteredLocations.length);
+        }
+        
+        filterLocations() {
+            const businessCategory = $('#business-category-filter').val();
+            const status = $('#status-filter').val();
+            
+            this.filteredLocations = this.allLocations.filter(location => {
+                let matches = true;
+                
+                if (businessCategory && location.business_category_id != businessCategory) {
+                    matches = false;
+                }
+                
+                if (status && location.status !== status) {
+                    matches = false;
+                }
+                
+                return matches;
+            });
+            
+            this.updateMap();
+            this.updateStats();
+        }
+        
+        searchLocations(query) {
+            if (!query.trim()) {
+                this.hideSearchResults();
+                return;
+            }
+            
+            const searchTerm = query.toLowerCase();
+            this.searchResults = this.allLocations.filter(location => 
+                location.name.toLowerCase().includes(searchTerm) ||
+                location.client.toLowerCase().includes(searchTerm) ||
+                (location.business_category && location.business_category.toLowerCase().includes(searchTerm))
+            );
+            
+            this.showSearchResults();
+        }
+        
+        showSearchResults() {
+            const resultsContainer = $('#search-results');
+            resultsContainer.empty();
+            
+            if (this.searchResults.length === 0) {
+                resultsContainer.append('<div class="search-result-item text-muted">No locations found</div>');
+            } else {
+                this.searchResults.slice(0, 10).forEach(location => {
+                    const item = $(`
+                        <div class="search-result-item" data-lat="${location.lat}" data-lng="${location.lng}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${location.name}</strong><br>
+                                    <small class="text-muted">${location.client}</small>
+                                </div>
+                                <span class="status-indicator status-${location.status}"></span>
+                            </div>
+                        </div>
+                    `);
+                    resultsContainer.append(item);
+                });
+                
+                if (this.searchResults.length > 10) {
+                    resultsContainer.append(`<div class="search-result-item text-muted text-center">... and ${this.searchResults.length - 10} more</div>`);
+                }
+            }
+            
+            resultsContainer.show();
+        }
+        
+        hideSearchResults() {
+            $('#search-results').hide();
+        }
+        
+        zoomToLocation(lat, lng) {
+            this.map.setView([lat, lng], 16);
+        }
+        
+        fitMapToMarkers() {
+            if (this.filteredLocations.length > 0) {
+                const group = new L.featureGroup(Array.from(this.markers.getLayers()));
+                if (group.getBounds().isValid()) {
+                    this.map.fitBounds(group.getBounds().pad(0.1));
+                }
+            }
+        }
+        
+        resetView() {
+            // Clear filters
+            $('#business-category-filter').val('');
+            $('#status-filter').val('');
+            $('#search-input').val('');
+            
+            // Reset locations
+            this.filteredLocations = [...this.allLocations];
+            this.updateMap();
+            this.updateStats();
+            this.hideSearchResults();
+            
+            // Fit map to all markers
+            this.fitMapToMarkers();
+        }
+        
+        setupEventListeners() {
+            // Filter controls
+            $('#business-category-filter, #status-filter').on('change', () => {
+                this.filterLocations();
+            });
+            
+            // Search functionality
+            $('#search-input').on('input', debounce((e) => {
+                this.searchLocations($(e.target).val());
+            }, 300));
+            
+            // Clear search
+            $('#clear-search').on('click', () => {
+                $('#search-input').val('');
+                this.hideSearchResults();
+            });
+            
+            // Search result clicks
+            $(document).on('click', '.search-result-item', (e) => {
+                const lat = $(e.currentTarget).data('lat');
+                const lng = $(e.currentTarget).data('lng');
+                if (lat && lng) {
+                    this.zoomToLocation(lat, lng);
+                    this.hideSearchResults();
+                    $('#search-input').val('');
+                }
+            });
+            
+            // Reset view
+            $('#reset-view').on('click', () => {
+                this.resetView();
+            });
+            
+            // Hide search results when clicking outside
+            $(document).on('click', (e) => {
+                if (!$(e.target).closest('.location-search').length) {
+                    this.hideSearchResults();
+                }
+            });
+            
+            // Keyboard shortcuts
+            $(document).on('keydown', (e) => {
+                // ESC to close search results
+                if (e.key === 'Escape') {
+                    this.hideSearchResults();
+                    $('#search-input').blur();
+                }
+                
+                // Enter to zoom to first search result
+                if (e.key === 'Enter' && $('#search-input').is(':focus') && this.searchResults.length > 0) {
+                    const first = this.searchResults[0];
+                    this.zoomToLocation(first.lat, first.lng);
+                    this.hideSearchResults();
+                    $('#search-input').blur();
+                }
+            });
+        }
+    }
+    
+    // Debounce function
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Initialize map when document is ready
+    $(document).ready(function() {
+        window.locationsMap = new FullscreenLocationMap();
+        
+        // Handle browser back button
+        window.addEventListener('beforeunload', function() {
+            if (window.opener) {
+                window.opener.focus();
+            }
+        });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,581 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>Client Directory - {{ request.user.company.company_name|default:"WBEE" }}</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+  <a href="{% url 'client' %}">Client Management</a>
+</li>
+<li class="breadcrumb-item active">Client Directory</li>
+{% endblock %}
+
+{% block styler %}
+<link href="{% static 'home/vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet" type="text/css">
+<style>
+  .client-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border-radius: 8px;
+  }
+  
+  .client-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+  }
+  
+  .client-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e9ecef;
+  }
+  
+  .revenue-badge {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
+    font-weight: 600;
+  }
+  
+  .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+  }
+  
+  .status-active { background-color: #28a745; }
+  .status-prospect { background-color: #ffc107; }
+  .status-inactive { background-color: #6c757d; }
+  .status-former { background-color: #dc3545; }
+  
+  .filter-tabs {
+    border-bottom: 1px solid #dee2e6;
+    margin-bottom: 1.5rem;
+  }
+  
+  .filter-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+  }
+  
+  .filter-tabs .nav-link.active {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    background: none;
+  }
+  
+  .view-toggle {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 4px;
+  }
+  
+  .view-toggle .btn {
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  
+  .view-toggle .btn.active {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    border: none;
+  }
+  
+  .quick-search {
+    position: relative;
+  }
+  
+  .quick-search .form-control {
+    padding-left: 2.5rem;
+    border-radius: 25px;
+    border: 1px solid #e9ecef;
+  }
+  
+  .quick-search .search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+  }
+  
+  .export-btn {
+    background: linear-gradient(45deg, #17a2b8, #138496);
+    border: none;
+    color: white;
+    border-radius: 6px;
+  }
+  
+  .export-btn:hover {
+    background: linear-gradient(45deg, #138496, #17a2b8);
+    color: white;
+    transform: translateY(-1px);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Page Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h1 class="h2 mb-1">
+            <i class="fas fa-users text-primary me-2"></i>Client Directory
+          </h1>
+          <p class="text-muted mb-0">
+            Manage and view all your business relationships
+            <span class="badge badge-secondary ms-2">{{ client_list|length }} clients</span>
+          </p>
+        </div>
+        <div class="d-flex gap-2">
+          <div class="view-toggle">
+            <button class="btn btn-sm active" id="cardView">
+              <i class="fas fa-th"></i> Cards
+            </button>
+            <button class="btn btn-sm" id="tableView">
+              <i class="fas fa-list"></i> Table
+            </button>
+          </div>
+          {% if request.user.staff %}
+          <a href="{% url 'create-client' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Add Client
+          </a>
+          {% endif %}
+          <div class="dropdown">
+            <button class="btn export-btn dropdown-toggle" type="button" data-toggle="dropdown">
+              <i class="fas fa-download me-1"></i>Export
+            </button>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" href="#" onclick="exportToCSV()">
+                <i class="fas fa-file-csv me-2"></i>Export as CSV
+              </a>
+              <a class="dropdown-item" href="#" onclick="exportToPDF()">
+                <i class="fas fa-file-pdf me-2"></i>Export as PDF
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats & Search -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="card stats-card h-100">
+            <div class="card-body text-center p-3">
+              <h4 class="mb-1">{{ client_list|length }}</h4>
+              <small>Total Clients</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-success text-white h-100">
+            <div class="card-body text-center p-3">
+              <h4 class="mb-1">{{ active_count|default:0 }}</h4>
+              <small>Active</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-warning text-white h-100">
+            <div class="card-body text-center p-3">
+              <h4 class="mb-1">{{ prospect_count|default:0 }}</h4>
+              <small>Prospects</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card bg-info text-white h-100">
+            <div class="card-body text-center p-3">
+              <h4 class="mb-1">${{ total_revenue|floatformat:0|default:"0" }}</h4>
+              <small>Total Revenue</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="quick-search">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="form-control" id="clientSearch" placeholder="Search clients by name, contact, or location...">
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <ul class="nav nav-tabs filter-tabs" role="tablist">
+    <li class="nav-item">
+      <a class="nav-link active" href="#" data-filter="all">
+        <i class="fas fa-list me-1"></i>All Clients
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" data-filter="active">
+        <span class="status-indicator status-active"></span>Active
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" data-filter="prospect">
+        <span class="status-indicator status-prospect"></span>Prospects
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" data-filter="inactive">
+        <span class="status-indicator status-inactive"></span>Inactive
+      </a>
+    </li>
+  </ul>
+
+  <!-- Card View -->
+  <div id="cardViewContainer">
+    <div class="row" id="clientCards">
+      {% for client in client_list %}
+      <div class="col-xl-4 col-lg-6 col-md-6 mb-4 client-item" data-status="{{ client.status }}">
+        <div class="card client-card h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-start mb-3">
+              <div class="me-3">
+                {% if client.logo %}
+                  <img src="{{ client.logo.url }}" alt="{{ client.company_name }}" class="client-logo">
+                {% else %}
+                  <div class="client-logo bg-primary d-flex align-items-center justify-content-center">
+                    <i class="fas fa-building text-white"></i>
+                  </div>
+                {% endif %}
+              </div>
+              <div class="flex-grow-1">
+                <h6 class="card-title mb-1">
+                  <a href="{{ client.get_absolute_url }}" class="text-decoration-none text-dark font-weight-bold">
+                    {{ client.company_name }}
+                  </a>
+                </h6>
+                {% if client.business_type %}
+                  <small class="text-muted">{{ client.get_business_type_display }}</small>
+                {% endif %}
+              </div>
+              <span class="badge badge-{% if client.status == 'active' %}success{% elif client.status == 'prospect' %}warning{% elif client.status == 'inactive' %}secondary{% else %}danger{% endif %}">
+                {{ client.get_status_display }}
+              </span>
+            </div>
+
+            <div class="mb-3">
+              {% if client.primary_contact %}
+                <div class="d-flex align-items-center mb-2">
+                  <i class="fas fa-user text-muted me-2" style="width: 16px;"></i>
+                  <div>
+                    <strong>{{ client.primary_contact.full_name }}</strong>
+                    {% if client.primary_contact.title %}
+                      <br><small class="text-muted">{{ client.primary_contact.title }}</small>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if client.primary_contact.email %}
+                <div class="d-flex align-items-center mb-1">
+                  <i class="fas fa-envelope text-muted me-2" style="width: 16px;"></i>
+                  <a href="mailto:{{ client.primary_contact.email }}" class="text-decoration-none small">
+                    {{ client.primary_contact.email }}
+                  </a>
+                </div>
+                {% endif %}
+                {% if client.primary_contact.phone %}
+                <div class="d-flex align-items-center mb-1">
+                  <i class="fas fa-phone text-muted me-2" style="width: 16px;"></i>
+                  <a href="tel:{{ client.primary_contact.phone }}" class="text-decoration-none small">
+                    {{ client.primary_contact.phone }}
+                  </a>
+                </div>
+                {% endif %}
+              {% else %}
+                <div class="d-flex align-items-center text-muted">
+                  <i class="fas fa-user-slash me-2"></i>
+                  <em>No contact information</em>
+                </div>
+              {% endif %}
+            </div>
+
+            {% if client.primary_address %}
+            <div class="mb-3">
+              <div class="d-flex align-items-start">
+                <i class="fas fa-map-marker-alt text-muted me-2 mt-1" style="width: 16px;"></i>
+                <small class="text-muted">
+                  {{ client.primary_address.city }}, {{ client.primary_address.state_province }}
+                </small>
+              </div>
+            </div>
+            {% endif %}
+
+            <div class="d-flex justify-content-between align-items-center">
+              {% if client.total_revenue %}
+                <span class="badge revenue-badge">
+                  ${{ client.total_revenue|floatformat:0 }}
+                  {% if client.ytd_revenue %}
+                    <br><small>YTD: ${{ client.ytd_revenue|floatformat:0 }}</small>
+                  {% endif %}
+                </span>
+              {% else %}
+                <span class="badge badge-light">No revenue</span>
+              {% endif %}
+              
+              <div class="dropdown">
+                <button class="btn btn-link btn-sm" data-toggle="dropdown">
+                  <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                  <a class="dropdown-item" href="{{ client.get_absolute_url }}">
+                    <i class="fas fa-eye me-2"></i>View Details
+                  </a>
+                  {% if request.user.staff %}
+                  <a class="dropdown-item" href="{% url 'update-client' client.id %}">
+                    <i class="fas fa-edit me-2"></i>Edit Client
+                  </a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="{% url 'create-jobsite-from' client=client.pk %}">
+                    <i class="fas fa-plus me-2"></i>Add Job Site
+                  </a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="text-center py-5">
+          <i class="fas fa-users text-muted" style="font-size: 4rem;"></i>
+          <h4 class="text-muted mt-3">No clients found</h4>
+          <p class="text-muted">Start by adding your first client to the system.</p>
+          {% if request.user.staff %}
+          <a href="{% url 'create-client' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Add Your First Client
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Table View (Hidden by default) -->
+  <div id="tableViewContainer" class="d-none">
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" id="clientsTable">
+            <thead class="bg-light">
+              <tr>
+                <th class="border-0">Client</th>
+                <th class="border-0">Contact</th>
+                <th class="border-0">Phone</th>
+                <th class="border-0">Location</th>
+                <th class="border-0">Status</th>
+                <th class="border-0">Revenue</th>
+                <th class="border-0">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for client in client_list %}
+              <tr class="client-row" data-status="{{ client.status }}">
+                <td>
+                  <div class="d-flex align-items-center">
+                    {% if client.logo %}
+                      <img src="{{ client.logo.url }}" alt="{{ client.company_name }}" class="client-logo me-3" style="width: 32px; height: 32px;">
+                    {% else %}
+                      <div class="client-logo me-3 bg-primary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                        <i class="fas fa-building text-white" style="font-size: 12px;"></i>
+                      </div>
+                    {% endif %}
+                    <div>
+                      <a href="{{ client.get_absolute_url }}" class="font-weight-bold text-decoration-none">
+                        {{ client.company_name }}
+                      </a>
+                      {% if client.business_type %}
+                        <br><small class="text-muted">{{ client.get_business_type_display }}</small>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  {% if client.primary_contact %}
+                    <div>
+                      <strong>{{ client.primary_contact.full_name }}</strong>
+                      {% if client.primary_contact.title %}
+                        <br><small class="text-muted">{{ client.primary_contact.title }}</small>
+                      {% endif %}
+                      {% if client.primary_contact.email %}
+                        <br><a href="mailto:{{ client.primary_contact.email }}" class="small">{{ client.primary_contact.email }}</a>
+                      {% endif %}
+                    </div>
+                  {% else %}
+                    <em class="text-muted">No contact</em>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if client.primary_contact.phone %}
+                    <a href="tel:{{ client.primary_contact.phone }}" class="text-decoration-none">
+                      {{ client.primary_contact.phone }}
+                    </a>
+                  {% else %}
+                    <em class="text-muted">No phone</em>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if client.primary_address %}
+                    {{ client.primary_address.city }}, {{ client.primary_address.state_province }}
+                  {% else %}
+                    <em class="text-muted">No address</em>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge badge-{% if client.status == 'active' %}success{% elif client.status == 'prospect' %}warning{% elif client.status == 'inactive' %}secondary{% else %}danger{% endif %}">
+                    {{ client.get_status_display }}
+                  </span>
+                </td>
+                <td>
+                  {% if client.total_revenue %}
+                    <strong>${{ client.total_revenue|floatformat:0 }}</strong>
+                    {% if client.ytd_revenue %}
+                      <br><small class="text-muted">YTD: ${{ client.ytd_revenue|floatformat:0 }}</small>
+                    {% endif %}
+                  {% else %}
+                    <em class="text-muted">No revenue</em>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="dropdown">
+                    <button class="btn btn-link btn-sm" data-toggle="dropdown">
+                      <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">
+                      <a class="dropdown-item" href="{{ client.get_absolute_url }}">
+                        <i class="fas fa-eye me-2"></i>View
+                      </a>
+                      {% if request.user.staff %}
+                      <a class="dropdown-item" href="{% url 'update-client' client.id %}">
+                        <i class="fas fa-edit me-2"></i>Edit
+                      </a>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script src="{% static 'home/js/sb-admin-datatables.min.js' %}"></script>
+<script src="{% static 'home/vendor/datatables/jquery.dataTables.js' %}"></script>
+<script src="{% static 'home/vendor/datatables/dataTables.bootstrap4.js' %}"></script>
+
+<script>
+$(document).ready(function() {
+  // Initialize DataTable for table view
+  $('#clientsTable').DataTable({
+    "pageLength": 25,
+    "responsive": true,
+    "order": [[0, "asc"]],
+    "columnDefs": [
+      { "orderable": false, "targets": [6] }
+    ]
+  });
+
+  // View toggle functionality
+  $('#cardView').click(function() {
+    $(this).addClass('active');
+    $('#tableView').removeClass('active');
+    $('#cardViewContainer').removeClass('d-none');
+    $('#tableViewContainer').addClass('d-none');
+  });
+
+  $('#tableView').click(function() {
+    $(this).addClass('active');
+    $('#cardView').removeClass('active');
+    $('#tableViewContainer').removeClass('d-none');
+    $('#cardViewContainer').addClass('d-none');
+  });
+
+  // Filter functionality
+  $('.filter-tabs .nav-link').click(function(e) {
+    e.preventDefault();
+    
+    // Update active tab
+    $('.filter-tabs .nav-link').removeClass('active');
+    $(this).addClass('active');
+    
+    // Get filter value
+    const filter = $(this).data('filter');
+    
+    // Filter cards
+    if (filter === 'all') {
+      $('.client-item, .client-row').show();
+    } else {
+      $('.client-item, .client-row').hide();
+      $(`.client-item[data-status="${filter}"], .client-row[data-status="${filter}"]`).show();
+    }
+  });
+
+  // Search functionality
+  $('#clientSearch').on('input', function() {
+    const searchTerm = $(this).val().toLowerCase();
+    
+    $('.client-item').each(function() {
+      const cardText = $(this).text().toLowerCase();
+      if (cardText.includes(searchTerm)) {
+        $(this).show();
+      } else {
+        $(this).hide();
+      }
+    });
+
+    // Also filter table rows
+    $('.client-row').each(function() {
+      const rowText = $(this).text().toLowerCase();
+      if (rowText.includes(searchTerm)) {
+        $(this).show();
+      } else {
+        $(this).hide();
+      }
+    });
+  });
+});
+
+// Export functions
+function exportToCSV() {
+  // Implementation would depend on your backend
+  alert('CSV export functionality would be implemented here');
+}
+
+function exportToPDF() {
+  // Implementation would depend on your backend
+  alert('PDF export functionality would be implemented here');
+}
+</script>
+{% endblock %}

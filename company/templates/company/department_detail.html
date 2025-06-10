@@ -1,0 +1,580 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}{{ department.name }} Department{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+<li class="breadcrumb-item"><a href="{% url 'company:detail' department.company.pk %}">{{ department.company.company_name }}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'company:department-list' department.company.pk %}">Departments</a></li>
+<li class="breadcrumb-item active">{{ department.name }}</li>
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-sitemap fa-3x me-3"></i>
+                    <div>
+                        <h1 class="mb-0">{{ department.name }} Department</h1>
+                        {% if department.department_code %}
+                            <p class="mb-0 opacity-75">Department Code: {{ department.department_code }}</p>
+                        {% endif %}
+                        <div class="mt-2">
+                            <span class="badge {% if department.is_billable %}bg-success{% else %}bg-secondary{% endif %} me-2">
+                                {% if department.is_billable %}Billable Department{% else %}Non-billable Department{% endif %}
+                            </span>
+                            <span class="badge {% if department.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if department.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                            {% if department.parent_department %}
+                                <span class="badge bg-info">
+                                    Sub-department of {{ department.parent_department.name }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'company:department-list' department.company.pk %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Back to Departments
+                    </a>
+                    {% if user.is_staff %}
+                        <a href="#" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Department Information -->
+    <div class="col-lg-8">
+        <!-- Department Overview -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Department Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Leadership & Management</h6>
+                        {% if department.department_head %}
+                            <p class="mb-2">
+                                <strong><i class="fas fa-user-tie text-muted"></i> Department Head:</strong> {{ department.department_head }}
+                            </p>
+                        {% endif %}
+                        
+                        {% if department.primary_office %}
+                            <p class="mb-2">
+                                <i class="fas fa-building text-muted"></i> 
+                                <strong>Primary Office:</strong> 
+                                <a href="{% url 'company:office-detail' department.primary_office.pk %}">
+                                    {{ department.primary_office.office_name }}
+                                </a>
+                            </p>
+                        {% endif %}
+                        
+                        <p class="mb-2">
+                            <i class="fas fa-building text-muted"></i> 
+                            <strong>Company:</strong> 
+                            <a href="{% url 'company:detail' department.company.pk %}">
+                                {{ department.company.company_name }}
+                            </a>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Department Details</h6>
+                        {% if department.cost_center_code %}
+                            <p class="mb-2">
+                                <i class="fas fa-code text-muted"></i> 
+                                <strong>Cost Center:</strong> {{ department.cost_center_code }}
+                            </p>
+                        {% endif %}
+                        
+                        <p class="mb-2">
+                            <i class="fas fa-users text-muted"></i> 
+                            <strong>Employee Count:</strong> {{ department.employee_count }} employees
+                        </p>
+                        
+                        <p class="mb-2">
+                            <i class="fas fa-chart-pie text-muted"></i> 
+                            <strong>Billing Status:</strong> 
+                            {% if department.is_billable %}
+                                <span class="text-success">Billable to clients</span>
+                            {% else %}
+                                <span class="text-muted">Non-billable (overhead)</span>
+                            {% endif %}
+                        </p>
+                        
+                        {% if department.annual_budget %}
+                            <p class="mb-2">
+                                <i class="fas fa-dollar-sign text-muted"></i> 
+                                <strong>Annual Budget:</strong> ${{ department.annual_budget|floatformat:0 }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if department.description %}
+                    <div class="mt-3">
+                        <h6 class="text-muted">Description</h6>
+                        <p>{{ department.description|linebreaks }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Department Hierarchy -->
+        {% if department.parent_department or department.has_sub_departments %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-sitemap"></i> Department Hierarchy</h5>
+            </div>
+            <div class="card-body">
+                <div class="department-hierarchy">
+                    {% if department.parent_department %}
+                        <div class="mb-3">
+                            <h6 class="text-muted">Parent Department</h6>
+                            <div class="hierarchy-item parent">
+                                <i class="fas fa-level-up-alt text-primary me-2"></i>
+                                <a href="{% url 'company:department-detail' department.parent_department.pk %}" class="text-decoration-none">
+                                    <strong>{{ department.parent_department.name }}</strong>
+                                </a>
+                                {% if department.parent_department.department_head %}
+                                    <small class="text-muted ms-2">
+                                        <i class="fas fa-user-tie"></i> {{ department.parent_department.department_head }}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Current Department -->
+                    <div class="mb-3">
+                        <h6 class="text-muted">Current Department</h6>
+                        <div class="hierarchy-item current">
+                            <i class="fas fa-sitemap text-success me-2"></i>
+                            <strong>{{ department.name }}</strong>
+                            {% if department.department_head %}
+                                <small class="text-muted ms-2">
+                                    <i class="fas fa-user-tie"></i> {{ department.department_head }}
+                                </small>
+                            {% endif %}
+                            <span class="badge bg-info ms-2">{{ department.employee_count }} employees</span>
+                        </div>
+                    </div>
+                    
+                    {% if department.has_sub_departments %}
+                        <div class="mb-3">
+                            <h6 class="text-muted">Sub-departments</h6>
+                            {% for sub_dept in department.sub_departments.all %}
+                                <div class="hierarchy-item sub">
+                                    <i class="fas fa-level-down-alt text-info me-2"></i>
+                                    <a href="{% url 'company:department-detail' sub_dept.pk %}" class="text-decoration-none">
+                                        {{ sub_dept.name }}
+                                    </a>
+                                    {% if sub_dept.department_head %}
+                                        <small class="text-muted ms-2">
+                                            <i class="fas fa-user-tie"></i> {{ sub_dept.department_head }}
+                                        </small>
+                                    {% endif %}
+                                    <span class="badge bg-secondary ms-2">{{ sub_dept.employee_count }} employees</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Department Team -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-users"></i> Department Team ({{ department.employee_count }})</h5>
+                {% if user.is_staff %}
+                    <button type="button" class="btn btn-light btn-sm">
+                        <i class="fas fa-plus"></i> Add Employee
+                    </button>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if department.employee_count > 0 %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">Employee integration pending</p>
+                        <small class="text-muted">This section will show department employees when HR module is integrated</small>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-user-plus fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No employees assigned to this department yet</p>
+                        {% if user.is_staff %}
+                            <button type="button" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add First Employee
+                            </button>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Department Budget & Performance -->
+        {% if department.annual_budget %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-chart-line"></i> Budget & Performance</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Budget Information</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Annual Budget:</span>
+                            <strong>${{ department.annual_budget|floatformat:0 }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Budget per Employee:</span>
+                            <strong>
+                                {% if department.employee_count > 0 %}
+                                    ${% widthratio department.annual_budget department.employee_count 1 %}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </strong>
+                        </div>
+                        {% if department.cost_center_code %}
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Cost Center:</span>
+                                <strong>{{ department.cost_center_code }}</strong>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Performance Metrics</h6>
+                        <div class="text-center py-3">
+                            <i class="fas fa-chart-bar fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">Performance tracking coming soon</p>
+                            <small class="text-muted">Budget utilization and KPI tracking will be available</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Department Statistics -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Department Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="stat-card blue">
+                            <div class="h3 mb-0">{{ department.employee_count }}</div>
+                            <small>Team Members</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-card green">
+                            <div class="h3 mb-0">
+                                {% if department.has_sub_departments %}{{ department.sub_departments.count }}{% else %}0{% endif %}
+                            </div>
+                            <small>Sub-departments</small>
+                        </div>
+                    </div>
+                    {% if department.annual_budget %}
+                    <div class="col-12 mb-3">
+                        <div class="stat-card orange">
+                            <div class="h3 mb-0">${{ department.annual_budget|floatformat:0 }}</div>
+                            <small>Annual Budget</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-12">
+                        <div class="stat-card {% if department.is_billable %}green{% else %}{% endif %}">
+                            <div class="h3 mb-0">
+                                {% if department.is_billable %}
+                                    <i class="fas fa-check text-white"></i>
+                                {% else %}
+                                    <i class="fas fa-times text-white"></i>
+                                {% endif %}
+                            </div>
+                            <small>Billable Status</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Department Efficiency -->
+                {% if department.annual_budget and department.employee_count > 0 %}
+                <hr>
+                <h6 class="text-muted">Efficiency Metrics</h6>
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted">Budget per Employee</small>
+                        <small class="text-muted">${{% widthratio department.annual_budget department.employee_count 1 %}</small>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" style="width: 75%"></div>
+                    </div>
+                    <small class="text-muted">Efficiency Score: 75%</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-lightning-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if user.is_staff %}
+                        <a href="#" class="btn btn-outline-warning">
+                            <i class="fas fa-edit"></i> Edit Department
+                        </a>
+                        <button type="button" class="btn btn-outline-primary" onclick="manageEmployees()">
+                            <i class="fas fa-users"></i> Manage Team
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="viewBudget()">
+                            <i class="fas fa-chart-line"></i> Budget Details
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="generateReport()">
+                            <i class="fas fa-file-alt"></i> Generate Report
+                        </button>
+                    {% endif %}
+                    {% if department.has_sub_departments %}
+                        <hr>
+                        <a href="{% url 'company:department-list' department.company.pk %}" class="btn btn-outline-info">
+                            <i class="fas fa-sitemap"></i> View All Departments
+                        </a>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                        <hr>
+                        <button type="button" class="btn btn-outline-danger" 
+                                onclick="CompanyUtils.confirmDelete('{{ department.name }}', '#')">
+                            <i class="fas fa-trash"></i> Delete Department
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Activity -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="recent-activity">
+                    <div class="activity-item success">
+                        <div class="d-flex justify-content-between">
+                            <span>Department created</span>
+                            <small class="text-muted">{{ department.created_at|date:"M d" }}</small>
+                        </div>
+                        <small class="text-muted">{{ department.created_at|date:"g:i A" }}</small>
+                    </div>
+                    
+                    {% if department.updated_at != department.created_at %}
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between">
+                            <span>Department updated</span>
+                            <small class="text-muted">{{ department.updated_at|date:"M d" }}</small>
+                        </div>
+                        <small class="text-muted">{{ department.updated_at|date:"g:i A" }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Placeholder for more activity -->
+                    <div class="text-center mt-3">
+                        <small class="text-muted">More activity tracking coming soon</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Company Context -->
+        <div class="card company-card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-building"></i> Company Context</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    {% if department.company.logo %}
+                        <img src="{{ department.company.logo.url }}" alt="{{ department.company.company_name }}" 
+                             class="img-fluid" style="max-height: 60px;">
+                    {% else %}
+                        <i class="fas fa-building fa-2x text-muted"></i>
+                    {% endif %}
+                </div>
+                
+                <h6 class="text-center">
+                    <a href="{% url 'company:detail' department.company.pk %}" class="text-decoration-none">
+                        {{ department.company.company_name }}
+                    </a>
+                </h6>
+                
+                <div class="row text-center small">
+                    <div class="col-4">
+                        <div class="border-end">
+                            <div class="fw-bold">{{ department.company.total_locations }}</div>
+                            <div class="text-muted">Offices</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border-end">
+                            <div class="fw-bold">{{ department.company.total_departments }}</div>
+                            <div class="text-muted">Departments</div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold">{{ department.company.total_employees }}</div>
+                        <div class="text-muted">Employees</div>
+                    </div>
+                </div>
+                
+                <div class="d-grid mt-3">
+                    <a href="{% url 'company:detail' department.company.pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-eye"></i> View Company Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function manageEmployees() {
+    // This would integrate with HR module
+    alert('Employee management functionality would be implemented here');
+    // In a real implementation, this would redirect to HR employee management for this department
+}
+
+function viewBudget() {
+    // This would show detailed budget breakdown
+    alert('Budget management functionality would be implemented here');
+    // In a real implementation, this would show:
+    // - Budget allocation by category
+    // - Spend tracking
+    // - Budget vs actual reports
+    // - Forecasting
+}
+
+function generateReport() {
+    // This would generate department reports
+    alert('Report generation functionality would be implemented here');
+    // In a real implementation, this would generate:
+    // - Department performance reports
+    // - Budget utilization reports
+    // - Employee productivity reports
+    // - Custom reports
+}
+
+// Add interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to hierarchy items
+    const hierarchyItems = document.querySelectorAll('.hierarchy-item');
+    hierarchyItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.background = 'rgba(0,123,255,0.1)';
+            this.style.borderRadius = '5px';
+            this.style.padding = '5px';
+            this.style.transition = 'all 0.2s ease';
+        });
+        item.addEventListener('mouseleave', function() {
+            this.style.background = 'transparent';
+            this.style.padding = '0';
+        });
+    });
+    
+    // Add tooltips to statistics
+    const statCards = document.querySelectorAll('.stat-card');
+    statCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+});
+</script>
+
+<style>
+.hierarchy-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.hierarchy-item:last-child {
+    border-bottom: none;
+}
+
+.hierarchy-item.current {
+    background: linear-gradient(135deg, rgba(40,167,69,0.1) 0%, rgba(40,167,69,0.05) 100%);
+    border-radius: 5px;
+    padding: 0.75rem;
+    border: 1px solid rgba(40,167,69,0.2);
+}
+
+.hierarchy-item.parent {
+    background: linear-gradient(135deg, rgba(0,123,255,0.1) 0%, rgba(0,123,255,0.05) 100%);
+    border-radius: 5px;
+    padding: 0.75rem;
+    border: 1px solid rgba(0,123,255,0.2);
+}
+
+.hierarchy-item.sub {
+    background: linear-gradient(135deg, rgba(23,162,184,0.1) 0%, rgba(23,162,184,0.05) 100%);
+    border-radius: 5px;
+    padding: 0.75rem;
+    border: 1px solid rgba(23,162,184,0.2);
+    margin-bottom: 0.5rem;
+}
+
+.activity-item {
+    border-left: 3px solid #e9ecef;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.activity-item::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 0.5rem;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #007bff;
+}
+
+.activity-item.success::before { background: #28a745; }
+.activity-item.warning::before { background: #ffc107; }
+.activity-item.danger::before { background: #dc3545; }
+
+.progress {
+    border-radius: 5px;
+}
+
+.department-hierarchy {
+    position: relative;
+}
+</style>
+{% endblock %}

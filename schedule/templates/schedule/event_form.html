@@ -1,0 +1,115 @@
+{% extends "home/base.html" %}
+{% load i18n %}
+
+
+{% block title %}<title>Event Update</title> {% endblock %}
+{% block breadcrumb %} / <a href="{% url 'schedule' %}">Schedule</a> / Update Event info{% endblock %}
+
+{% block content %}
+{% if request.user.staff %}
+
+{{ form.non_field_errors }}
+<form style="background-color:rgb(217, 237, 248);" class="form-control" method="post" >{% csrf_token %}
+<div class="row">
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-body" style="background-color:rgb(217, 248, 229);">
+          <div class="form-group">
+            <div class="form-row">
+              <label for="id_project">&nbsp; <b>Project:</b></label>{{ form.project.errors }}
+               {% if request.user.staff %}<div style="float:right;">&nbsp; <a href="{% url 'create-project-from' jobsi=jobsi %}"> <i class="fa fa-plus-square"></i> create</a></div>{% endif %}
+              <select class="form-control" name="project" required="" id="id_project">
+                {% for project in form.project %}
+                  {{ project }}
+                {% endfor %}</select></div>
+            <div class="form-row">
+              <label for="id_lead">&nbsp; Lead:</label>{{ form.lead.errors }}
+              <select class="form-control" name="lead" id="id_lead">
+                {% for lead in form.lead %}
+                  {{ lead }}
+                {% endfor %}</select></div>
+            <div class="form-row">
+              <label for="id_workers">&nbsp; Workers:</label>{{ form.workers.errors }}
+              <select class="form-control" name="workers" multiple="" id="id_workers">
+                {% for workers in form.workers %}
+                  {{ workers }}
+                {% endfor %}</select></div>
+            <div class="form-row">
+              <label for="id_calendar">&nbsp; Calendar:</label>{{ form.calendar.errors }}
+              <select class="form-control" name="calendar" id="id_calendar">
+                {% for calendar in form.calendar %}
+                  {{ calendar }}
+                {% endfor %}</select></div>
+            <div class="form-row">
+              <label for="id_rule">&nbsp; Rule:</label>{{ form.rule.errors }}
+              <select class="form-control" name="rule" id="id_rule">
+                {% for rule in form.rule %}
+                  {{ rule }}
+                {% endfor %}</select></div>
+            <div class="form-row">
+              <label for="id_title">&nbsp; <b>Title:</b></label>
+              <input class="form-control" type="text" name="title" value="{{event.title}}" id="id_title" required="" maxlength="255"></div>
+            <div class="form-row">
+              <label for="id_color_event">&nbsp; Job color:</label>{{ form.color_event.errors }}
+              <input class="form-control" type="color" name="color_event" id="id_color_event" value="{{ color }}"><div style="width:100%;height:25px;background-color:#{{color}};"></div></div>
+          </div>  
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card mb-3">
+        <div class="card-body" style="background-color:rgb(217, 248, 229);">
+        <div class="form-group">
+          <div class="form-row">
+            <label for="id_start_time">&nbsp; Distributor time:</label>{{ form.dist_time.errors }}
+            <input class="form-control" type="time" name="dist_time" id="id_dist_time" value="{{ event.dist_time|date:'H:i' }}"> 
+            {% if request.user.staff %}<div style="float:right;">&nbsp; <a href="#"> <i class="fa fa-plus-square"></i> create</a></div>{% endif %}
+              <select class="form-control" name="distributor" id="id_distributor">
+                {% for distributor in form.distributor %}
+                  {{ distributor }}
+                {% endfor %}</select></div>
+          <div class="form-row">
+            <label for="id_start_time">&nbsp; Start office time:</label>{{ form.start_time.errors }}
+            <input class="form-control" type="time" name="start_time" id="id_start_time" value="{{ event.start_time|date:'H:i' }}"></div>
+          <div class="form-row">
+            <label style="width:50%;" for="id_start_0">&nbsp; <b>Site date:</b></label>{{ form.start.errors }}
+            <label style="width:50%;" for="id_start_1">&nbsp; <b>Site time:</b></label></div>
+          <div class="form-row">
+            <input style="width:50%;" class="form-control" type="date" name="start_0" required="" id="id_start_0" value="{{ event.start|date:'Y-m-d' }}">
+            <input style="width:50%;" class="form-control" type="time" name="start_1" required="" id="id_start_1" value="{{ event.start|date:'H:i' }}"></div>
+          <div class="form-row">
+            <label style="width:50%;" for="id_end_0">&nbsp; <b>End date:</b></label>{{ form.start.errors }}
+            <label style="width:50%;" for="id_end_1">&nbsp; <b>End time:</b></label></div>
+          <div class="form-row">
+            <input style="width:50%;" class="form-control" type="date" name="end_0" required="" id="id_end_0" value="{{ event.end|date:'Y-m-d' }}">
+            <input style="width:50%;" class="form-control" type="time" name="end_1" required="" id="id_end_1" value="{{ event.end|date:'H:i' }}"></div>
+          <div class="form-row">
+            <label style="width:50%;" for="id_end_recurring_period">&nbsp; End recurring period:</label>{{ form.end_recurring_period.errors }}</div>
+          <div class="form-row">
+            <input style="width:50%;" class="form-control" type="text" name="end_recurring_period" id="id_end_recurring_period">
+            <span style="width:50%;" class="helptext">&nbsp; This date is ignored for one time only events.</span></div>
+          <div class="form-row">
+            <label for="id_description">&nbsp; Discription:</label>{{ form.description.errors }}
+            <textarea class="form-control" name="description" cols="60" id="id_description" rows="5">{{ event.description }}</textarea></div>
+          <div class="form-row">
+            <label for="id_text">&nbsp; Contractor Notes:</label>{{ form.text.errors }}
+            <textarea class="form-control" name="text" cols="60" id="id_text" rows="5">{{ event.text }}</textarea></div>
+          <div class="form-row">
+            <label for="id_equip">&nbsp; Equipment:</label>{{ form.equip.errors }}
+            <textarea class="form-control" name="equip" cols="40" id="id_equip" rows="5">{{ event.equip }}</textarea></div>
+          <div class="form-row">
+            <label for="id_details">&nbsp; Project details:</label>{{ form.details.errors }}
+            <textarea class="form-control" name="details" cols="40" id="id_details" rows="5">{{ event.details }}</textarea></div>
+          </div>
+        </div>
+      </div>
+      <input style="margin-bottom: 10px;" class="btn btn-primary btn-block" type="submit" value="Update" />
+  </div>
+</div>
+</form>
+
+{% else %}
+Your not allowed to view this page..
+{% endif %} 
+{% endblock %} 
+

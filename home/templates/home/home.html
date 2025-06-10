@@ -1,0 +1,456 @@
+{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-section {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.section-header {
+    background: #f8f9fa;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.section-header i {
+    margin-right: 8px;
+    color: #6c757d;
+}
+
+.section-content {
+    padding: 15px 20px;
+}
+
+.event-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #f1f3f4;
+    display: flex;
+    align-items: center;
+}
+
+.event-item:last-child {
+    border-bottom: none;
+}
+
+.event-number {
+    background: #007bff;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+    margin-right: 12px;
+    min-width: 50px;
+    text-align: center;
+}
+
+.event-number.warning { background: #ffc107; color: #212529; }
+.event-number.success { background: #28a745; }
+.event-number.info { background: #17a2b8; }
+.event-number.danger { background: #dc3545; }
+
+.event-details h6 {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.event-meta {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 2px;
+}
+
+.tool-category {
+    margin-bottom: 15px;
+}
+
+.tool-category-header {
+    background: #e9ecef;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.tool-item {
+    padding: 6px 12px;
+    border-left: 3px solid #007bff;
+    margin-bottom: 6px;
+    background: #f8f9fa;
+    border-radius: 0 4px 4px 0;
+}
+
+.tool-item strong {
+    font-size: 13px;
+}
+
+.tool-item small {
+    display: block;
+    color: #6c757d;
+    font-size: 11px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 15px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6c757d;
+    text-transform: uppercase;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Welcome Section -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="bg-primary text-white p-3 rounded">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-1">Welcome, {{ user.get_full_name|default:user.first_name }}!</h4>
+                    <p class="mb-0 opacity-75">{{ "now"|date:"l, F j, Y" }}</p>
+                </div>
+                <div class="text-end">
+                    <small class="opacity-75">Worker Bee</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Stats -->
+{% if dashboard_stats %}
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ dashboard_stats.total_assets|default:0 }}</div>
+        <div class="stat-label">Assets</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ dashboard_stats.active_projects|default:0 }}</div>
+        <div class="stat-label">Projects</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ dashboard_stats.pending_tasks|default:0 }}</div>
+        <div class="stat-label">Tasks</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ dashboard_stats.upcoming_events|default:0 }}</div>
+        <div class="stat-label">Events</div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Main Dashboard Row -->
+<div class="row">
+    <!-- Left Column - Scheduled Events -->
+    <div class="col-lg-8">
+        <div class="dashboard-section">
+            <div class="section-header">
+                <i class="fas fa-calendar-check text-warning"></i>
+                Scheduled events
+            </div>
+            <div class="section-content">
+                {% if scheduled_events %}
+                    {% for event in scheduled_events %}
+                    <div class="event-item">
+                        <div class="event-number {{ event.color_class|default:'info' }}">
+                            {{ event.job_number|default:'—' }}
+                        </div>
+                        <div class="event-details flex-grow-1">
+                            <h6>{{ event.title }}</h6>
+                            <div class="event-meta">
+                                {{ event.date|date:"F j, Y" }}
+                                {% if event.location %} - {{ event.location }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% elif project_event_list %}
+                    {% for event in project_event_list %}
+                    <div class="event-item">
+                        <div class="event-number info">
+                            {{ event.id|default:'—' }}
+                        </div>
+                        <div class="event-details flex-grow-1">
+                            <h6>{{ event.title|default:"Event" }}</h6>
+                            <div class="event-meta">{{ event.start|date:"F j, Y g:i A" }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-3 text-muted">
+                        <i class="fas fa-calendar fa-2x mb-2"></i>
+                        <p>No scheduled events</p>
+                    </div>
+                {% endif %}
+                
+                {% if scheduled_events or project_event_list %}
+                <div class="text-end mt-3">
+                    <a href="#" class="text-primary text-decoration-none">View full schedule...</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Projects -->
+        {% if recent_projects or worker_project_list %}
+        <div class="dashboard-section">
+            <div class="section-header">
+                <i class="fas fa-project-diagram text-info"></i>
+                Recent Projects
+            </div>
+            <div class="section-content">
+                {% for project in recent_projects|default:worker_project_list %}
+                <div class="event-item">
+                    <div class="event-number info">
+                        {{ project.job_number|default:project.job_num|default:'—' }}
+                    </div>
+                    <div class="event-details flex-grow-1">
+                        <h6>{{ project.name|default:"Project" }}</h6>
+                        <div class="event-meta">
+                            {% if project.status %}Status: {{ project.status|title }}{% endif %}
+                            {% if project.client %} - {{ project.client }}{% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column - Tools -->
+    <div class="col-lg-4">
+        <!-- Tools Section -->
+        <div class="dashboard-section">
+            <div class="section-header bg-primary text-white">
+                <i class="fas fa-tools"></i>
+                Tools
+            </div>
+            <div class="section-content">
+                {% if tools_assigned %}
+                    {% for category in tools_assigned %}
+                    <div class="tool-category">
+                        <div class="tool-category-header text-{{ category.color|default:'primary' }}">
+                            <i class="{{ category.icon|default:'fas fa-box' }} me-2"></i>
+                            {{ category.category }}
+                        </div>
+                        {% for item in category.items %}
+                        <div class="tool-item">
+                            <strong>{{ item.name }}</strong>
+                            <small>
+                                {% if item.asset_number %}#{{ item.asset_number }}{% endif %}
+                                {% if item.location %} - {{ item.location }}{% endif %}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                
+                {% elif asset_groups %}
+                    {% for group in asset_groups %}
+                        {% if group.items %}
+                        <div class="tool-category">
+                            <div class="tool-category-header text-primary">
+                                <i class="fas fa-tools me-2"></i>
+                                {{ group.title }}
+                            </div>
+                            {% for item in group.items %}
+                            <div class="tool-item">
+                                <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
+                                <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                
+                {% else %}
+                    <!-- Original template compatibility -->
+                    {% if ladder_list %}
+                    <div class="tool-category">
+                        <div class="tool-category-header text-primary">
+                            <i class="fas fa-ladder me-2"></i>
+                            Ladders
+                        </div>
+                        {% for item in ladder_list %}
+                        <div class="tool-item">
+                            <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
+                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle_list %}
+                    <div class="tool-category">
+                        <div class="tool-category-header text-success">
+                            <i class="fas fa-truck me-2"></i>
+                            Vehicles
+                        </div>
+                        {% for item in vehicle_list %}
+                        <div class="tool-item">
+                            <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
+                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if tool_list %}
+                    <div class="tool-category">
+                        <div class="tool-category-header text-warning">
+                            <i class="fas fa-wrench me-2"></i>
+                            Tools
+                        </div>
+                        {% for item in tool_list %}
+                        <div class="tool-item">
+                            <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
+                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if power_tool_list %}
+                    <div class="tool-category">
+                        <div class="tool-category-header text-danger">
+                            <i class="fas fa-bolt me-2"></i>
+                            Power Tools
+                        </div>
+                        {% for item in power_tool_list %}
+                        <div class="tool-item">
+                            <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
+                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if fiber_list %}
+                    <div class="tool-category">
+                        <div class="tool-category-header text-info">
+                            <i class="fas fa-ethernet me-2"></i>
+                            Fiber Equipment
+                        </div>
+                        {% for item in fiber_list %}
+                        <div class="tool-item">
+                            <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
+                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if tester_list %}
+                    <div class="tool-category">
+                        <div class="tool-category-header text-secondary">
+                            <i class="fas fa-vial me-2"></i>
+                            Testing Equipment
+                        </div>
+                        {% for item in tester_list %}
+                        <div class="tool-item">
+                            <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
+                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if not ladder_list and not vehicle_list and not tool_list and not power_tool_list and not fiber_list and not tester_list %}
+                    <div class="text-center py-3 text-muted">
+                        <i class="fas fa-tools fa-2x mb-2"></i>
+                        <p>No tools assigned</p>
+                        <small>Tools will appear here when assigned to you</small>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <i class="fas fa-bolt text-success"></i>
+                Quick Actions
+            </div>
+            <div class="section-content">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'home:contact' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-envelope"></i> Contact Support
+                    </a>
+                    <a href="#" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-plus"></i> Add Asset
+                    </a>
+                    <a href="#" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-calendar"></i> Schedule Event
+                    </a>
+                    <a href="#" class="btn btn-outline-warning btn-sm">
+                        <i class="fas fa-file"></i> View Reports
+                    </a>
+                    <a href="/admin/" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-cogs"></i> Admin Panel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh dashboard every 5 minutes
+setInterval(function() {
+    if (document.visibilityState === 'visible') {
+        console.log('Auto-refreshing dashboard data...');
+    }
+}, 300000); // 5 minutes
+
+// Add hover effects for event items
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.event-item').forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+});
+</script>
+{% endblock %}

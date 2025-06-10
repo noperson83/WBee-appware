@@ -1,0 +1,588 @@
+<!-- partials/address_form.html - Address Inline Form Component -->
+<!-- Usage: {% include 'location/partials/address_form.html' with form_prefix='address' %} -->
+
+{% load static %}
+
+<div class="address-form-component" data-form-prefix="{{ form_prefix|default:'address' }}">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+                <i class="fas fa-map-marker-alt mr-2"></i>
+                Address Information
+            </h6>
+            <div class="address-form-controls">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="addAddressBtn">
+                    <i class="fas fa-plus mr-1"></i>Add Address
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="validateAddressBtn">
+                    <i class="fas fa-check mr-1"></i>Validate All
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Address Forms Container -->
+            <div id="addressFormsContainer">
+                <!-- Individual address forms will be added here -->
+            </div>
+            
+            <!-- Empty State -->
+            <div id="addressEmptyState" class="text-center py-4">
+                <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                <h6 class="text-muted">No addresses added</h6>
+                <p class="text-muted mb-3">Add an address to specify the location details</p>
+                <button type="button" class="btn btn-primary" onclick="addAddressForm()">
+                    <i class="fas fa-plus mr-2"></i>Add First Address
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Address Form Template -->
+<template id="addressFormTemplate">
+    <div class="address-form-item border rounded p-3 mb-3" data-address-index="">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">
+                <span class="address-title">Address</span>
+                <span class="address-index badge badge-primary ml-2"></span>
+            </h6>
+            <div class="address-item-controls">
+                <button type="button" class="btn btn-sm btn-outline-info" onclick="validateAddress(this)">
+                    <i class="fas fa-check"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="duplicateAddress(this)">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeAddress(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Label</label>
+                    <input type="text" class="form-control address-label" 
+                           placeholder="e.g., Main Office, Warehouse, Site Entrance"
+                           name="{{ form_prefix|default:'address' }}-PLACEHOLDER-label">
+                    <div class="form-text">Descriptive name for this address</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Attention Line</label>
+                    <input type="text" class="form-control" 
+                           placeholder="Attn: Department or Person"
+                           name="{{ form_prefix|default:'address' }}-PLACEHOLDER-attention_line">
+                    <div class="form-text">Optional attention line</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label required">Address Line 1</label>
+            <input type="text" class="form-control address-line1" required
+                   placeholder="Street number and name"
+                   name="{{ form_prefix|default:'address' }}-PLACEHOLDER-line1">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Address Line 2</label>
+            <input type="text" class="form-control" 
+                   placeholder="Apartment, suite, unit, building, floor, etc."
+                   name="{{ form_prefix|default:'address' }}-PLACEHOLDER-line2">
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label required">City</label>
+                    <input type="text" class="form-control address-city" required
+                           placeholder="City"
+                           name="{{ form_prefix|default:'address' }}-PLACEHOLDER-city">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label required">State/Province</label>
+                    <input type="text" class="form-control address-state" required
+                           placeholder="State or Province"
+                           name="{{ form_prefix|default:'address' }}-PLACEHOLDER-state_province">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="form-label required">Postal Code</label>
+                    <input type="text" class="form-control address-postal" required
+                           placeholder="ZIP or Postal Code"
+                           name="{{ form_prefix|default:'address' }}-PLACEHOLDER-postal_code">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Country</label>
+                    <select class="form-control address-country" 
+                            name="{{ form_prefix|default:'address' }}-PLACEHOLDER-country">
+                        <option value="US" selected>United States</option>
+                        <option value="CA">Canada</option>
+                        <option value="MX">Mexico</option>
+                        <option value="GB">United Kingdom</option>
+                        <option value="AU">Australia</option>
+                        <option value="DE">Germany</option>
+                        <option value="FR">France</option>
+                        <option value="JP">Japan</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <div class="d-flex justify-content-between">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input address-primary" 
+                                   name="{{ form_prefix|default:'address' }}-PLACEHOLDER-is_primary">
+                            <label class="form-check-label">Primary Address</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input address-active" checked
+                                   name="{{ form_prefix|default:'address' }}-PLACEHOLDER-is_active">
+                            <label class="form-check-label">Active</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Validation Results -->
+        <div class="address-validation-results" style="display: none;">
+            <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle mr-2"></i>Address Validation</h6>
+                <div class="validation-content"></div>
+            </div>
+        </div>
+
+        <!-- Geocoding Results -->
+        <div class="geocoding-results" style="display: none;">
+            <div class="alert alert-success">
+                <h6><i class="fas fa-map-marker-alt mr-2"></i>Coordinates Found</h6>
+                <p class="mb-2">Latitude: <span class="geocoded-lat"></span>, Longitude: <span class="geocoded-lng"></span></p>
+                <button type="button" class="btn btn-sm btn-primary" onclick="useGeocodedCoordinates(this)">
+                    Use These Coordinates
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style>
+.address-form-component .required::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+.address-form-item {
+    position: relative;
+    background: #fafafa;
+    transition: all 0.2s ease;
+}
+
+.address-form-item:hover {
+    background: #f0f0f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.address-form-item.primary {
+    border-left: 4px solid #007bff;
+    background: #f8f9ff;
+}
+
+.address-form-item.validating {
+    opacity: 0.7;
+}
+
+.address-form-item.valid {
+    border-left: 4px solid #28a745;
+}
+
+.address-form-item.invalid {
+    border-left: 4px solid #dc3545;
+}
+
+.address-validation-results .alert {
+    margin-bottom: 0;
+    font-size: 0.9em;
+}
+
+.geocoding-results .alert {
+    margin-bottom: 0;
+    font-size: 0.9em;
+}
+
+.address-index {
+    font-size: 0.75em;
+}
+
+.address-item-controls .btn {
+    margin-left: 3px;
+}
+
+@media (max-width: 768px) {
+    .address-item-controls {
+        margin-top: 10px;
+    }
+    
+    .address-item-controls .btn {
+        margin: 2px;
+    }
+}
+</style>
+
+<script>
+// Address Form Management
+let addressFormCount = 0;
+const formPrefix = '{{ form_prefix|default:"address" }}';
+
+function initializeAddressForms() {
+    // Initialize with one empty form if none exist
+    if ($('#addressFormsContainer .address-form-item').length === 0) {
+        addAddressForm();
+    }
+    
+    updateAddressIndices();
+    updateEmptyState();
+}
+
+function addAddressForm(data = {}) {
+    const template = document.getElementById('addressFormTemplate');
+    const clone = template.content.cloneNode(true);
+    const formItem = clone.querySelector('.address-form-item');
+    
+    // Set unique index
+    const index = addressFormCount++;
+    formItem.setAttribute('data-address-index', index);
+    
+    // Update form field names
+    const inputs = formItem.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        const name = input.getAttribute('name');
+        if (name) {
+            input.setAttribute('name', name.replace('PLACEHOLDER', index));
+        }
+    });
+    
+    // Populate with data if provided
+    if (data.label) formItem.querySelector('.address-label').value = data.label;
+    if (data.line1) formItem.querySelector('.address-line1').value = data.line1;
+    if (data.city) formItem.querySelector('.address-city').value = data.city;
+    if (data.state) formItem.querySelector('.address-state').value = data.state;
+    if (data.postal_code) formItem.querySelector('.address-postal').value = data.postal_code;
+    if (data.country) formItem.querySelector('.address-country').value = data.country;
+    if (data.is_primary) {
+        formItem.querySelector('.address-primary').checked = true;
+        formItem.classList.add('primary');
+    }
+    if (data.is_active !== undefined) formItem.querySelector('.address-active').checked = data.is_active;
+    
+    // Add to container
+    $('#addressFormsContainer').append(formItem);
+    
+    // Setup event listeners
+    setupAddressFormEvents(formItem);
+    
+    updateAddressIndices();
+    updateEmptyState();
+    
+    // Scroll to new form
+    formItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    return formItem;
+}
+
+function removeAddress(button) {
+    const formItem = $(button).closest('.address-form-item');
+    const isPrimary = formItem.find('.address-primary').is(':checked');
+    
+    if (confirm('Are you sure you want to remove this address?')) {
+        formItem.remove();
+        
+        // If this was primary, make the first remaining address primary
+        if (isPrimary) {
+            const firstAddress = $('#addressFormsContainer .address-form-item').first();
+            if (firstAddress.length) {
+                firstAddress.find('.address-primary').prop('checked', true);
+                firstAddress.addClass('primary');
+            }
+        }
+        
+        updateAddressIndices();
+        updateEmptyState();
+    }
+}
+
+function duplicateAddress(button) {
+    const formItem = $(button).closest('.address-form-item');
+    const data = {
+        label: formItem.find('.address-label').val() + ' (Copy)',
+        line1: formItem.find('.address-line1').val(),
+        city: formItem.find('.address-city').val(),
+        state: formItem.find('.address-state').val(),
+        postal_code: formItem.find('.address-postal').val(),
+        country: formItem.find('.address-country').val(),
+        is_primary: false, // Never duplicate as primary
+        is_active: formItem.find('.address-active').is(':checked')
+    };
+    
+    addAddressForm(data);
+}
+
+function validateAddress(button) {
+    const formItem = $(button).closest('.address-form-item');
+    const validationResults = formItem.find('.address-validation-results');
+    const geocodingResults = formItem.find('.geocoding-results');
+    
+    // Collect address data
+    const addressData = {
+        line1: formItem.find('.address-line1').val(),
+        line2: formItem.find('[name*="line2"]').val(),
+        city: formItem.find('.address-city').val(),
+        state: formItem.find('.address-state').val(),
+        postal_code: formItem.find('.address-postal').val(),
+        country: formItem.find('.address-country').val()
+    };
+    
+    // Basic validation
+    if (!addressData.line1 || !addressData.city || !addressData.state || !addressData.postal_code) {
+        showValidationResult(formItem, 'error', 'Please fill in all required fields');
+        return;
+    }
+    
+    // Show loading state
+    formItem.addClass('validating');
+    $(button).html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+    
+    // Simulate address validation (replace with real API call)
+    setTimeout(() => {
+        // Mock validation result
+        const isValid = Math.random() > 0.2; // 80% success rate
+        
+        if (isValid) {
+            showValidationResult(formItem, 'success', 'Address is valid and deliverable');
+            
+            // Mock geocoding result
+            const lat = (Math.random() * 180 - 90).toFixed(6);
+            const lng = (Math.random() * 360 - 180).toFixed(6);
+            showGeocodingResult(formItem, lat, lng);
+        } else {
+            showValidationResult(formItem, 'warning', 'Address may not be deliverable. Please verify the information.');
+        }
+        
+        // Reset button
+        formItem.removeClass('validating');
+        $(button).html('<i class="fas fa-check"></i>').prop('disabled', false);
+    }, 2000);
+}
+
+function showValidationResult(formItem, type, message) {
+    const validationResults = formItem.find('.address-validation-results');
+    const alert = validationResults.find('.alert');
+    
+    // Update alert type
+    alert.removeClass('alert-info alert-success alert-warning alert-danger');
+    alert.addClass(`alert-${type === 'error' ? 'danger' : type}`);
+    
+    // Update content
+    alert.find('.validation-content').html(message);
+    
+    // Update form item class
+    formItem.removeClass('valid invalid');
+    if (type === 'success') {
+        formItem.addClass('valid');
+    } else if (type === 'error') {
+        formItem.addClass('invalid');
+    }
+    
+    validationResults.slideDown();
+}
+
+function showGeocodingResult(formItem, lat, lng) {
+    const geocodingResults = formItem.find('.geocoding-results');
+    geocodingResults.find('.geocoded-lat').text(lat);
+    geocodingResults.find('.geocoded-lng').text(lng);
+    geocodingResults.slideDown();
+}
+
+function useGeocodedCoordinates(button) {
+    const formItem = $(button).closest('.address-form-item');
+    const lat = formItem.find('.geocoded-lat').text();
+    const lng = formItem.find('.geocoded-lng').text();
+    
+    // Update coordinate picker if it exists
+    if (window.coordinatePicker) {
+        window.coordinatePicker.setCoordinates(parseFloat(lat), parseFloat(lng));
+    } else {
+        // Fallback: update coordinate inputs directly
+        $('#id_location_latitude').val(lat);
+        $('#id_location_longitude').val(lng);
+    }
+    
+    // Show success message
+    showNotification('Coordinates updated successfully!', 'success');
+    
+    // Hide geocoding results
+    formItem.find('.geocoding-results').slideUp();
+}
+
+function setupAddressFormEvents(formItem) {
+    const $formItem = $(formItem);
+    
+    // Primary address toggle
+    $formItem.find('.address-primary').on('change', function() {
+        if (this.checked) {
+            // Remove primary from all other addresses
+            $('.address-form-item').removeClass('primary');
+            $('.address-primary').not(this).prop('checked', false);
+            
+            // Add primary to this one
+            $formItem.addClass('primary');
+        } else {
+            $formItem.removeClass('primary');
+        }
+    });
+    
+    // Auto-populate label based on address
+    const autoPopulateLabel = debounce(() => {
+        const line1 = $formItem.find('.address-line1').val();
+        const city = $formItem.find('.address-city').val();
+        const label = $formItem.find('.address-label');
+        
+        if (!label.val() && line1 && city) {
+            label.val(`${line1}, ${city}`);
+        }
+    }, 1000);
+    
+    $formItem.find('.address-line1, .address-city').on('input', autoPopulateLabel);
+    
+    // Format postal code
+    $formItem.find('.address-postal').on('input', function() {
+        let value = this.value.replace(/\D/g, ''); // Remove non-digits
+        const country = $formItem.find('.address-country').val();
+        
+        if (country === 'US' && value.length >= 5) {
+            // Format US ZIP codes (12345 or 12345-6789)
+            if (value.length > 5) {
+                value = value.slice(0, 5) + '-' + value.slice(5, 9);
+            }
+        } else if (country === 'CA' && value.length >= 6) {
+            // Format Canadian postal codes (A1A 1A1)
+            value = value.slice(0, 3) + ' ' + value.slice(3, 6);
+        }
+        
+        this.value = value;
+    });
+    
+    // Country change handler
+    $formItem.find('.address-country').on('change', function() {
+        const country = this.value;
+        const stateLabel = $formItem.find('.address-state').siblings('label');
+        const postalLabel = $formItem.find('.address-postal').siblings('label');
+        
+        if (country === 'US') {
+            stateLabel.text('State');
+            postalLabel.text('ZIP Code');
+            $formItem.find('.address-postal').attr('placeholder', '12345 or 12345-6789');
+        } else if (country === 'CA') {
+            stateLabel.text('Province');
+            postalLabel.text('Postal Code');
+            $formItem.find('.address-postal').attr('placeholder', 'A1A 1A1');
+        } else {
+            stateLabel.text('State/Province');
+            postalLabel.text('Postal Code');
+            $formItem.find('.address-postal').attr('placeholder', 'Postal Code');
+        }
+    });
+}
+
+function updateAddressIndices() {
+    $('#addressFormsContainer .address-form-item').each(function(index) {
+        const $item = $(this);
+        $item.find('.address-index').text(index + 1);
+        $item.find('.address-title').text(index === 0 ? 'Primary Address' : `Address ${index + 1}`);
+    });
+}
+
+function updateEmptyState() {
+    const hasAddresses = $('#addressFormsContainer .address-form-item').length > 0;
+    $('#addressEmptyState').toggle(!hasAddresses);
+}
+
+function validateAllAddresses() {
+    const addresses = $('#addressFormsContainer .address-form-item');
+    let validCount = 0;
+    let totalCount = addresses.length;
+    
+    if (totalCount === 0) {
+        showNotification('No addresses to validate', 'info');
+        return;
+    }
+    
+    addresses.each(function() {
+        const validateBtn = $(this).find('[onclick*="validateAddress"]');
+        validateBtn.click();
+    });
+    
+    showNotification(`Validating ${totalCount} addresses...`, 'info');
+}
+
+// Utility function for debouncing
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Notification function
+function showNotification(message, type = 'info') {
+    const toast = $(`
+        <div class="alert alert-${type} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            ${message}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `);
+    
+    $('body').append(toast);
+    
+    setTimeout(() => {
+        toast.fadeOut(() => toast.remove());
+    }, 3000);
+}
+
+// Initialize when document is ready
+$(document).ready(function() {
+    // Set up main controls
+    $('#addAddressBtn').on('click', () => addAddressForm());
+    $('#validateAddressBtn').on('click', validateAllAddresses);
+    
+    // Initialize forms
+    initializeAddressForms();
+});
+
+// Global functions for template onclick handlers
+window.addAddressForm = addAddressForm;
+window.removeAddress = removeAddress;
+window.duplicateAddress = duplicateAddress;
+window.validateAddress = validateAddress;
+window.useGeocodedCoordinates = useGeocodedCoordinates;
+</script>

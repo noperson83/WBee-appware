@@ -1,0 +1,90 @@
+{% extends "home/base.html" %}
+{% load static %}
+{% block title %}<title>Schedule</title>{% endblock %}
+{% block styler %}<link href="{% static 'home/vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet" type="text/css"> {% endblock %}
+{% block breadcrumb %} / <a href="{% url 'schedule' %}">Schedule</a> / <b>{{ now|date:"F, jS o" }}</b>{% if request.user.staff %} / <a href="{% url 'create-event' proj=dayevent.project.job_num %}">add a new event</a>
+{% else %}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="col-lg-6">
+    <a class="btn btn-primary gradient" href="{% url "day_calendar" event.calendar.slug %}{% querystring_for_date event.start 3 %}">
+      {% trans "Day" %}
+    </a>
+    <a class="btn btn-primary gradient" href="{% url "month_calendar" event.calendar.slug %}{% querystring_for_date event.start 2 %}">
+      {% trans "Month" %}
+    </a>
+    <a class="btn btn-primary gradient" href="{% url "year_calendar" event.calendar.slug %}{% querystring_for_date event.start 1 %}">
+      {% trans "Year" %}
+    </a>
+  </div>
+<div class="table-responsive">
+  <table class="table table-bordered" width="100%" cellspacing="0">
+    <thead>
+      <tr>
+        <th style="font-weight: inherit;">Date </th>
+        <th style="font-weight: inherit;">Tech<i class="fa fa-fw fa-user"></i></th>
+        <th style="font-weight: inherit;">Office <i class="fa fa-clock-o"></i></th>
+        <th style="font-weight: inherit;">Site <i class="fa fa-clock-o"></i></th>
+        <th style="font-weight: inherit;">Projcet name <i class="fa fa-fw fa-building"></i></th>
+        <th style="font-weight: inherit;">Address <i class="fa fa-fw fa-map"></i></th>
+        <th style="font-weight: inherit;">Job #</th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr>
+        <th style="font-weight: inherit;">Date </th>
+        <th style="font-weight: inherit;">Tech<i class="fa fa-fw fa-user"></i></th>
+        <th style="font-weight: inherit;">Office <i class="fa fa-clock-o"></i></th>
+        <th style="font-weight: inherit;">Site <i class="fa fa-clock-o"></i></th>
+        <th style="font-weight: inherit;">Projcet name <i class="fa fa-fw fa-building"></i></th>
+        <th style="font-weight: inherit;">Address <i class="fa fa-fw fa-map"></i></th>
+        <th style="font-weight: inherit;">Job #</th>
+      </tr>
+    </tfoot>
+    <tbody>
+    {% if schedule_day_list %}
+      {% for dayevent in schedule_day_list %}
+        {% for workers in dayevent.workers.all %}
+          <tr style="background-color:{{dayevent.color_event}};">
+            <td style="min-width:68px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{dayevent.start|date:"m/d"}}</a> </td>
+            <td style="min-width:80px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ workers.get_absolute_url }}">{{ workers.first_name }} {{ workers.last_name }}</a><br> </td>
+            <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start_time|date:"f A" }}</a> </td>
+            <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start|date:"f A" }}</a> </td>
+            <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.job_name|truncatechars:48 }}</a> </td>
+            <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.jobsite.google_maps_link }}">{{ dayevent.project.jobsite.street_address }}, {{ dayevent.project.jobsite.city }}, {{ dayevent.project.jobsite.state }}, {{ dayevent.project.jobsite.zipcode }}</a></td>
+            <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.job_num }}</a> </td>
+          </tr>
+        {% if not forloop.last %} {% endif %}
+        {% endfor %}
+      {% endfor %}
+      {% else %}<tr><td>Check </td><td>back </td><td>later </td><td>this eveing </td><td>... </td><td>... </td><td>... </td></tr>
+    {% endif %} 
+    {% if querysettomorrow %}
+      {% for dayevent in querysettomorrow %}
+        {% for workers in dayevent.workers.all %}
+          <tr style="background-color:{{dayevent.color_event}};">
+          <td style="min-width:68px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{dayevent.start|date:"m/d"}}</a> </td>
+          <td style="min-width:80px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ workers.get_absolute_url }}">{{ workers.first_name }} {{ workers.last_name }}</a><br> </td>
+          <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start_time|date:"f A" }}</a> </td>
+          <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start|date:"f A" }}</a> </td>
+          <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.job_name|truncatechars:48 }}</a> </td>
+          <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.jobsite.google_maps_link }}">{{ dayevent.project.jobsite.street_address }}, {{ dayevent.project.jobsite.city }}, {{ dayevent.project.jobsite.state }}, {{ dayevent.project.jobsite.zipcode }}</a></td>
+          <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.job_num }}</a> </td>
+          </tr>
+        {% if not forloop.last %} {% endif %}
+        {% endfor %}
+      {% endfor %}
+      {% else %}<tr><td>Check </td><td>back </td><td>later </td><td>this eveing </td><td>... </td><td>... </td><td>... </td></tr>
+    {% endif %} 
+    </tbody>
+  </table>
+</div>
+{% endblock %} 
+
+{% block scripter %} 
+<script src="{% static 'home/js/sb-admin-datatables.min.js' %}"></script>
+<script src="{% static 'home/vendor/datatables/jquery.dataTables.js' %}"></script>
+<script src="{% static 'home/vendor/datatables/dataTables.bootstrap4.js' %}"></script> 
+{% endblock %}

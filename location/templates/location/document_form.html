@@ -1,0 +1,819 @@
+{% extends "base.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}
+{% if form.instance.pk %}Edit Document{% else %}Upload Document{% endif %} - {{ location.name }}
+{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'location/css/document-form.css' %}" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
+    <li class="breadcrumb-item"><a href="{{ location.get_absolute_url }}">{{ location.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">
+      {% if form.instance.pk %}Edit Document{% else %}Upload Document{% endif %}
+    </li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Form Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1 class="h3 mb-2">
+            <i class="fas fa-{% if form.instance.pk %}edit{% else %}upload{% endif %} text-primary me-2"></i>
+            {% if form.instance.pk %}
+              Edit Document: {{ form.instance.title }}
+            {% else %}
+              Upload Document
+            {% endif %}
+          </h1>
+          <p class="text-muted mb-0">
+            Location: <a href="{{ location.get_absolute_url }}" class="text-decoration-none">{{ location.name }}</a>
+          </p>
+        </div>
+        <div>
+          <a href="{{ location.get_absolute_url }}#documents-tab" class="btn btn-outline-secondary">
+            <i class="fas fa-times me-1"></i>Cancel
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Form -->
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-file-alt me-2"></i>
+            Document Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data" id="documentForm" novalidate>
+            {% csrf_token %}
+            
+            <!-- Document Type -->
+            <div class="mb-3">
+              <label for="{{ form.document_type.id_for_label }}" class="form-label required">
+                Document Type
+              </label>
+              {{ form.document_type|add_class:"form-select" }}
+              {% if form.document_type.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.document_type.errors|first }}
+                </div>
+              {% endif %}
+              <div class="form-text">
+                Select the type of document you're uploading
+              </div>
+            </div>
+
+            <!-- Document Title -->
+            <div class="mb-3">
+              <label for="{{ form.title.id_for_label }}" class="form-label required">
+                Document Title
+              </label>
+              {{ form.title|add_class:"form-control" }}
+              {% if form.title.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.title.errors|first }}
+                </div>
+              {% endif %}
+              <div class="form-text">
+                Give your document a descriptive title
+              </div>
+            </div>
+
+            <!-- Document Description -->
+            <div class="mb-3">
+              <label for="{{ form.description.id_for_label }}" class="form-label">
+                Description
+              </label>
+              {{ form.description|add_class:"form-control" }}
+              {% if form.description.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.description.errors|first }}
+                </div>
+              {% endif %}
+              <div class="form-text">
+                Brief description of the document content and purpose
+              </div>
+            </div>
+
+            <!-- File Upload -->
+            <div class="mb-3">
+              <label for="{{ form.file.id_for_label }}" class="form-label {% if not form.instance.pk %}required{% endif %}">
+                {% if form.instance.pk %}Replace File{% else %}Document File{% endif %}
+              </label>
+              
+              {% if form.instance.file %}
+              <div class="current-file-info mb-3 p-3 bg-light rounded">
+                <div class="d-flex align-items-center">
+                  <i class="fas fa-file-alt fa-2x text-primary me-3"></i>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Current File</h6>
+                    <p class="mb-1">{{ form.instance.file.name|slice:"uploads/location/documents/"|default:form.instance.file.name }}</p>
+                    <small class="text-muted">Size: {{ form.instance.file.size|filesizeformat }}</small>
+                  </div>
+                  <div class="text-end">
+                    <a href="{{ form.instance.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                      <i class="fas fa-download me-1"></i>Download
+                    </a>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+
+              <!-- Dropzone File Upload -->
+              <div class="dropzone-container">
+                <div id="documentDropzone" class="dropzone">
+                  <div class="dz-message">
+                    <div class="dz-message-content">
+                      <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                      <h5>Drop file here or click to upload</h5>
+                      <p class="text-muted">
+                        {% if form.instance.pk %}
+                          Upload a new file to replace the current one
+                        {% else %}
+                          Supported formats: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, TXT
+                        {% endif %}
+                      </p>
+                      <p class="text-muted small">Maximum file size: 10MB</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hidden file input (fallback) -->
+              <div class="mt-2">
+                {{ form.file|add_class:"form-control d-none" }}
+                <div class="form-text">
+                  <small>Or use the traditional file picker: </small>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="traditionalUploadBtn">
+                    <i class="fas fa-folder-open me-1"></i>Browse Files
+                  </button>
+                </div>
+              </div>
+
+              {% if form.file.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.file.errors|first }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Version Information -->
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="{{ form.version.id_for_label }}" class="form-label">
+                    Version
+                  </label>
+                  {{ form.version|add_class:"form-control" }}
+                  {% if form.version.errors %}
+                    <div class="invalid-feedback d-block">
+                      {{ form.version.errors|first }}
+                    </div>
+                  {% endif %}
+                  <div class="form-text">
+                    Version number (e.g., 1.0, 2.1)
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="form-label">Version Options</label>
+                  <div class="form-check">
+                    {{ form.is_current|add_class:"form-check-input" }}
+                    <label class="form-check-label" for="{{ form.is_current.id_for_label }}">
+                      Mark as current version
+                    </label>
+                  </div>
+                  <div class="form-text">
+                    Only one document per type can be marked as current
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Visibility Options -->
+            <div class="mb-4">
+              <label class="form-label">Visibility</label>
+              <div class="form-check">
+                {{ form.is_public|add_class:"form-check-input" }}
+                <label class="form-check-label" for="{{ form.is_public.id_for_label }}">
+                  <i class="fas fa-eye me-2"></i>Make visible to client
+                </label>
+              </div>
+              <div class="form-text">
+                Allow the client to view and download this document
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="{{ location.get_absolute_url }}#documents-tab" class="btn btn-outline-secondary me-md-2">
+                <i class="fas fa-times me-1"></i>Cancel
+              </a>
+              <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="fas fa-save me-1"></i>
+                {% if form.instance.pk %}Update Document{% else %}Upload Document{% endif %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar with Tips and Document List -->
+    <div class="col-lg-4">
+      <!-- Upload Tips -->
+      <div class="card shadow mb-4">
+        <div class="card-header bg-info text-white">
+          <h6 class="mb-0">
+            <i class="fas fa-lightbulb me-2"></i>Upload Tips
+          </h6>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mb-0">
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              Use descriptive filenames
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              Keep file sizes under 10MB
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              Include version numbers in titles
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>
+              Add clear descriptions
+            </li>
+            <li class="mb-0">
+              <i class="fas fa-check text-success me-2"></i>
+              Mark current versions appropriately
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Supported File Types -->
+      <div class="card shadow mb-4">
+        <div class="card-header bg-secondary text-white">
+          <h6 class="mb-0">
+            <i class="fas fa-file-alt me-2"></i>Supported Formats
+          </h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-6">
+              <div class="text-center p-2 bg-light rounded">
+                <i class="fas fa-file-pdf text-danger fa-2x mb-1"></i>
+                <small class="d-block">PDF</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center p-2 bg-light rounded">
+                <i class="fas fa-file-word text-primary fa-2x mb-1"></i>
+                <small class="d-block">DOC/DOCX</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center p-2 bg-light rounded">
+                <i class="fas fa-file-excel text-success fa-2x mb-1"></i>
+                <small class="d-block">XLS/XLSX</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center p-2 bg-light rounded">
+                <i class="fas fa-file-image text-warning fa-2x mb-1"></i>
+                <small class="d-block">JPG/PNG</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center p-2 bg-light rounded">
+                <i class="fas fa-file-alt text-info fa-2x mb-1"></i>
+                <small class="d-block">TXT</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="text-center p-2 bg-light rounded">
+                <i class="fas fa-file-csv text-dark fa-2x mb-1"></i>
+                <small class="d-block">CSV</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Documents -->
+      {% if recent_documents %}
+      <div class="card shadow">
+        <div class="card-header bg-light">
+          <h6 class="mb-0">
+            <i class="fas fa-history me-2"></i>Recent Documents
+          </h6>
+        </div>
+        <div class="card-body">
+          {% for doc in recent_documents %}
+          <div class="d-flex align-items-center mb-3 {% if not forloop.last %}border-bottom pb-3{% endif %}">
+            <div class="me-3">
+              <i class="fas fa-file-alt text-muted"></i>
+            </div>
+            <div class="flex-grow-1">
+              <h6 class="mb-1 small">{{ doc.title|truncatechars:30 }}</h6>
+              <small class="text-muted">{{ doc.get_document_type_display }}</small>
+              {% if doc.is_current %}
+              <span class="badge bg-success ms-1">Current</span>
+              {% endif %}
+            </div>
+            <div class="text-end">
+              <small class="text-muted">v{{ doc.version }}</small>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- File Preview Modal -->
+<div class="modal fade" id="filePreviewModal" tabindex="-1" aria-labelledby="filePreviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="filePreviewModalLabel">
+          <i class="fas fa-eye me-2"></i>File Preview
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center" id="filePreviewContent">
+        <!-- Preview content will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="useFileBtn">Use This File</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let uploadedFile = null;
+    let dropzoneInstance = null;
+
+    // Initialize Dropzone
+    initializeDropzone();
+    
+    // Initialize form validation
+    initializeFormValidation();
+    
+    // Initialize traditional upload fallback
+    initializeTraditionalUpload();
+
+    function initializeDropzone() {
+        // Disable Dropzone autodiscover
+        Dropzone.autoDiscover = false;
+
+        // Configure Dropzone
+        const dropzoneConfig = {
+            url: '#', // We'll handle this via form submission
+            maxFiles: 1,
+            maxFilesize: 10, // 10MB
+            acceptedFiles: '.pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv',
+            addRemoveLinks: true,
+            previewTemplate: getPreviewTemplate(),
+            autoProcessQueue: false,
+            
+            init: function() {
+                dropzoneInstance = this;
+                
+                this.on('addedfile', function(file) {
+                    uploadedFile = file;
+                    updateFileInput(file);
+                    showFilePreview(file);
+                });
+                
+                this.on('removedfile', function(file) {
+                    uploadedFile = null;
+                    clearFileInput();
+                });
+                
+                this.on('error', function(file, response) {
+                    console.error('Upload error:', response);
+                });
+            }
+        };
+
+        dropzoneInstance = new Dropzone('#documentDropzone', dropzoneConfig);
+    }
+
+    function getPreviewTemplate() {
+        return `
+            <div class="dz-preview dz-file-preview">
+                <div class="dz-details">
+                    <div class="dz-filename"><span data-dz-name></span></div>
+                    <div class="dz-size" data-dz-size></div>
+                    <img data-dz-thumbnail />
+                </div>
+                <div class="dz-progress"><span class="dz-upload" data-dz-uploadprogress></span></div>
+                <div class="dz-success-mark"><span>✓</span></div>
+                <div class="dz-error-mark"><span>✗</span></div>
+                <div class="dz-error-message"><span data-dz-errormessage></span></div>
+                <div class="dz-remove-container">
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-dz-remove>
+                        <i class="fas fa-trash"></i> Remove
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function updateFileInput(file) {
+        // Create a new FileList with the dropped file
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById('{{ form.file.id_for_label }}').files = dt.files;
+    }
+
+    function clearFileInput() {
+        document.getElementById('{{ form.file.id_for_label }}').value = '';
+    }
+
+    function showFilePreview(file) {
+        const previewContent = document.getElementById('filePreviewContent');
+        
+        if (file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'img-fluid';
+            img.style.maxHeight = '400px';
+            previewContent.innerHTML = '';
+            previewContent.appendChild(img);
+        } else {
+            previewContent.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-file-alt fa-4x text-muted mb-3"></i>
+                    <h5>${file.name}</h5>
+                    <p class="text-muted">Size: ${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                    <p class="text-muted">Type: ${file.type || 'Unknown'}</p>
+                </div>
+            `;
+        }
+
+        // Show preview modal
+        const modal = new bootstrap.Modal(document.getElementById('filePreviewModal'));
+        modal.show();
+    }
+
+    function initializeTraditionalUpload() {
+        const traditionalBtn = document.getElementById('traditionalUploadBtn');
+        const fileInput = document.getElementById('{{ form.file.id_for_label }}');
+
+        traditionalBtn.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                
+                // Clear dropzone
+                if (dropzoneInstance) {
+                    dropzoneInstance.removeAllFiles();
+                }
+                
+                // Add file to dropzone for preview
+                if (dropzoneInstance) {
+                    dropzoneInstance.addFile(file);
+                }
+            }
+        });
+    }
+
+    function initializeFormValidation() {
+        const form = document.getElementById('documentForm');
+        
+        form.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            form.classList.add('was-validated');
+        });
+
+        // Real-time validation
+        const requiredFields = form.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            field.addEventListener('input', function() {
+                validateField(this);
+            });
+        });
+
+        // Auto-generate version number
+        autoGenerateVersion();
+    }
+
+    function validateForm() {
+        let isValid = true;
+        const form = document.getElementById('documentForm');
+        
+        // Check required fields
+        const requiredFields = form.querySelectorAll('[required]');
+        requiredFields.forEach(field => {
+            if (!validateField(field)) {
+                isValid = false;
+            }
+        });
+
+        // Check file upload for new documents
+        {% if not form.instance.pk %}
+        const fileInput = document.getElementById('{{ form.file.id_for_label }}');
+        if (!fileInput.files || !fileInput.files[0]) {
+            showFieldError(fileInput, 'Please select a file to upload');
+            isValid = false;
+        }
+        {% endif %}
+
+        return isValid;
+    }
+
+    function validateField(field) {
+        const value = field.value.trim();
+        let isValid = true;
+
+        if (field.hasAttribute('required') && !value) {
+            showFieldError(field, 'This field is required');
+            isValid = false;
+        } else {
+            clearFieldError(field);
+        }
+
+        // Specific validation for version field
+        if (field.id === '{{ form.version.id_for_label }}' && value) {
+            const versionPattern = /^\d+\.\d+$/;
+            if (!versionPattern.test(value)) {
+                showFieldError(field, 'Version must be in format like 1.0, 2.1, etc.');
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    }
+
+    function showFieldError(field, message) {
+        field.classList.add('is-invalid');
+        field.classList.remove('is-valid');
+        
+        // Remove existing error message
+        const existingError = field.parentNode.querySelector('.invalid-feedback.dynamic');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Add new error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'invalid-feedback dynamic d-block';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
+
+    function clearFieldError(field) {
+        field.classList.remove('is-invalid');
+        field.classList.add('is-valid');
+        
+        const errorDiv = field.parentNode.querySelector('.invalid-feedback.dynamic');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    }
+
+    function autoGenerateVersion() {
+        const versionField = document.getElementById('{{ form.version.id_for_label }}');
+        const documentTypeField = document.getElementById('{{ form.document_type.id_for_label }}');
+        
+        {% if not form.instance.pk %}
+        // Only auto-generate for new documents
+        if (versionField && !versionField.value) {
+            documentTypeField.addEventListener('change', function() {
+                if (this.value) {
+                    // In a real app, you'd fetch this via AJAX
+                    // For now, just set default version
+                    if (!versionField.value) {
+                        versionField.value = '1.0';
+                    }
+                }
+            });
+        }
+        {% endif %}
+    }
+
+    // File preview modal events
+    document.getElementById('useFileBtn').addEventListener('click', function() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('filePreviewModal'));
+        modal.hide();
+    });
+
+    // Form enhancement: Auto-fill title from filename
+    document.getElementById('{{ form.file.id_for_label }}').addEventListener('change', function() {
+        const titleField = document.getElementById('{{ form.title.id_for_label }}');
+        
+        if (this.files && this.files[0] && !titleField.value.trim()) {
+            let filename = this.files[0].name;
+            // Remove extension
+            filename = filename.replace(/\.[^/.]+$/, '');
+            // Clean up filename
+            filename = filename.replace(/[_-]/g, ' ');
+            // Capitalize first letter
+            filename = filename.charAt(0).toUpperCase() + filename.slice(1);
+            
+            titleField.value = filename;
+            validateField(titleField);
+        }
+    });
+
+    // Enhanced version handling
+    const isCurrentCheckbox = document.getElementById('{{ form.is_current.id_for_label }}');
+    const documentTypeSelect = document.getElementById('{{ form.document_type.id_for_label }}');
+    
+    if (isCurrentCheckbox && documentTypeSelect) {
+        documentTypeSelect.addEventListener('change', function() {
+            if (this.value) {
+                // Show warning if another document of this type might be current
+                const warningDiv = document.getElementById('currentVersionWarning');
+                if (warningDiv) {
+                    warningDiv.remove();
+                }
+                
+                if (isCurrentCheckbox.checked) {
+                    const warning = document.createElement('div');
+                    warning.id = 'currentVersionWarning';
+                    warning.className = 'alert alert-warning mt-2';
+                    warning.innerHTML = `
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Note:</strong> Marking this as current will automatically unmark any other 
+                        ${this.selectedOptions[0].text} document as current.
+                    `;
+                    isCurrentCheckbox.closest('.form-check').parentNode.appendChild(warning);
+                }
+            }
+        });
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl/Cmd + S to save
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            document.getElementById('submitBtn').click();
+        }
+        
+        // Escape to cancel
+        if (e.key === 'Escape') {
+            window.location.href = '{{ location.get_absolute_url }}#documents-tab';
+        }
+    });
+});
+</script>
+
+<style>
+/* Custom CSS for document form */
+.required::after {
+    content: " *";
+    color: #dc3545;
+}
+
+.dropzone {
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+    text-align: center;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.dropzone:hover {
+    border-color: #007bff;
+    background: #f0f8ff;
+}
+
+.dropzone.dz-drag-hover {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+
+.dropzone .dz-message {
+    margin: 0;
+}
+
+.dz-preview {
+    display: inline-block;
+    position: relative;
+    margin: 16px;
+    min-height: 100px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    padding: 1rem;
+}
+
+.dz-preview .dz-details {
+    opacity: 1;
+    text-align: left;
+}
+
+.dz-preview .dz-filename {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.dz-preview .dz-size {
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.dz-preview img {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 4px;
+    margin-top: 0.5rem;
+}
+
+.dz-preview .dz-remove-container {
+    margin-top: 0.5rem;
+}
+
+.dz-progress {
+    height: 6px;
+    background: #ddd;
+    border-radius: 3px;
+    margin: 0.5rem 0;
+    overflow: hidden;
+}
+
+.dz-progress .dz-upload {
+    height: 100%;
+    background: #007bff;
+    transition: width 0.3s ease;
+}
+
+.current-file-info {
+    border-left: 4px solid #007bff;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+.form-control.is-invalid,
+.form-select.is-invalid {
+    border-color: #dc3545;
+}
+
+.form-control.is-valid,
+.form-select.is-valid {
+    border-color: #28a745;
+}
+
+@media (max-width: 768px) {
+    .dropzone {
+        padding: 1rem;
+    }
+    
+    .dz-preview {
+        margin: 8px;
+        min-height: auto;
+    }
+    
+    .btn-group-vertical {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

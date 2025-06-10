@@ -1,0 +1,3287 @@
+# Tags and Keywords
+    tags = models.CharField(
+        _('Tags'),
+        max_length=500,
+        blank=True,
+        help_text=_('Comma-separated tags for better searchability')
+    )
+    keywords = models.CharField(
+        _('Keywords'),
+        max_length=500,
+        blank=True,
+        help_text=_('Keywords for search optimization')
+    )
+
+    # Authorship
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='created_kb_items',
+        help_text=_('User who created this KB item')
+    )
+    last_updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='updated_kb_items',
+        help_text=_('User who last updated this KB item')
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(_('Created'), auto_now_add=True)
+    last_updated = models.DateTimeField(
+        _('Last Updated'),
+        help_text=_('The date on which this question was most recently changed.'),
+        auto_now=True
+    )
+
+    class Meta:
+        ordering = ('-is_featured', '-recommendations', 'title')
+        verbose_name = _('Knowledge base item')
+        verbose_name_plural = _('Knowledge base items')
+        indexes = [
+            models.Index(fields=['is_published', 'is_featured']),
+            models.Index(fields=['category', 'is_published']),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.title)
+        super().save(*args, **kwargs)
+
+    @property
+    def score(self):
+        """Calculate score based on votes"""
+        if self.votes > 0:
+            return round((self.recommendations / self.votes) * 100, 1)
+        else:
+            return _('Unrated')
+
+    @property
+    def tag_list(self):
+        """Return tags as a list"""
+        if self.tags:
+            return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+        return []
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse('helpdesk:kb_item', args=(self.id,))
+
+    def vote_up(self):
+        """Add a positive vote"""
+        self.votes += 1
+        self.recommendations += 1
+        self.save()
+
+    def vote_down(self):
+        """Add a negative vote"""
+        self.votes += 1
+        self.save()
+
+class SavedSearch(models.Model):
+    """
+    Enhanced saved searches with sharing and scheduling
+    """
+    SEARCH_TYPES = [
+        ('ticket', _('Ticket Search')),
+        ('kb', _('Knowledge Base Search')),
+        ('user', _('User Search')),
+        ('queue', _('Queue Search')),
+        ('report', _('Report Query')),
+    ]
+
+    # Basic Information
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name=_('User')
+    )
+    title = models.CharField(
+        _('Query Name'),
+        max_length=100,
+        help_text=_('User-provided name for this query')
+    )
+    description = models.TextField(
+        _('Description'),
+        blank=True,
+        help_text=_('Description of what this search does')
+    )
+    search_type = models.CharField(
+        _('Search Type'),
+        max_length=20,
+        choices=SEARCH_TYPES,
+        default='ticket',
+        help_text=_('Type of search this query performs')
+    )
+
+    # Sharing
+    shared = models.BooleanField(
+        _('Shared With Other Users?'),
+        default=False,
+        help_text=_('Should other users see this query?')
+    )
+    shared_with_groups = models.ManyToManyField(
+        'auth.Group',
+        blank=True,
+        help_text=_('Specific groups this search is shared with')
+    )
+
+    # Query Data
+    query = models.TextField(
+        _('Search Query'),
+        help_text=_('Pickled query object. Be wary changing this.')
+    )
+    query_params = models.JSONField(
+        _('Query Parameters'),
+        default=dict,
+        blank=True,
+        help_text=_('JSON representation of search parameters')
+    )
+
+    # Automation
+    is_alert = models.BooleanField(
+        _('Email Alert'),
+        default=False,
+        help_text=_('Send email when this search has new results')
+    )
+    alert_frequency = models.CharField(
+        _('Alert Frequency'),
+        max_length=20,
+        choices=[
+            ('immediate', _('Immediate')),
+            ('hourly', _('Hourly')),
+            ('daily', _('Daily')),
+            ('weekly', _('Weekly')),
+        ],
+        blank=True,
+        help_text=_('How often to check for new results')
+    )
+    last_run = models.DateTimeField(
+        _('Last Run'),
+        blank=True,
+        null=True,
+        help_text=_('When this search was last executed')
+    )
+
+    # System Fields
+    created_at = models.DateTimeField(_('Created'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Updated'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('Saved search')
+        verbose_name_plural = _('Saved searches')
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        if self.shared:
+            return f'{self.title} (*)'
+        else:
+            return self.title
+
+class UserSettings(models.Model):
+    """
+    Enhanced user settings with better organization
+    """
+    NOTIFICATION_PREFERENCES = [
+        ('email', _('Email Only')),
+        ('sms', _('SMS Only')),
+        ('both', _('Email and SMS')),
+        ('none', _('No Notifications')),
+    ]
+
+    THEME_CHOICES = [
+        ('light', _('Light Theme')),
+        ('dark', _('Dark Theme')),
+        ('auto', _('Auto (System Preference)')),
+    ]
+
+    # Basic Relationship
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="helpdesk_settings"
+    )
+
+    # Display Preferences
+    items_per_page = models.PositiveIntegerField(
+        _('Items Per Page'),
+        default=25,
+        validators=[MinValueValidator(10), MaxValueValidator(100)],
+        help_text=_('Number of items to show per page in lists')
+    )
+    theme = models.CharField(
+        _('Theme'),
+        max_length=10,
+        choices=THEME_CHOICES,
+        default='auto',
+        help_text=_('Visual theme preference')
+    )
+    default_queue = models.ForeignKey(
+        Queue,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text=_('Default queue for new tickets')
+    )
+
+    # Notification Settings
+    notification_preference = models.CharField(
+        _('Notification Preference'),
+        max_length=10,
+        choices=NOTIFICATION_PREFERENCES,
+        default='email',
+        help_text=_('How you prefer to receive notifications')
+    )
+    notify_assigned = models.BooleanField(
+        _('Notify When Assigned'),
+        default=True,
+        help_text=_('Receive notifications when tickets are assigned to you')
+    )
+    notify_updated = models.BooleanField(
+        _('Notify When Updated'),
+        default=True,
+        help_text=_('Receive notifications when your tickets are updated')
+    )
+    notify_closed = models.BooleanField(
+        _('Notify When Closed'),
+        default=False,
+        help_text=_('Receive notifications when your tickets are closed')
+    )
+    notify_escalated = models.BooleanField(
+        _('Notify When Escalated'),
+        default=True,
+        help_text=_('Receive notifications when tickets are escalated')
+    )
+
+    # Dashboard Settings
+    show_dashboard_stats = models.BooleanField(
+        _('Show Dashboard Statistics'),
+        default=True,
+        help_text=_('Display statistics widgets on dashboard')
+    )
+    show_recent_activity = models.BooleanField(
+        _('Show Recent Activity'),
+        default=True,
+        help_text=_('Display recent activity feed on dashboard')
+    )
+
+    # Contact Information
+    phone_number = models.CharField(
+        _('Phone Number'),
+        max_length=20,
+        blank=True,
+        help_text=_('Phone number for SMS notifications')
+    )
+    slack_user_id = models.CharField(
+        _('Slack User ID'),
+        max_length=50,
+        blank=True,
+        help_text=_('Slack user ID for Slack notifications')
+    )
+
+    # Legacy Settings (for backward compatibility)
+    settings_pickled = models.TextField(
+        _('Legacy Settings Dictionary'),
+        help_text=_('This is a base64-encoded representation of a pickled Python dictionary. Do not change this field via the admin.'),
+        blank=True,
+        null=True,
+    )
+
+    # System Fields
+    created_at = models.DateTimeField(_('Created'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Updated'), auto_now=True)
+
+    class Meta:
+        verbose_name = _('User Setting')
+        verbose_name_plural = _('User Settings')
+
+    def __str__(self):
+        return f'Preferences for {self.user}'
+
+    # Legacy property for backward compatibility
+    @property
+    def settings(self):
+        """Return a python dictionary representing the pickled data"""
+        if not self.settings_pickled:
+            return {}
+        
+        try:
+            import pickle
+        except ImportError:
+            import cPickle as pickle
+        from helpdesk.lib import b64decode
+        
+        try:
+            return pickle.loads(b64decode(self.settings_pickled.encode('utf-8')))
+        except (pickle.UnpicklingError, AttributeError):
+            return {}
+
+    @settings.setter
+    def settings(self, data):
+        """Set pickled settings data"""
+        try:
+            import pickle
+        except ImportError:
+            import cPickle as pickle
+        from helpdesk.lib import b64encode
+        
+        self.settings_pickled = b64encode(pickle.dumps(data)).decode()
+
+def create_usersettings(sender, instance, created, **kwargs):
+    """Helper function to create UserSettings instances as required"""
+    if created:
+        UserSettings.objects.get_or_create(user=instance)
+
+models.signals.post_save.connect(create_usersettings, sender=settings.AUTH_USER_MODEL)
+
+class IgnoreEmail(models.Model):
+    """
+    Enhanced email ignore rules with pattern matching
+    """
+    IGNORE_TYPES = [
+        ('sender', _('Sender Address')),
+        ('subject', _('Subject Line')),
+        ('domain', _('Domain')),
+        ('regex', _('Regular Expression')),
+    ]
+
+    # Basic Information
+    name = models.CharField(
+        _('Name'),
+        max_length=100
+    )
+    description = models.TextField(
+        _('Description'),
+        blank=True,
+        help_text=_('Description of this ignore rule')
+    )
+    ignore_type = models.CharField(
+        _('Ignore Type'),
+        max_length=20,
+        choices=IGNORE_TYPES,
+        default='sender',
+        help_text=_('What type of matching to perform')
+    )
+
+    # Pattern Matching
+    email_address = models.CharField(
+        _('Pattern'),
+        max_length=500,
+        help_text=_('Enter a full e-mail address, domain, subject pattern, or regex. Use wildcards like *@domain.com for domains.')
+    )
+    case_sensitive = models.BooleanField(
+        _('Case Sensitive'),
+        default=False,
+        help_text=_('Whether pattern matching should be case sensitive')
+    )
+
+    # Queue Assignment
+    queues = models.ManyToManyField(
+        Queue,
+        blank=True,
+        help_text=_('Leave blank for this rule to apply to all queues, or select specific queues.')
+    )
+
+    # Actions
+    keep_in_mailbox = models.BooleanField(
+        _('Keep in Mailbox'),
+        default=False,
+        help_text=_('Keep emails in mailbox instead of deleting them')
+    )
+    create_ticket_anyway = models.BooleanField(
+        _('Create Ticket Anyway'),
+        default=False,
+        help_text=_('Create ticket but mark as ignored (for logging purposes)')
+    )
+    forward_to = models.EmailField(
+        _('Forward To'),
+        blank=True,
+        help_text=_('Forward ignored emails to this address')
+    )
+
+    # Activity Tracking
+    hit_count = models.PositiveIntegerField(
+        _('Hit Count'),
+        default=0,
+        help_text=_('Number of times this rule has matched')
+    )
+    last_hit = models.DateTimeField(
+        _('Last Hit'),
+        blank=True,
+        null=True,
+        help_text=_('When this rule was last triggered')
+    )
+
+    # Settings
+    is_active = models.BooleanField(
+        _('Active'),
+        default=True,
+        help_text=_('Whether this ignore rule is currently active')
+    )
+    date = models.DateField(
+        _('Date Created'),
+        help_text=_('Date on which this rule was added'),
+        auto_now_add=True
+    )
+
+    class Meta:
+        verbose_name = _('Ignored e-mail address')
+        verbose_name_plural = _('Ignored e-mail addresses')
+        ordering = ['-hit_count', 'name']
+
+    def __str__(self):
+        return f'{self.name} ({self.get_ignore_type_display()})'
+
+    def queue_list(self):
+        """Return a list of the queues this rule applies to"""
+        queues = self.queues.all().order_by('title')
+        if len(queues) == 0:
+            return '*'
+        else:
+            return ', '.join([str(q) for q in queues])
+
+    def test(self, email_content, subject=''):
+        """Test if this rule matches the given content"""
+        pattern = self.email_address
+        
+        if self.ignore_type == 'sender':
+            test_string = email_content
+        elif self.ignore_type == 'subject':
+            test_string = subject
+        elif self.ignore_type == 'domain':
+            # Extract domain from email
+            if '@' in email_content:
+                test_string = email_content.split('@')[1]
+            else:
+                return False
+        elif self.ignore_type == 'regex':
+            import re
+            flags = 0 if self.case_sensitive else re.IGNORECASE
+            try:
+                return bool(re.search(pattern, email_content, flags))
+            except re.error:
+                return False
+        else:
+            test_string = email_content
+
+        # Handle wildcards for non-regex patterns
+        if self.ignore_type != 'regex':
+            if not self.case_sensitive:
+                pattern = pattern.lower()
+                test_string = test_string.lower()
+            
+            # Simple wildcard matching
+            if '*' in pattern:
+                parts = pattern.split('*')
+                if len(parts) == 2:
+                    start, end = parts
+                    return test_string.startswith(start) and test_string.endswith(end)
+            
+            return pattern == test_string
+        
+        return False
+
+class TicketCC(models.Model):
+    """
+    Enhanced ticket CC with better permissions and notifications
+    """
+    # Basic Information
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        related_name='cc_list',
+        verbose_name=_('Ticket')
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        help_text=_('User who wishes to receive updates for this ticket.'),
+        verbose_name=_('User')
+    )
+    email = models.EmailField(
+        _('E-Mail Address'),
+        blank=True,
+        null=True,
+        help_text=_('For non-user followers, enter their e-mail address')
+    )
+    name = models.CharField(
+        _('Name'),
+        max_length=100,
+        blank=True,
+        help_text=_('Display name for email-only followers')
+    )
+
+    # Permissions
+    can_view = models.BooleanField(
+        _('Can View Ticket?'),
+        default=False,
+        help_text=_('Can this CC login to view the ticket details?')
+    )
+    can_update = models.BooleanField(
+        _('Can Update Ticket?'),
+        default=False,
+        help_text=_('Can this CC login and update the ticket?')
+    )
+    can_close = models.BooleanField(
+        _('Can Close Ticket?'),
+        default=False,
+        help_text=_('Can this CC close the ticket?')
+    )
+
+    # Notification Settings
+    notify_on_update = models.BooleanField(
+        _('Notify on Updates'),
+        default=True,
+        help_text=_('Send notifications when ticket is updated')
+    )
+    notify_on_close = models.BooleanField(
+        _('Notify on Close'),
+        default=True,
+        help_text=_('Send notifications when ticket is closed')
+    )
+
+    # System Fields
+    added_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='added_cc_entries',
+        help_text=_('User who added this CC')
+    )
+    added_at = models.DateTimeField(_('Added'), auto_now_add=True)
+
+    class Meta:
+        unique_together = [['ticket', 'user'], ['ticket', 'email']]
+        verbose_name = _('Ticket CC')
+        verbose_name_plural = _('Ticket CCs')
+
+    def clean(self):
+        """Validate CC entry"""
+        if not self.user and not self.email:
+            raise ValidationError(_('Either user or email must be specified'))
+        if self.user and self.email:
+            raise ValidationError(_('Cannot specify both user and email'))
+
+    @property
+    def email_address(self):
+        """Get email address for this CC"""
+        if self.user and self.user.email:
+            return self.user.email
+        else:
+            return self.email
+
+    @property
+    def display(self):
+        """Get display name for this CC"""
+        if self.user:
+            return self.user.get_full_name() or self.user.username
+        else:
+            return self.name or self.email
+
+    def __str__(self):
+        return f'{self.display} for {self.ticket.title}'
+
+class CustomFieldManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().order_by('ordering')
+
+    def active(self):
+        """Get active custom fields only"""
+        return self.filter(is_active=True)
+
+    def for_staff_only(self):
+        """Get staff-only fields"""
+        return self.filter(staff_only=True, is_active=True)
+
+    def public_fields(self):
+        """Get fields visible to public"""
+        return self.filter(staff_only=False, is_active=True)
+
+class CustomField(models.Model):
+    """
+    Enhanced custom fields with better validation and organization
+    """
+    DATA_TYPE_CHOICES = [
+        ('varchar', _('Character (single line)')),
+        ('text', _('Text (multi-line)')),
+        ('integer', _('Integer')),
+        ('decimal', _('Decimal')),
+        ('list', _('List')),
+        ('boolean', _('Boolean (checkbox yes/no)')),
+        ('date', _('Date')),
+        ('time', _('Time')),
+        ('datetime', _('Date & Time')),
+        ('email', _('E-Mail Address')),
+        ('url', _('URL')),
+        ('ipaddress', _('IP Address')),
+        ('slug', _('Slug')),
+        ('file', _('File Upload')),
+        ('json', _('JSON Data')),
+    ]
+
+    FIELD_GROUPS = [
+        ('basic', _('Basic Information')),
+        ('technical', _('Technical Details')),
+        ('business', _('Business Information')),
+        ('custom', _('Custom Fields')),
+    ]
+
+    # Basic Information
+    name = models.SlugField(
+        _('Field Name'),
+        help_text=_('As used in the database and behind the scenes. Must be unique and consist of only lowercase letters with no punctuation.'),
+        unique=True
+    )
+    label = models.CharField(
+        _('Label'),
+        max_length=100,
+        help_text=_('The display label for this field')
+    )
+    help_text = models.TextField(
+        _('Help Text'),
+        help_text=_('Shown to the user when editing the ticket'),
+        blank=True,
+        null=True
+    )
+    placeholder = models.CharField(
+        _('Placeholder'),
+        max_length=100,
+        blank=True,
+        help_text=_('Placeholder text shown in the input field')
+    )
+
+    # Field Configuration
+    data_type = models.CharField(
+        _('Data Type'),
+        max_length=100,
+        help_text=_('Allows you to restrict the data entered into this field'),
+        choices=DATA_TYPE_CHOICES
+    )
+    field_group = models.CharField(
+        _('Field Group'),
+        max_length=20,
+        choices=FIELD_GROUPS,
+        default='custom',
+        help_text=_('Group this field belongs to for organization')
+    )
+
+    # Validation
+    max_length = models.IntegerField(
+        _('Maximum Length (characters)'),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(1), MaxValueValidator(10000)]
+    )
+    decimal_places = models.IntegerField(
+        _('Decimal Places'),
+        help_text=_('Only used for decimal fields'),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(10)]
+    )
+    min_value = models.DecimalField(
+        _('Minimum Value'),
+        max_digits=15,
+        decimal_places=5,
+        blank=True,
+        null=True,
+        help_text=_('Minimum value for numeric fields')
+    )
+    max_value = models.DecimalField(
+        _('Maximum Value'),
+        max_digits=15,
+        decimal_places=5,
+        blank=True,
+        null=True,
+        help_text=_('Maximum value for numeric fields')
+    )
+
+    # List Configuration
+    empty_selection_list = models.BooleanField(
+        _('Add empty first choice to List?'),
+        default=False,
+        help_text=_('Only for List: adds an empty first entry to the choices list, which enforces that the user makes an active choice.')
+    )
+    list_values = models.TextField(
+        _('List Values'),
+        help_text=_('For list fields only. Enter one option per line.'),
+        blank=True,
+        null=True
+    )
+    allow_multiple = models.BooleanField(
+        _('Allow Multiple Selections'),
+        default=False,
+        help_text=_('For list fields: allow multiple selections')
+    )
+
+    # Display and Behavior
+    ordering = models.IntegerField(
+        _('Ordering'),
+        help_text=_('Lower numbers are displayed first; higher numbers are listed later'),
+        default=0
+    )
+    required = models.BooleanField(
+        _('Required?'),
+        help_text=_('Does the user have to enter a value for this field?'),
+        default=False
+    )
+    staff_only = models.BooleanField(
+        _('Staff Only?'),
+        help_text=_('If this is ticked, then the public submission form will NOT show this field'),
+        default=False
+    )
+    is_active = models.BooleanField(
+        _('Active'),
+        default=True,
+        help_text=_('Whether this field is currently available for use')
+    )
+
+    # Queue Assignment
+    queues = models.ManyToManyField(
+        Queue,
+        blank=True,
+        help_text=_('Leave blank to use for all queues, or select specific queues')
+    )
+
+    objects = CustomFieldManager()
+
+    class Meta:
+        verbose_name = _('Custom field')
+        verbose_name_plural = _('Custom fields')
+        ordering = ['field_group', 'ordering', 'label']
+
+    def __str__(self):
+        return f'{self.label} ({self.name})'
+
+    @property
+    def choices_as_array(self):
+        """Convert list values to array format"""
+        if not self.list_values:
+            return []
+        
+        choices = []
+        for line in self.list_values.splitlines():
+            line = line.strip()
+            if line:
+                if '|' in line:
+                    # Support value|label format
+                    value, label = line.split('|', 1)
+                    choices.append([value.strip(), label.strip()])
+                else:
+                    choices.append([line, line])
+        return choices
+
+class TicketCustomFieldValue(models.Model):
+    """
+    Enhanced custom field values with better data handling
+    """
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        related_name='custom_field_values',
+        verbose_name=_('Ticket')
+    )
+    field = models.ForeignKey(
+        CustomField,
+        on_delete=models.CASCADE,
+        verbose_name=_('Field')
+    )
+    value = models.TextField(blank=True, null=True)
+    
+    # Enhanced value storage for different data types
+    value_text = models.TextField(_('Text Value'), blank=True, null=True)
+    value_integer = models.BigIntegerField(_('Integer Value'), blank=True, null=True)
+    value_decimal = models.DecimalField(_('Decimal Value'), max_digits=15, decimal_places=5, blank=True, null=True)
+    value_boolean = models.BooleanField(_('Boolean Value'), blank=True, null=True)
+    value_date = models.DateField(_('Date Value'), blank=True, null=True)
+    value_datetime = models.DateTimeField(_('DateTime Value'), blank=True, null=True)
+    value_file = models.FileField(_('File Value'), upload_to='custom_fields/%Y/%m/%d/', blank=True, null=True)
+
+    class Meta:
+        unique_together = (('ticket', 'field'),)
+        verbose_name = _('Ticket custom field value')
+        verbose_name_plural = _('Ticket custom field values')
+        indexes = [
+            models.Index(fields=['ticket', 'field']),
+        ]
+
+    def __str__(self):
+        return f'{self.ticket} / {self.field}'
+
+    def get_value(self):
+        """Get the appropriate value based on field data type"""
+        data_type = self.field.data_type
+        
+        if data_type == 'integer':
+            return self.value_integer
+        elif data_type == 'decimal':
+            return self.value_decimal
+        elif data_type == 'boolean':
+            return self.value_boolean
+        elif data_type == 'date':
+            return self.value_date
+        elif data_type == 'datetime':
+            return self.value_datetime
+        elif data_type == 'file':
+            return self.value_file
+        else:
+            return self.value or self.value_text
+
+    def set_value(self, value):
+        """Set the appropriate value based on field data type"""
+        data_type = self.field.data_type
+        
+        # Clear all typed values first
+        self.value_text = None
+        self.value_integer = None
+        self.value_decimal = None
+        self.value_boolean = None
+        self.value_date = None
+        self.value_datetime = None
+        
+        # Set the appropriate typed value
+        if data_type == 'integer' and value is not None:
+            self.value_integer = int(value)
+        elif data_type == 'decimal' and value is not None:
+            self.value_decimal = Decimal(str(value))
+        elif data_type == 'boolean':
+            self.value_boolean = bool(value)
+        elif data_type == 'date' and value is not None:
+            self.value_date = value
+        elif data_type == 'datetime' and value is not None:
+            self.value_datetime = value
+        else:
+            self.value_text = str(value) if value is not None else None
+        
+        # Always set the main value field for backward compatibility
+        self.value = str(value) if value is not None else None
+
+class TicketDependency(models.Model):
+    """
+    Enhanced ticket dependencies with dependency types
+    """
+    DEPENDENCY_TYPES = [
+        ('blocks', _('Blocks')),
+        ('depends_on', _('Depends On')),
+        ('related', _('Related To')),
+        ('duplicate', _('Duplicate Of')),
+        ('subtask', _('Subtask Of')),
+    ]
+
+    # Basic Information
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        verbose_name=_('Ticket'),
+        related_name='dependencies'
+    )
+    depends_on = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        verbose_name=_('Depends On Ticket'),
+        related_name='dependents'
+    )
+    dependency_type = models.CharField(
+        _('Dependency Type'),
+        max_length=20,
+        choices=DEPENDENCY_TYPES,
+        default='depends_on',
+        help_text=_('Type of dependency relationship')
+    )
+
+    # Additional Information
+    description = models.TextField(
+        _('Description'),
+        blank=True,
+        help_text=_('Description of the dependency relationship')
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text=_('User who created this dependency')
+    )
+    created_at = models.DateTimeField(_('Created'), auto_now_add=True)
+
+    class Meta:
+        unique_together = (('ticket', 'depends_on', 'dependency_type'),)
+        verbose_name = _('Ticket dependency')
+        verbose_name_plural = _('Ticket dependencies')
+
+    def __str__(self):
+        return f'{self.ticket} {self.get_dependency_type_display().lower()} {self.depends_on}'
+
+    def clean(self):
+        """Validate dependency"""
+        if self.ticket == self.depends_on:
+            raise ValidationError(_('A ticket cannot depend on itself'))
+
+# Default data creation functions
+def create_default_helpdesk_data():
+    """Create default helpdesk queues and settings"""
+    
+    try:
+        # Create default queues
+        default_queues = [
+            {
+                'title': 'General Support',
+                'slug': 'general',
+                'description': 'General support requests and questions',
+                'allow_public_submission': True,
+                'escalate_days': 3,
+                'sla_response_time': timedelta(hours=4),
+                'sla_resolution_time': timedelta(days=2),
+            },
+            {
+                'title': 'Technical Issues',
+                'slug': 'technical',
+                'description': 'Technical problems and bug reports',
+                'allow_public_submission': True,
+                'escalate_days': 1,
+                'sla_response_time': timedelta(hours=2),
+                'sla_resolution_time': timedelta(hours=24),
+            },
+            {
+                'title': 'Billing Support',
+                'slug': 'billing',
+                'description': 'Billing questions and account issues',
+                'allow_public_submission': True,
+                'escalate_days': 2,
+                'sla_response_time': timedelta(hours=8),
+                'sla_resolution_time': timedelta(days=3),
+            },
+            {
+                'title': 'Feature Requests',
+                'slug': 'features',
+                'description': 'New feature requests and enhancements',
+                'allow_public_submission': True,
+                'escalate_days': 7,
+                'sla_response_time': timedelta(days=1),
+                'sla_resolution_time': timedelta(days=14),
+            },
+            {
+                'title': 'Internal IT',
+                'slug': 'internal',
+                'description': 'Internal IT support for staff',
+                'allow_public_submission': False,
+                'escalate_days': 1,
+                'sla_response_time': timedelta(hours=4),
+                'sla_resolution_time': timedelta(days=1),
+            }
+        ]
+        
+        for queue_data in default_queues:
+            queue, created = Queue.objects.get_or_create(
+                slug=queue_data['slug'],
+                defaults=queue_data
+            )
+            if created:
+                print(f"Created queue: {queue.title}")
+        
+        # Create default email templates
+        default_templates = [
+            {
+                'template_name': 'New Ticket Notification',
+                'template_type': 'new_ticket',
+                'subject': '(New Ticket)',
+                'heading': 'New Support Ticket Created',
+                'plain_text': '''Hello,
+
+A new support ticket has been created:
+
+Ticket #: {{ ticket.ticket }}
+Title: {{ ticket.title }}
+Queue: {{ queue.title }}
+Priority: {{ ticket.get_priority_display }}
+Status: {{ ticket.get_status_display }}
+
+Description:
+{{ ticket.description }}
+
+You can view this ticket at: {{ ticket.staff_url }}
+
+Best regards,
+{{ queue.title }} Team''',
+                'html': '''<h2>New Support Ticket Created</h2>
+<p>A new support ticket has been created:</p>
+<ul>
+<li><strong>Ticket #:</strong> {{ ticket.ticket }}</li>
+<li><strong>Title:</strong> {{ ticket.title }}</li>
+<li><strong>Queue:</strong> {{ queue.title }}</li>
+<li><strong>Priority:</strong> {{ ticket.get_priority_display }}</li>
+<li><strong>Status:</strong> {{ ticket.get_status_display }}</li>
+</ul>
+<p><strong>Description:</strong></p>
+<p>{{ ticket.description|linebreaks }}</p>
+<p><a href="{{ ticket.staff_url }}">View Ticket</a></p>''',
+            },
+            {
+                'template_name': 'Ticket Updated',
+                'template_type': 'updated_ticket',
+                'subject': '(Updated)',
+                'heading': 'Ticket Updated',
+                'plain_text': '''Hello,
+
+Your support ticket has been updated:
+
+Ticket #: {{ ticket.ticket }}
+Title: {{ ticket.title }}
+Status: {{ ticket.get_status_display }}
+
+{% if comment %}
+Update:
+{{ comment }}
+{% endif %}
+
+You can view this ticket at: {{ ticket.ticket_url }}
+
+Best regards,
+{{ queue.title }} Team''',
+                'html': '''<h2>Ticket Updated</h2>
+<p>Your support ticket has been updated:</p>
+<ul>
+<li><strong>Ticket #:</strong> {{ ticket.ticket }}</li>
+<li><strong>Title:</strong> {{ ticket.title }}</li>
+<li><strong>Status:</strong> {{ ticket.get_status_display }}</li>
+</ul>
+{% if comment %}
+<p><strong>Update:</strong></p>
+<p>{{ comment|linebreaks }}</p>
+{% endif %}
+<p><a href="{{ ticket.ticket_url }}">View Ticket</a></p>''',
+            },
+            {
+                'template_name': 'Ticket Resolved',
+                'template_type': 'resolved_ticket',
+                'subject': '(Resolved)',
+                'heading': 'Ticket Resolved',
+                'plain_text': '''Hello,
+
+Your support ticket has been resolved:
+
+Ticket #: {{ ticket.ticket }}
+Title: {{ ticket.title }}
+
+{% if resolution %}
+Resolution:
+{{ resolution }}
+{% endif %}
+
+If you are satisfied with this resolution, no further action is needed. If you need additional assistance, please reply to this email or create a new ticket.
+
+You can view this ticket at: {{ ticket.ticket_url }}
+
+Best regards,
+{{ queue.title }} Team''',
+                'html': '''<h2>Ticket Resolved</h2>
+<p>Your support ticket has been resolved:</p>
+<ul>
+<li><strong>Ticket #:</strong> {{ ticket.ticket }}</li>
+<li><strong>Title:</strong> {{ ticket.title }}</li>
+</ul>
+{% if resolution %}
+<p><strong>Resolution:</strong></p>
+<p>{{ resolution|linebreaks }}</p>
+{% endif %}
+<p>If you are satisfied with this resolution, no further action is needed. If you need additional assistance, please reply to this email or create a new ticket.</p>
+<p><a href="{{ ticket.ticket_url }}">View Ticket</a></p>''',
+            }
+        ]
+        
+        for template_data in default_templates:
+            template, created = EmailTemplate.objects.get_or_create(
+                template_name=template_data['template_name'],
+                defaults=template_data
+            )
+            if created:
+                print(f"Created email template: {template.template_name}")
+        
+        # Create default preset replies
+        default_replies = [
+            {
+                'name': 'More Information Needed',
+                'reply_type': 'information',
+                'body': '''Hello {{ ticket.submitter_name|default:"" }},
+
+Thank you for contacting {{ queue.title }}.
+
+To better assist you with your request, we need some additional information:
+
+- [Please specify what information is needed]
+
+Once we receive this information, we'll be able to provide you with a more detailed response.
+
+Best regards,
+{{ user.get_full_name|default:user.username }}
+{{ queue.title }} Team''',
+                'is_public': True,
+            },
+            {
+                'name': 'Issue Under Investigation',
+                'reply_type': 'update',
+                'body': '''Hello {{ ticket.submitter_name|default:"" }},
+
+Thank you for reporting this issue. We have received your request and our technical team is currently investigating the problem.
+
+We will keep you updated on our progress and expect to have more information within [timeframe].
+
+If you have any additional details that might help with our investigation, please don't hesitate to share them.
+
+Best regards,
+{{ user.get_full_name|default:user.username }}
+{{ queue.title }} Team''',
+                'is_public': True,
+            },
+            {
+                'name': 'Escalated to Development Team',
+                'reply_type': 'escalation',
+                'body': '''Hello {{ ticket.submitter_name|default:"" }},
+
+Your issue has been escalated to our development team for further investigation. This typically indicates that the issue may require code changes or additional technical expertise.
+
+We will keep you informed of our progress. Development team reviews are typically completed within [timeframe].
+
+Thank you for your patience.
+
+Best regards,
+{{ user.get_full_name|default:user.username }}
+{{ queue.title }} Team''',
+                'is_public': True,
+            },
+            {
+                'name': 'Resolved - Please Test',
+                'reply_type': 'resolution',
+                'body': '''Hello {{ ticket.submitter_name|default:"" }},
+
+We believe we have resolved the issue you reported. Please test the solution and let us know if you continue to experience any problems.
+
+Resolution Details:
+[Please describe what was done to resolve the issue]
+
+If the issue persists or you have any questions about this resolution, please reply to this email.
+
+Best regards,
+{{ user.get_full_name|default:user.username }}
+{{ queue.title }} Team''',
+                'is_public': True,
+            },
+            {
+                'name': 'Closing Due to No Response',
+                'reply_type': 'closure',
+                'body': '''Hello {{ ticket.submitter_name|default:"" }},
+
+We have not received a response to our previous communications regarding this support ticket. We are now closing this ticket.
+
+If you still need assistance with this issue, please reply to this email or create a new support ticket, and we'll be happy to help.
+
+Best regards,
+{{ user.get_full_name|default:user.username }}
+{{ queue.title }} Team''',
+                'is_public': True,
+                'auto_close_ticket': True,
+            }
+        ]
+        
+        for reply_data in default_replies:
+            reply, created = PreSetReply.objects.get_or_create(
+                name=reply_data['name'],
+                defaults=reply_data
+            )
+            if created:
+                print(f"Created preset reply: {reply.name}")
+        
+        # Create default KB categories
+        default_kb_categories = [
+            {
+                'title': 'Getting Started',
+                'slug': 'getting-started',
+                'description': 'Basic information to get you started',
+                'icon': 'fa-play-circle',
+                'color': '#28a745',
+                'sort_order': 1,
+            },
+            {
+                'title': 'Frequently Asked Questions',
+                'slug': 'faq',
+                'description': 'Answers to commonly asked questions',
+                'icon': 'fa-question-circle',
+                'color': '#007bff',
+                'sort_order': 2,
+            },
+            {
+                'title': 'Troubleshooting',
+                'slug': 'troubleshooting',
+                'description': 'Solutions to common problems',
+                'icon': 'fa-wrench',
+                'color': '#fd7e14',
+                'sort_order': 3,
+            },
+            {
+                'title': 'Account Management',
+                'slug': 'account',
+                'description': 'Managing your account and settings',
+                'icon': 'fa-user-cog',
+                'color': '#6f42c1',
+                'sort_order': 4,
+            },
+            {
+                'title': 'Billing and Payments',
+                'slug': 'billing',
+                'description': 'Billing, payments, and subscription information',
+                'icon': 'fa-credit-card',
+                'color': '#17a2b8',
+                'sort_order': 5,
+            }
+        ]
+        
+        for category_data in default_kb_categories:
+            category, created = KBCategory.objects.get_or_create(
+                slug=category_data['slug'],
+                defaults=category_data
+            )
+            if created:
+                print(f"Created KB category: {category.title}")
+        
+        # Create default KB items
+        try:
+            faq_category = KBCategory.objects.get(slug='faq')
+            getting_started_category = KBCategory.objects.get(slug='getting-started')
+            
+            default_kb_items = [
+                {
+                    'category': getting_started_category,
+                    'title': 'How to Submit a Support Ticket',
+                    'question': 'How do I submit a support ticket?',
+                    'answer': '''To submit a support ticket:
+
+1. Visit our support portal
+2. Click "Submit New Ticket"
+3. Choose the appropriate queue for your issue
+4. Fill in the ticket title and description
+5. Provide as much detail as possible about your issue
+6. Click "Submit Ticket"
+
+You will receive an email confirmation with your ticket number.''',
+                    'tags': 'ticket, submit, support, help',
+                    'is_featured': True,
+                },
+                {
+                    'category': faq_category,
+                    'title': 'How Long Until I Get a Response?',
+                    'question': 'How long does it take to get a response to my ticket?',
+                    'answer': '''Response times depend on the queue and priority of your ticket:
+
+- Technical Issues: 2 hours
+- General Support: 4 hours  
+- Billing Support: 8 hours
+- Feature Requests: 1 day
+
+These are our target response times. Critical issues are prioritized and may receive faster responses.''',
+                    'tags': 'response, time, sla, support',
+                    'is_featured': True,
+                },
+                {
+                    'category': faq_category,
+                    'title': 'How to Check Ticket Status',
+                    'question': 'How can I check the status of my ticket?',
+                    'answer': '''You can check your ticket status in several ways:
+
+1. Check the email confirmation you received when submitting the ticket
+2. Visit our support portal and search for your ticket number
+3. Reply to any email correspondence about your ticket
+4. Use the ticket tracking link provided in your confirmation email
+
+Your ticket status will be one of: Open, In Progress, Resolved, or Closed.''',
+                    'tags': 'status, check, ticket, tracking',
+                },
+            ]
+            
+            for item_data in default_kb_items:
+                # Generate slug from title
+                from django.utils.text import slugify
+                item_data['slug'] = slugify(item_data['title'])
+                
+                item, created = KBItem.objects.get_or_create(
+                    slug=item_data['slug'],
+                    defaults=item_data
+                )
+                if created:
+                    print(f"Created KB item: {item.title}")
+        
+        except KBCategory.DoesNotExist:
+            print("KB categories not found, skipping KB items creation")
+        
+        # Create default custom fields
+        default_custom_fields = [
+            {
+                'name': 'customer_id',
+                'label': 'Customer ID',
+                'data_type': 'varchar',
+                'max_length': 50,
+                'help_text': 'Customer account ID for billing reference',
+                'field_group': 'business',
+                'staff_only': True,
+                'ordering': 10,
+            },
+            {
+                'name': 'affected_system',
+                'label': 'Affected System',
+                'data_type': 'list',
+                'list_values': '''Production
+Staging
+Development
+Testing''',
+                'help_text': 'Which system is affected by this issue?',
+                'field_group': 'technical',
+                'ordering': 20,
+            },
+            {
+                'name': 'error_code',
+                'label': 'Error Code',
+                'data_type': 'varchar',
+                'max_length': 20,
+                'help_text': 'Error code if applicable',
+                'field_group': 'technical',
+                'ordering': 30,
+            },
+            {
+                'name': 'business_impact',
+                'label': 'Business Impact',
+                'data_type': 'list',
+                'list_values': '''High - Business Critical
+Medium - Important Feature
+Low - Minor Issue
+None - Enhancement''',
+                'help_text': 'What is the business impact of this issue?',
+                'field_group': 'business',
+                'required': True,
+                'ordering': 40,
+            }
+        ]
+        
+        for field_data in default_custom_fields:
+            field, created = CustomField.objects.get_or_create(
+                name=field_data['name'],
+                defaults=field_data
+            )
+            if created:
+                print(f"Created custom field: {field.label}")
+        
+        print("Default helpdesk data created successfully!")
+        
+    except Exception as e:
+        print(f"Error creating default helpdesk data: {str(e)}")
+
+def create_sample_tickets():
+    """Create sample tickets for demonstration"""
+    
+    try:
+        # Get default queue
+        try:
+            general_queue = Queue.objects.get(slug='general')
+            tech_queue = Queue.objects.get(slug='technical')
+        except Queue.DoesNotExist:
+            print("Default queues not found. Please run create_default_helpdesk_data() first.")
+            return
+        
+        # Get admin user
+        try:
+            admin_user = Worker.objects.filter(is_staff=True).first()
+            if not admin_user:
+                admin_user = None
+        except:
+            admin_user = None
+        
+        # Sample tickets
+        sample_tickets = [
+            {
+                'title': 'Unable to Login to Account',
+                'queue': general_queue,
+                'description': '''I'm having trouble logging into my account. I've tried resetting my password multiple times but I'm still unable to access my account.
+
+Steps I've tried:
+1. Password reset via email
+2. Clearing browser cache
+3. Trying different browsers
+
+Error message: "Invalid credentials"
+
+Please help me regain access to my account.''',
+                'submitter_email': 'john.doe@example.com',
+                'submitter_name': 'John Doe',
+                'priority': 2,
+                'ticket_type': 'support',
+                'urgency': 3,
+            },
+            {
+                'title': 'Application Crashing on Startup',
+                'queue': tech_queue,
+                'description': '''The application crashes immediately upon startup. This started happening after the latest update.
+
+Environment: Windows 10, Version 2.1.3
+Error Code: 0x80004005
+
+Steps to reproduce:
+1. Double-click application icon
+2. Splash screen appears briefly
+3. Application closes with error dialog
+
+This is affecting our daily operations. Please investigate urgently.''',
+                'submitter_email': 'sarah.smith@company.com',
+                'submitter_name': 'Sarah Smith',
+                'priority': 1,
+                'ticket_type': 'bug',
+                'urgency': 2,
+                'assigned_to': admin_user,
+            },
+            {
+                'title': 'Request for Additional Storage Space',
+                'queue': general_queue,
+                'description': '''Our team is approaching the storage limit on our current plan. We would like to upgrade our storage allocation.
+
+Current usage: 95% of 100GB
+Requested: 500GB total storage
+
+Please let me know:
+1. Pricing for the upgrade
+2. How long the upgrade takes
+3. If there's any downtime involved
+
+Thank you!''',
+                'submitter_email': 'manager@startup.com',
+                'submitter_name': 'Alex Manager',
+                'priority': 3,
+                'ticket_type': 'change',
+                'urgency': 4,
+                'status': Ticket.RESOLVED_STATUS,
+            }
+        ]
+        
+        for ticket_data in sample_tickets:
+            # Set created time to something recent
+            ticket_data['created'] = timezone.now() - timedelta(days=2)
+            
+            ticket = Ticket.objects.create(**ticket_data)
+            
+            # Add some follow-ups for demonstration
+            if ticket.title == 'Unable to Login to Account':
+                FollowUp.objects.create(
+                    ticket=ticket,
+                    title='Initial Response',
+                    comment='Thank you for contacting support. We are looking into your login issue and will respond within 4 hours.',
+                    user=admin_user,
+                    public=True,
+                    followup_type='comment',
+                    date=ticket.created + timedelta(hours=1)
+                )
+            
+            elif ticket.title == 'Application Crashing on Startup':
+                FollowUp.objects.create(
+                    ticket=ticket,
+                    title='Ticket Assigned',
+                    comment='This ticket has been assigned to our development team for investigation.',
+                    user=admin_user,
+                    public=False,
+                    followup_type='assignment',
+                    date=ticket.created + timedelta(minutes=30)
+                )
+            
+            elif ticket.title == 'Request for Additional Storage Space':
+                FollowUp.objects.create(
+                    ticket=ticket,
+                    title='Storage Upgrade Completed',
+                    comment='Your storage has been upgraded to 500GB. The change is now active and you should see the additional space available in your dashboard.',
+                    user=admin_user,
+                    public=True,
+                    followup_type='resolution',
+                    new_status=Ticket.RESOLVED_STATUS,
+                    date=ticket.created + timedelta(days=1)
+                )
+                # Update ticket resolution
+                ticket.resolution = 'Storage upgraded to 500GB as requested. No downtime was required.'
+                ticket.resolution_date = ticket.created + timedelta(days=1)
+                ticket.save()
+            
+            print(f"Created sample ticket: {ticket.title}")
+        
+        print("Sample tickets created successfully!")
+        
+    except Exception as e:
+        print(f"Error creating sample tickets: {str(e)}")# Continue with the rest of the models...
+
+class PreSetReply(models.Model):
+    """
+    Enhanced preset replies with better organization and templating
+    """
+    REPLY_TYPES = [
+        ('resolution', _('Resolution Template')),
+        ('update', _('Status Update')),
+        ('information', _('Information Request')),
+        ('escalation', _('Escalation Notice')),
+        ('closure', _('Ticket Closure')),
+        ('welcome', _('Welcome Message')),
+        ('custom', _('Custom Template')),
+    ]
+
+    # Basic Information
+    name = models.CharField(
+        _('Name'),
+        max_length=100,
+        help_text=_('Only used to assist users with selecting a reply - not shown to the user.')
+    )
+    body = models.TextField(
+        _('Body'),
+        help_text=_('Context available: {{ ticket }} - ticket object (e.g {{ ticket.title }}); {{ queue }} - The queue; and {{ user }} - the current user.')
+    )
+    reply_type = models.CharField(
+        _('Reply Type'),
+        max_length=20,
+        choices=REPLY_TYPES,
+        default='custom',
+        help_text=_('Category of this reply template')
+    )
+
+    # Queue Assignment
+    queues = models.ManyToManyField(
+        Queue,
+        blank=True,
+        help_text=_('Leave blank to allow this reply to be used for all queues, or select those queues you wish to limit this reply to.')
+    )
+
+    # Settings
+    is_active = models.BooleanField(
+        _('Active'),
+        default=True,
+        help_text=_('Whether this template is currently available for use')
+    )
+    is_public = models.BooleanField(
+        _('Public Reply'),
+        default=True,
+        help_text=_('Whether replies using this template are public by default')
+    )
+    auto_close_ticket = models.BooleanField(
+        _('Auto-close Ticket'),
+        default=False,
+        help_text=_('Automatically close ticket when this reply is used')
+    )
+
+    # Ownership
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text=_('User who created this template')
+    )
+    created_at = models.DateTimeField(_('Created'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Updated'), auto_now=True)
+
+    class Meta:
+        ordering = ('reply_type', 'name')
+        verbose_name = _('Pre-set reply')
+        verbose_name_plural = _('Pre-set replies')
+
+    def __str__(self):
+        return f'{self.get_reply_type_display()}: {self.name}'
+
+class EscalationExclusion(models.Model):
+    """
+    Enhanced escalation exclusions with recurring patterns
+    """
+    EXCLUSION_TYPES = [
+        ('one_time', _('One-time Exclusion')),
+        ('weekly', _('Weekly Recurring')),
+        ('monthly', _('Monthly Recurring')),
+        ('yearly', _('Yearly Recurring')),
+    ]
+
+    # Basic Information
+    name = models.CharField(
+        _('Name'),
+        max_length=100
+    )
+    description = models.TextField(
+        _('Description'),
+        blank=True,
+        help_text=_('Description of this escalation exclusion')
+    )
+    exclusion_type = models.CharField(
+        _('Exclusion Type'),
+        max_length=20,
+        choices=EXCLUSION_TYPES,
+        default='one_time',
+        help_text=_('How often this exclusion applies')
+    )
+
+    # Date Configuration
+    date = models.DateField(
+        _('Date'),
+        help_text=_('Date on which escalation should not happen')
+    )
+    end_date = models.DateField(
+        _('End Date'),
+        blank=True,
+        null=True,
+        help_text=_('End date for recurring exclusions')
+    )
+
+    # Time Configuration
+    start_time = models.TimeField(
+        _('Start Time'),
+        blank=True,
+        null=True,
+        help_text=_('Start time for partial day exclusions')
+    )
+    end_time = models.TimeField(
+        _('End Time'),
+        blank=True,
+        null=True,
+        help_text=_('End time for partial day exclusions')
+    )
+
+    # Queue Assignment
+    queues = models.ManyToManyField(
+        Queue,
+        blank=True,
+        help_text=_('Leave blank for this exclusion to be applied to all queues, or select those queues you wish to exclude with this entry.')
+    )
+
+    # Settings
+    is_active = models.BooleanField(
+        _('Active'),
+        default=True,
+        help_text=_('Whether this exclusion is currently active')
+    )
+
+    class Meta:
+        verbose_name = _('Escalation exclusion')
+        verbose_name_plural = _('Escalation exclusions')
+        indexes = [
+            models.Index(fields=['date', 'is_active']),
+        ]
+
+    def __str__(self):
+        return f'{self.name} ({self.date})'
+
+    @property
+    def is_all_day(self):
+        """Check if this is an all-day exclusion"""
+        return not (self.start_time and self.end_time)
+
+class EmailTemplate(models.Model):
+    """
+    Enhanced email templates with better organization
+    """
+    TEMPLATE_TYPES = [
+        ('new_ticket', _('New Ticket Notification')),
+        ('updated_ticket', _('Ticket Updated')),
+        ('resolved_ticket', _('Ticket Resolved')),
+        ('closed_ticket', _('Ticket Closed')),
+        ('assigned_ticket', _('Ticket Assigned')),
+        ('escalated_ticket', _('Ticket Escalated')),
+        ('reminder', _('Reminder/Follow-up')),
+        ('satisfaction', _('Satisfaction Survey')),
+        ('custom', _('Custom Template')),
+    ]
+
+    # Basic Information
+    template_name = models.CharField(
+        _('Template Name'),
+        max_length=100
+    )
+    template_type = models.CharField(
+        _('Template Type'),
+        max_length=20,
+        choices=TEMPLATE_TYPES,
+        default='custom',
+        help_text=_('Purpose of this email template')
+    )
+    
+    # Email Content
+    subject = models.CharField(
+        _('Subject'),
+        max_length=100,
+        help_text=_('This will be prefixed with "[ticket.ticket] ticket.title". We recommend something simple such as "(Updated") or "(Closed)" - the same context is available as in plain_text, below.')
+    )
+    heading = models.CharField(
+        _('Heading'),
+        max_length=100,
+        help_text=_('In HTML e-mails, this will be the heading at the top of the email - the same context is available as in plain_text, below.')
+    )
+    plain_text = models.TextField(
+        _('Plain Text'),
+        help_text=_('The context available to you includes {{ ticket }}, {{ queue }}, and depending on the time of the call: {{ resolution }} or {{ comment }}.')
+    )
+    html = models.TextField(
+        _('HTML'),
+        help_text=_('The same context is available here as in plain_text, above.')
+    )
+
+    # Settings
+    locale = models.CharField(
+        _('Locale'),
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text=_('Locale of this template.')
+    )
+    is_active = models.BooleanField(
+        _('Active'),
+        default=True,
+        help_text=_('Whether this template is currently available for use')
+    )
+
+    # Queue Assignment
+    queues = models.ManyToManyField(
+        Queue,
+        blank=True,
+        help_text=_('Leave blank to use for all queues, or select specific queues')
+    )
+
+    # System Fields
+    created_at = models.DateTimeField(_('Created'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Updated'), auto_now=True)
+
+    class Meta:
+        ordering = ('template_type', 'template_name', 'locale')
+        verbose_name = _('e-mail template')
+        verbose_name_plural = _('e-mail templates')
+
+    def __str__(self):
+        return f'{self.get_template_type_display()}: {self.template_name}'
+
+class KBCategory(models.Model):
+    """
+    Enhanced knowledge base categories with hierarchy
+    """
+    # Basic Information
+    title = models.CharField(
+        _('Title'),
+        max_length=100
+    )
+    slug = models.SlugField(
+        _('Slug'),
+        unique=True
+    )
+    description = models.TextField(
+        _('Description')
+    )
+
+    # Hierarchy
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='subcategories',
+        help_text=_('Parent category for hierarchical organization')
+    )
+
+    # Settings
+    is_active = models.BooleanField(
+        _('Active'),
+        default=True,
+        help_text=_('Whether this category is currently visible')
+    )
+    sort_order = models.PositiveIntegerField(
+        _('Sort Order'),
+        default=0,
+        help_text=_('Order in which categories are displayed')
+    )
+
+    # Icon and Color
+    icon = models.CharField(
+        _('Icon'),
+        max_length=50,
+        blank=True,
+        help_text=_('FontAwesome icon class (e.g., fa-question-circle)')
+    )
+    color = models.CharField(
+        _('Color'),
+        max_length=7,
+        default='#007bff',
+        help_text=_('Hex color code for category identification')
+    )
+
+    class Meta:
+        ordering = ('sort_order', 'title')
+        verbose_name = _('Knowledge base category')
+        verbose_name_plural = _('Knowledge base categories')
+
+    def __str__(self):
+        if self.parent:
+            return f'{self.parent.title} > {self.title}'
+        return self.title
+
+    def get_absolute_url(self):
+        return reverse('helpdesk:kb_category', kwargs={'slug': self.slug})
+
+    @property
+    def item_count(self):
+        """Count of items in this category"""
+        return self.kbitems.filter(is_published=True).count()
+
+    @property
+    def total_item_count(self):
+        """Count of items in this category and all subcategories"""
+        count = self.item_count
+        for subcategory in self.subcategories.all():
+            count += subcategory.total_item_count
+        return count
+
+class KBItem(models.Model):
+    """
+    Enhanced knowledge base items with better content management
+    """
+    # Basic Information
+    category = models.ForeignKey(
+        KBCategory,
+        on_delete=models.CASCADE,
+        related_name='kbitems',
+        verbose_name=_('Category')
+    )
+    title = models.CharField(
+        _('Title'),
+        max_length=100
+    )
+    slug = models.SlugField(
+        _('Slug'),
+        blank=True,
+        help_text=_('Auto-generated from title if left blank')
+    )
+    question = models.TextField(
+        _('Question')
+    )
+    answer = models.TextField(
+        _('Answer')
+    )
+
+    # Content Management
+    is_published = models.BooleanField(
+        _('Published'),
+        default=True,
+        help_text=_('Whether this item is visible to users')
+    )
+    is_featured = models.BooleanField(
+        _('Featured'),
+        default=False,
+        help_text=_('Whether this item appears in featured lists')
+    )
+
+    # Ratings and Analytics
+    votes = models.IntegerField(
+        _('Total Votes'),
+        help_text=_('Total number of votes cast for this item'),
+        default=0
+    )
+    recommendations = models.IntegerField(
+        _('Positive Votes'),
+        help_text=_('Number of votes for this item which were POSITIVE.'),
+        default=0
+    )
+    view_count = models.PositiveIntegerField(
+        _('View Count'),
+        default=0,
+        help_text=_('Number of times this item has been viewed')
+    )
+
+    # Tags and Keywords
+    tags = models.CharField(
+        _('Tags'),
+        max_length=500,
+        blank=True,
+        help_text=_('# helpdesk/models.py - Modernized Helpdesk/Ticket Management Models
+
+from django.db import models
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator, validate_email
+from django.conf import settings
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _, gettext
+from django.urls import reverse
+from django.utils.html import format_html
+from decimal import Decimal
+import re
+import os
+from datetime import datetime, timedelta
+import uuid
+
+from hr.models import Worker
+
+class QueueManager(models.Manager):
+    def active(self):
+        """Get active queues only"""
+        return self.filter(is_active=True)
+
+    def public_submission_enabled(self):
+        """Get queues that allow public submission"""
+        return self.filter(allow_public_submission=True, is_active=True)
+
+    def email_enabled(self):
+        """Get queues with email submission enabled"""
+        return self.filter(allow_email_submission=True, is_active=True)
+
+class Queue(models.Model):
+    """
+    Modernized queue model with enhanced features and better organization
+    """
+    ESCALATION_TYPES = [
+        ('none', _('No Escalation')),
+        ('time_based', _('Time-Based Escalation')),
+        ('priority_based', _('Priority-Based Escalation')),
+        ('sla_based', _('SLA-Based Escalation')),
+    ]
+
+    EMAIL_BOX_TYPES = [
+        ('pop3', _('POP3')),
+        ('imap', _('IMAP')),
+        ('local', _('Local Directory')),
+        ('exchange', _('Microsoft Exchange')),
+        ('oauth', _('OAuth (Gmail/Outlook)')),
+    ]
+
+    SOCKS_PROXY_TYPES = [
+        ('socks4', _('SOCKS4')),
+        ('socks5', _('SOCKS5')),
+    ]
+
+    LOGGING_LEVELS = [
+        ('none', _('None')),
+        ('debug', _('Debug')),
+        ('info', _('Information')),
+        ('warn', _('Warning')),
+        ('error', _('Error')),
+        ('crit', _('Critical'))
+    ]
+
+    SLA_PRIORITIES = [
+        ('low', _('Low Priority SLA')),
+        ('normal', _('Normal Priority SLA')),
+        ('high', _('High Priority SLA')),
+        ('critical', _('Critical Priority SLA')),
+    ]
+
+    # Basic Information
+    title = models.CharField(
+        _('Title'),
+        max_length=100,
+        help_text=_('Display name for this queue')
+    )
+    slug = models.SlugField(
+        _('Slug'),
+        max_length=50,
+        unique=True,
+        help_text=_('This slug is used when building ticket IDs. Once set, try not to change it or e-mailing may get messy.')
+    )
+    description = models.TextField(
+        _('Description'),
+        blank=True,
+        help_text=_('Internal description of this queue\'s purpose')
+    )
+    
+    # Status and Visibility
+    is_active = models.BooleanField(
+        _('Active'),
+        default=True,
+        help_text=_('Whether this queue is currently accepting tickets')
+    )
+    is_public = models.BooleanField(
+        _('Public Queue'),
+        default=False,
+        help_text=_('Whether this queue appears in public lists')
+    )
+    
+    # Email Configuration
+    email_address = models.EmailField(
+        _('E-Mail Address'),
+        blank=True,
+        null=True,
+        help_text=_('All outgoing e-mails for this queue will use this e-mail address. If you use IMAP or POP3, this should be the e-mail address for that mailbox.')
+    )
+    from_name = models.CharField(
+        _('From Name'),
+        max_length=100,
+        blank=True,
+        help_text=_('Display name for outgoing emails (e.g., "Support Team")')
+    )
+    
+    # Localization
+    locale = models.CharField(
+        _('Locale'),
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text=_('Locale of this queue. All correspondence in this queue will be in this language.')
+    )
+    timezone = models.CharField(
+        _('Timezone'),
+        max_length=50,
+        default='UTC',
+        help_text=_('Timezone for this queue\'s operations')
+    )
+
+    # Submission Settings
+    allow_public_submission = models.BooleanField(
+        _('Allow Public Submission?'),
+        default=False,
+        help_text=_('Should this queue be listed on the public submission form?')
+    )
+    allow_email_submission = models.BooleanField(
+        _('Allow E-Mail Submission?'),
+        default=False,
+        help_text=_('Do you want to poll the e-mail box below for new tickets?')
+    )
+    allow_api_submission = models.BooleanField(
+        _('Allow API Submission?'),
+        default=False,
+        help_text=_('Allow ticket creation via REST API')
+    )
+    require_registration = models.BooleanField(
+        _('Require Registration'),
+        default=False,
+        help_text=_('Require users to register before submitting tickets')
+    )
+
+    # SLA and Escalation
+    escalation_type = models.CharField(
+        _('Escalation Type'),
+        max_length=20,
+        choices=ESCALATION_TYPES,
+        default='time_based',
+        help_text=_('How should tickets in this queue be escalated?')
+    )
+    escalate_days = models.IntegerField(
+        _('Escalation Days'),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(0), MaxValueValidator(365)],
+        help_text=_('For tickets which are not held, how often do you wish to increase their priority? Set to 0 for no escalation.')
+    )
+    sla_response_time = models.DurationField(
+        _('SLA Response Time'),
+        null=True,
+        blank=True,
+        help_text=_('Maximum time to first response (e.g., "2:00:00" for 2 hours)')
+    )
+    sla_resolution_time = models.DurationField(
+        _('SLA Resolution Time'),
+        null=True,
+        blank=True,
+        help_text=_('Maximum time to resolution (e.g., "1 00:00:00" for 1 day)')
+    )
+
+    # Notifications
+    new_ticket_cc = models.CharField(
+        _('New Ticket CC Address'),
+        blank=True,
+        null=True,
+        max_length=500,
+        help_text=_('If an e-mail address is entered here, then it will receive notification of all new tickets created for this queue. Enter a comma between multiple e-mail addresses.')
+    )
+    updated_ticket_cc = models.CharField(
+        _('Updated Ticket CC Address'),
+        blank=True,
+        null=True,
+        max_length=500,
+        help_text=_('If an e-mail address is entered here, then it will receive notification of all activity (new tickets, closed tickets, updates, reassignments, etc) for this queue. Separate multiple addresses with a comma.')
+    )
+    send_sms_notifications = models.BooleanField(
+        _('Send SMS Notifications'),
+        default=False,
+        help_text=_('Send SMS notifications for critical tickets')
+    )
+
+    # Email Box Configuration
+    email_box_type = models.CharField(
+        _('E-Mail Box Type'),
+        max_length=10,
+        choices=EMAIL_BOX_TYPES,
+        blank=True,
+        null=True,
+        help_text=_('E-Mail server type for creating tickets automatically from a mailbox')
+    )
+    email_box_host = models.CharField(
+        _('E-Mail Hostname'),
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text=_('Your e-mail server address - either the domain name or IP address. May be "localhost".')
+    )
+    email_box_port = models.IntegerField(
+        _('E-Mail Port'),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(1), MaxValueValidator(65535)],
+        help_text=_('Port number to use for accessing e-mail. Default for POP3 is "110", and for IMAP is "143". This may differ on some servers. Leave it blank to use the defaults.')
+    )
+    email_box_ssl = models.BooleanField(
+        _('Use SSL for E-Mail?'),
+        default=False,
+        help_text=_('Whether to use SSL for IMAP or POP3 - the default ports when using SSL are 993 for IMAP and 995 for POP3.')
+    )
+    email_box_user = models.CharField(
+        _('E-Mail Username'),
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text=_('Username for accessing this mailbox.')
+    )
+    email_box_pass = models.CharField(
+        _('E-Mail Password'),
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text=_('Password for the above username (encrypted in database)')
+    )
+    email_box_imap_folder = models.CharField(
+        _('IMAP Folder'),
+        max_length=100,
+        blank=True,
+        null=True,
+        help_text=_('If using IMAP, what folder do you wish to fetch messages from? This allows you to use one IMAP account for multiple queues, by filtering messages on your IMAP server into separate folders. Default: INBOX.')
+    )
+    email_box_local_dir = models.CharField(
+        _('E-Mail Local Directory'),
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text=_('If using a local directory, what directory path do you wish to poll for new email? Example: /var/lib/mail/helpdesk/')
+    )
+    email_box_interval = models.IntegerField(
+        _('E-Mail Check Interval'),
+        help_text=_('How often do you wish to check this mailbox? (in Minutes)'),
+        blank=True,
+        null=True,
+        default=5,
+        validators=[MinValueValidator(1), MaxValueValidator(1440)]
+    )
+    email_box_last_check = models.DateTimeField(
+        _('Last Email Check'),
+        blank=True,
+        null=True,
+        editable=False
+    )
+
+    # Security and Proxy
+    socks_proxy_type = models.CharField(
+        _('Socks Proxy Type'),
+        max_length=8,
+        choices=SOCKS_PROXY_TYPES,
+        blank=True,
+        null=True,
+        help_text=_('SOCKS4 or SOCKS5 allows you to proxy your connections through a SOCKS server.')
+    )
+    socks_proxy_host = models.GenericIPAddressField(
+        _('Socks Proxy Host'),
+        blank=True,
+        null=True,
+        help_text=_('Socks proxy IP address. Default: 127.0.0.1')
+    )
+    socks_proxy_port = models.IntegerField(
+        _('Socks Proxy Port'),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(1), MaxValueValidator(65535)],
+        help_text=_('Socks proxy port number. Default: 9150 (default TOR port)')
+    )
+
+    # Logging
+    logging_type = models.CharField(
+        _('Logging Type'),
+        max_length=5,
+        choices=LOGGING_LEVELS,
+        blank=True,
+        null=True,
+        help_text=_('Set the default logging level. All messages at that level or above will be logged to the directory set below. If no level is set, logging will be disabled.')
+    )
+    logging_dir = models.CharField(
+        _('Logging Directory'),
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text=_('If logging is enabled, what directory should we use to store log files for this queue? If no directory is set, default to /var/log/helpdesk/')
+    )
+
+    # Staff Assignment
+    default_owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='default_owned_queues',
+        blank=True,
+        null=True,
+        verbose_name=_('Default owner'),
+        help_text=_('Default assignee for new tickets in this queue')
+    )
+    managers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        related_name='managed_queues',
+        help_text=_('Users who can manage this queue')
+    )
+    
+    # Business Logic
+    auto_assign = models.BooleanField(
+        _('Auto-assign Tickets'),
+        default=False,
+        help_text=_('Automatically assign new tickets to available staff')
+    )
+    require_approval = models.BooleanField(
+        _('Require Approval'),
+        default=False,
+        help_text=_('Require supervisor approval before closing tickets')
+    )
+    
+    # Custom Fields
+    custom_fields = models.JSONField(
+        _('Custom Queue Settings'),
+        default=dict,
+        blank=True,
+        help_text=_('JSON field for custom queue-specific settings')
+    )
+
+    # System Fields
+    permission_name = models.CharField(
+        _('Django auth permission name'),
+        max_length=72,
+        blank=True,
+        null=True,
+        editable=False,
+        help_text=_('Name used in the django.contrib.auth permission system')
+    )
+    created_at = models.DateTimeField(_('Created'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('Updated'), auto_now=True)
+
+    objects = QueueManager()
+
+    class Meta:
+        ordering = ('title',)
+        verbose_name = _('Queue')
+        verbose_name_plural = _('Queues')
+        indexes = [
+            models.Index(fields=['is_active', 'allow_public_submission']),
+            models.Index(fields=['slug']),
+        ]
+
+    def __str__(self):
+        return self.title
+
+    def clean(self):
+        """Validate queue data"""
+        errors = {}
+        
+        # Validate email settings
+        if self.allow_email_submission:
+            if not self.email_box_type:
+                errors['email_box_type'] = _('Email box type is required when email submission is enabled')
+            if not self.email_box_host and self.email_box_type not in ['local', 'oauth']:
+                errors['email_box_host'] = _('Email host is required for this email box type')
+            if not self.email_box_user and self.email_box_type not in ['local']:
+                errors['email_box_user'] = _('Email username is required for this email box type')
+        
+        # Validate SLA settings
+        if self.sla_response_time and self.sla_resolution_time:
+            if self.sla_response_time >= self.sla_resolution_time:
+                errors['sla_resolution_time'] = _('Resolution time must be longer than response time')
+        
+        # Validate escalation settings
+        if self.escalation_type != 'none' and not self.escalate_days:
+            errors['escalate_days'] = _('Escalation days is required when escalation is enabled')
+        
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        
+        # Set default IMAP folder
+        if self.email_box_type == 'imap' and not self.email_box_imap_folder:
+            self.email_box_imap_folder = 'INBOX'
+
+        # Set default proxy settings
+        if self.socks_proxy_type:
+            if not self.socks_proxy_host:
+                self.socks_proxy_host = '127.0.0.1'
+            if not self.socks_proxy_port:
+                self.socks_proxy_port = 9150
+        else:
+            self.socks_proxy_host = None
+            self.socks_proxy_port = None
+
+        # Set default email ports
+        if not self.email_box_port and self.email_box_type:
+            if self.email_box_type == 'imap':
+                self.email_box_port = 993 if self.email_box_ssl else 143
+            elif self.email_box_type == 'pop3':
+                self.email_box_port = 995 if self.email_box_ssl else 110
+
+        # Create permission for new queue
+        if not self.id:
+            basename = self.prepare_permission_name()
+            Permission.objects.get_or_create(
+                name=_("Permission for queue: ") + self.title,
+                content_type=ContentType.objects.get_for_model(self.__class__),
+                codename=basename,
+            )
+
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        permission_name = self.permission_name
+        super().delete(*args, **kwargs)
+
+        # Remove permission when queue is deleted
+        if permission_name:
+            try:
+                p = Permission.objects.get(codename=permission_name[9:])
+                p.delete()
+            except ObjectDoesNotExist:
+                pass
+
+    @property
+    def from_address(self):
+        """Short property to provide a sender address in SMTP format"""
+        if not self.email_address:
+            default_email = re.match(".*<(?P<email>.*@*.)>", settings.DEFAULT_FROM_EMAIL)
+            if default_email is not None:
+                return f'NO QUEUE EMAIL ADDRESS DEFINED {settings.DEFAULT_FROM_EMAIL}'
+            else:
+                return f'NO QUEUE EMAIL ADDRESS DEFINED <{settings.DEFAULT_FROM_EMAIL}>'
+        else:
+            from_name = self.from_name or self.title
+            return f'{from_name} <{self.email_address}>'
+
+    @property
+    def ticket_count(self):
+        """Total number of tickets in this queue"""
+        return self.tickets.count()
+
+    @property
+    def open_ticket_count(self):
+        """Number of open tickets in this queue"""
+        return self.tickets.filter(status__in=[Ticket.OPEN_STATUS, Ticket.REOPENED_STATUS]).count()
+
+    @property
+    def average_resolution_time(self):
+        """Average time to resolve tickets in this queue"""
+        resolved_tickets = self.tickets.filter(
+            status=Ticket.RESOLVED_STATUS,
+            resolution_date__isnull=False
+        )
+        if not resolved_tickets.exists():
+            return None
+        
+        total_time = timedelta()
+        count = 0
+        for ticket in resolved_tickets:
+            if ticket.created and ticket.resolution_date:
+                total_time += ticket.resolution_date - ticket.created
+                count += 1
+        
+        return total_time / count if count > 0 else None
+
+    @property
+    def sla_compliance_rate(self):
+        """Percentage of tickets meeting SLA requirements"""
+        if not self.sla_resolution_time:
+            return None
+        
+        total_tickets = self.tickets.filter(
+            status__in=[Ticket.RESOLVED_STATUS, Ticket.CLOSED_STATUS]
+        ).count()
+        
+        if total_tickets == 0:
+            return 100
+        
+        compliant_tickets = 0
+        for ticket in self.tickets.filter(status__in=[Ticket.RESOLVED_STATUS, Ticket.CLOSED_STATUS]):
+            if ticket.resolution_time and ticket.resolution_time <= self.sla_resolution_time:
+                compliant_tickets += 1
+        
+        return (compliant_tickets / total_tickets) * 100
+
+    def prepare_permission_name(self):
+        """Prepare internally the codename for the permission and store it in permission_name"""
+        basename = f"queue_access_{self.slug}"
+        self.permission_name = f"helpdesk.{basename}"
+        return basename
+
+    def get_absolute_url(self):
+        return reverse('helpdesk:queue_detail', kwargs={'slug': self.slug})
+
+class TicketManager(models.Manager):
+    def open(self):
+        """Get open tickets"""
+        return self.filter(status__in=[Ticket.OPEN_STATUS, Ticket.REOPENED_STATUS])
+
+    def closed(self):
+        """Get closed tickets"""
+        return self.filter(status__in=[Ticket.RESOLVED_STATUS, Ticket.CLOSED_STATUS])
+
+    def unassigned(self):
+        """Get unassigned tickets"""
+        return self.filter(assigned_to__isnull=True)
+
+    def overdue(self):
+        """Get overdue tickets"""
+        return self.filter(
+            due_date__lt=timezone.now(),
+            status__in=[Ticket.OPEN_STATUS, Ticket.REOPENED_STATUS]
+        )
+
+    def high_priority(self):
+        """Get high priority tickets"""
+        return self.filter(priority__in=[1, 2])
+
+    def for_user(self, user):
+        """Get tickets assigned to or submitted by user"""
+        return self.filter(
+            models.Q(assigned_to=user) | 
+            models.Q(submitter_email=user.email)
+        )
+
+class Ticket(models.Model):
+    """
+    Modernized ticket model with enhanced tracking and workflow
+    """
+    # Status Constants
+    OPEN_STATUS = 1
+    REOPENED_STATUS = 2
+    RESOLVED_STATUS = 3
+    CLOSED_STATUS = 4
+    DUPLICATE_STATUS = 5
+    ON_HOLD_STATUS = 6
+    PENDING_STATUS = 7
+
+    STATUS_CHOICES = [
+        (OPEN_STATUS, _('Open')),
+        (REOPENED_STATUS, _('Reopened')),
+        (RESOLVED_STATUS, _('Resolved')),
+        (CLOSED_STATUS, _('Closed')),
+        (DUPLICATE_STATUS, _('Duplicate')),
+        (ON_HOLD_STATUS, _('On Hold')),
+        (PENDING_STATUS, _('Pending Customer')),
+    ]
+
+    PRIORITY_CHOICES = [
+        (1, _('1. Critical')),
+        (2, _('2. High')),
+        (3, _('3. Normal')),
+        (4, _('4. Low')),
+        (5, _('5. Very Low')),
+    ]
+
+    TICKET_TYPES = [
+        ('bug', _('Bug Report')),
+        ('feature', _('Feature Request')),
+        ('support', _('Support Request')),
+        ('question', _('Question')),
+        ('incident', _('Incident')),
+        ('change', _('Change Request')),
+        ('maintenance', _('Maintenance')),
+        ('other', _('Other')),
+    ]
+
+    URGENCY_CHOICES = [
+        (1, _('Critical - System Down')),
+        (2, _('High - Major Impact')),
+        (3, _('Medium - Some Impact')),
+        (4, _('Low - Minor Impact')),
+        (5, _('Planning - No Impact')),
+    ]
+
+    # Basic Information
+    title = models.CharField(
+        _('Title'),
+        max_length=200,
+        help_text=_('Brief description of the issue')
+    )
+    queue = models.ForeignKey(
+        Queue,
+        on_delete=models.CASCADE,
+        related_name='tickets',
+        verbose_name=_('Queue')
+    )
+    description = models.TextField(
+        _('Description'),
+        blank=True,
+        null=True,
+        help_text=_('The content of the customer\'s query.')
+    )
+    ticket_type = models.CharField(
+        _('Ticket Type'),
+        max_length=20,
+        choices=TICKET_TYPES,
+        default='support',
+        help_text=_('What type of request is this?')
+    )
+
+    # UUID for external references
+    uuid = models.UUIDField(
+        _('UUID'),
+        default=uuid.uuid4,
+        editable=False,
+        unique=True,
+        help_text=_('Unique identifier for API and external integrations')
+    )
+
+    # Submitter Information
+    submitter_email = models.EmailField(
+        _('Submitter E-Mail'),
+        blank=True,
+        null=True,
+        help_text=_('The submitter will receive an email for all public follow-ups left for this task.')
+    )
+    submitter_name = models.CharField(
+        _('Submitter Name'),
+        max_length=100,
+        blank=True,
+        help_text=_('Name of the person who submitted this ticket')
+    )
+    submitter_phone = models.CharField(
+        _('Submitter Phone'),
+        max_length=20,
+        blank=True,
+        help_text=_('Phone number of the submitter')
+    )
+    submitter_organization = models.CharField(
+        _('Organization'),
+        max_length=100,
+        blank=True,
+        help_text=_('Organization the submitter belongs to')
+    )
+
+    # Assignment
+    assigned_to = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='assigned_tickets',
+        blank=True,
+        null=True,
+        verbose_name=_('Assigned to')
+    )
+    assigned_date = models.DateTimeField(
+        _('Assigned Date'),
+        blank=True,
+        null=True,
+        help_text=_('When this ticket was assigned to current user')
+    )
+
+    # Status and Priority
+    status = models.IntegerField(
+        _('Status'),
+        choices=STATUS_CHOICES,
+        default=OPEN_STATUS
+    )
+    priority = models.IntegerField(
+        _('Priority'),
+        choices=PRIORITY_CHOICES,
+        default=3,
+        help_text=_('1 = Highest Priority, 5 = Low Priority')
+    )
+    urgency = models.IntegerField(
+        _('Urgency'),
+        choices=URGENCY_CHOICES,
+        default=3,
+        help_text=_('Business impact of this issue')
+    )
+
+    # Workflow Control
+    on_hold = models.BooleanField(
+        _('On Hold'),
+        default=False,
+        help_text=_('If a ticket is on hold, it will not automatically be escalated.')
+    )
+    hold_reason = models.TextField(
+        _('Hold Reason'),
+        blank=True,
+        help_text=_('Reason why this ticket is on hold')
+    )
+
+    # Resolution
+    resolution = models.TextField(
+        _('Resolution'),
+        blank=True,
+        null=True,
+        help_text=_('The resolution provided to the customer by our staff.')
+    )
+    resolution_date = models.DateTimeField(
+        _('Resolution Date'),
+        blank=True,
+        null=True,
+        help_text=_('When this ticket was resolved')
+    )
+    closed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='closed_tickets',
+        blank=True,
+        null=True,
+        verbose_name=_('Closed by')
+    )
+
+    # Time Tracking
+    created = models.DateTimeField(
+        _('Created'),
+        help_text=_('Date this ticket was first created')
+    )
+    modified = models.DateTimeField(
+        _('Modified'),
+        help_text=_('Date this ticket was most recently changed.')
+    )
+    due_date = models.DateTimeField(
+        _('Due Date'),
+        blank=True,
+        null=True,
+        help_text=_('When this ticket should be resolved')
+    )
+    first_response_date = models.DateTimeField(
+        _('First Response Date'),
+        blank=True,
+        null=True,
+        help_text=_('When the first response was sent to the customer')
+    )
+
+    # Escalation
+    last_escalation = models.DateTimeField(
+        _('Last Escalation'),
+        blank=True,
+        null=True,
+        editable=False,
+        help_text=_('The date this ticket was last escalated - updated automatically by management/commands/escalate_tickets.py.')
+    )
+    escalation_level = models.PositiveIntegerField(
+        _('Escalation Level'),
+        default=0,
+        help_text=_('How many times this ticket has been escalated')
+    )
+
+    # Customer Satisfaction
+    satisfaction_rating = models.PositiveIntegerField(
+        _('Satisfaction Rating'),
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(1), MaxValueValidator(5)],
+        help_text=_('Customer satisfaction rating (1-5 stars)')
+    )
+    satisfaction_comment = models.TextField(
+        _('Satisfaction Comment'),
+        blank=True,
+        help_text=_('Customer feedback about the resolution')
+    )
+
+    # Time Spent
+    time_spent = models.DurationField(
+        _('Time Spent'),
+        blank=True,
+        null=True,
+        help_text=_('Total time spent working on this ticket')
+    )
+    billable_time = models.DurationField(
+        _('Billable Time'),
+        blank=True,
+        null=True,
+        help_text=_('Billable time for this ticket')
+    )
+
+    # Location and Environment
+    location = models.CharField(
+        _('Location'),
+        max_length=100,
+        blank=True,
+        help_text=_('Physical location where issue occurred')
+    )
+    environment = models.CharField(
+        _('Environment'),
+        max_length=50,
+        blank=True,
+        help_text=_('Environment where issue occurred (prod, test, dev)')
+    )
+
+    # Additional Fields
+    tags = models.CharField(
+        _('Tags'),
+        max_length=500,
+        blank=True,
+        help_text=_('Comma-separated tags for categorization')
+    )
+    external_reference = models.CharField(
+        _('External Reference'),
+        max_length=100,
+        blank=True,
+        help_text=_('Reference number from external system')
+    )
+    
+    # Custom Fields
+    custom_fields = models.JSONField(
+        _('Custom Fields'),
+        default=dict,
+        blank=True,
+        help_text=_('JSON field for custom ticket data')
+    )
+
+    objects = TicketManager()
+
+    class Meta:
+        get_latest_by = "created"
+        ordering = ('-created',)
+        verbose_name = _('Ticket')
+        verbose_name_plural = _('Tickets')
+        indexes = [
+            models.Index(fields=['status', 'priority']),
+            models.Index(fields=['assigned_to', 'status']),
+            models.Index(fields=['queue', 'status']),
+            models.Index(fields=['due_date']),
+            models.Index(fields=['created']),
+        ]
+
+    def __str__(self):
+        return f'{self.id} {self.title}'
+
+    def clean(self):
+        """Validate ticket data"""
+        errors = {}
+        
+        if self.due_date and self.due_date <= timezone.now():
+            if self.status in [self.OPEN_STATUS, self.REOPENED_STATUS]:
+                pass  # Allow past due dates for open tickets (they become overdue)
+        
+        if self.resolution and not self.resolution_date:
+            if self.status in [self.RESOLVED_STATUS, self.CLOSED_STATUS]:
+                errors['resolution_date'] = _('Resolution date is required when ticket is resolved/closed')
+        
+        if self.satisfaction_rating and not self.resolution_date:
+            errors['satisfaction_rating'] = _('Cannot rate satisfaction on unresolved ticket')
+        
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        
+        # Set created date for new tickets
+        if not self.id:
+            self.created = timezone.now()
+            
+            # Auto-assign if queue has default owner and auto-assign is enabled
+            if not self.assigned_to and self.queue.auto_assign and self.queue.default_owner:
+                self.assigned_to = self.queue.default_owner
+                self.assigned_date = timezone.now()
+
+        # Set default priority if not specified
+        if not self.priority:
+            self.priority = 3
+
+        # Update modified timestamp
+        self.modified = timezone.now()
+        
+        # Set resolution date when status changes to resolved/closed
+        if self.status in [self.RESOLVED_STATUS, self.CLOSED_STATUS] and not self.resolution_date:
+            self.resolution_date = timezone.now()
+        
+        # Set first response date when first follow-up is added (handled in FollowUp.save())
+        
+        # Clear resolution date if status changes back to open
+        if self.status in [self.OPEN_STATUS, self.REOPENED_STATUS]:
+            self.resolution_date = None
+
+        super().save(*args, **kwargs)
+
+    # Properties
+    @property
+    def get_assigned_to(self):
+        """Custom property to allow us to easily print 'Unassigned' if a ticket has no owner"""
+        if not self.assigned_to:
+            return _('Unassigned')
+        else:
+            if self.assigned_to.get_full_name():
+                return self.assigned_to.get_full_name()
+            else:
+                return self.assigned_to.get_username()
+
+    @property
+    def ticket(self):
+        """A user-friendly ticket ID, which is a combination of ticket ID and queue slug"""
+        return f"[{self.ticket_for_url}]"
+
+    @property
+    def ticket_for_url(self):
+        """A URL-friendly ticket ID, used in links"""
+        return f"{self.queue.slug}-{self.id}"
+
+    @property
+    def get_priority_css_class(self):
+        """Return the bootstrap class corresponding to the priority"""
+        priority_classes = {
+            1: "danger",
+            2: "warning", 
+            3: "info",
+            4: "success",
+            5: "secondary"
+        }
+        return priority_classes.get(self.priority, "info")
+
+    @property
+    def get_status(self):
+        """Displays the ticket status, with an "On Hold" message if needed"""
+        held_msg = ''
+        if self.on_hold:
+            held_msg = _(' - On Hold')
+        dep_msg = ''
+        if not self.can_be_resolved:
+            dep_msg = _(' - Open dependencies')
+        return f'{self.get_status_display()}{held_msg}{dep_msg}'
+
+    @property
+    def ticket_url(self):
+        """Returns a publicly-viewable URL for this ticket"""
+        from django.contrib.sites.models import Site
+        from django.core.exceptions import ImproperlyConfigured
+        try:
+            site = Site.objects.get_current()
+        except ImproperlyConfigured:
+            site = Site(domain='configure-django-sites.com')
+        return f"http://{site.domain}{reverse('helpdesk:public_view')}?ticket={self.ticket_for_url}&email={self.submitter_email}"
+
+    @property
+    def staff_url(self):
+        """Returns a staff-only URL for this ticket"""
+        from django.contrib.sites.models import Site
+        from django.core.exceptions import ImproperlyConfigured
+        try:
+            site = Site.objects.get_current()
+        except ImproperlyConfigured:
+            site = Site(domain='configure-django-sites.com')
+        return f"http://{site.domain}{reverse('helpdesk:view', args=[self.id])}"
+
+    @property
+    def can_be_resolved(self):
+        """Returns True if any dependencies are resolved, False if there are non-resolved dependencies"""
+        OPEN_STATUSES = (Ticket.OPEN_STATUS, Ticket.REOPENED_STATUS)
+        return not TicketDependency.objects.filter(
+            ticket=self,
+            depends_on__status__in=OPEN_STATUSES
+        ).exists()
+
+    @property
+    def is_overdue(self):
+        """Check if ticket is overdue"""
+        if not self.due_date:
+            return False
+        if self.status in [self.RESOLVED_STATUS, self.CLOSED_STATUS]:
+            return False
+        return self.due_date < timezone.now()
+
+    @property
+    def days_until_due(self):
+        """Days until due date (negative if overdue)"""
+        if not self.due_date:
+            return None
+        delta = self.due_date.date() - timezone.now().date()
+        return delta.days
+
+    @property
+    def resolution_time(self):
+        """Time taken to resolve ticket"""
+        if self.resolution_date and self.created:
+            return self.resolution_date - self.created
+        return None
+
+    @property
+    def response_time(self):
+        """Time taken for first response"""
+        if self.first_response_date and self.created:
+            return self.first_response_date - self.created
+        return None
+
+    @property
+    def age(self):
+        """Age of ticket in days"""
+        return (timezone.now() - self.created).days
+
+    @property
+    def tag_list(self):
+        """Return tags as a list"""
+        if self.tags:
+            return [tag.strip() for tag in self.tags.split(',') if tag.strip()]
+        return []
+
+    @staticmethod
+    def queue_and_id_from_query(query):
+        """Apply the opposite logic here compared to self._get_ticket_for_url"""
+        parts = query.split('-')
+        queue = '-'.join(parts[0:-1])
+        return queue, parts[-1]
+
+    def get_absolute_url(self):
+        return reverse('helpdesk:view', args=(self.id,))
+
+    def assign_to(self, user, assigned_by=None):
+        """Assign ticket to a user"""
+        old_assignee = self.assigned_to
+        self.assigned_to = user
+        self.assigned_date = timezone.now()
+        self.save()
+        
+        # Create follow-up for assignment change
+        title = f"Ticket assigned to {user.get_full_name() or user.username}"
+        if old_assignee:
+            title = f"Ticket reassigned from {old_assignee.get_full_name() or old_assignee.username} to {user.get_full_name() or user.username}"
+        
+        FollowUp.objects.create(
+            ticket=self,
+            title=title,
+            user=assigned_by,
+            public=False
+        )
+
+    def resolve(self, resolution_text, resolved_by=None):
+        """Resolve the ticket"""
+        self.status = self.RESOLVED_STATUS
+        self.resolution = resolution_text
+        self.resolution_date = timezone.now()
+        self.save()
+        
+        FollowUp.objects.create(
+            ticket=self,
+            title="Ticket Resolved",
+            comment=resolution_text,
+            user=resolved_by,
+            public=True,
+            new_status=self.RESOLVED_STATUS
+        )
+
+    def close(self, closed_by=None):
+        """Close the ticket"""
+        self.status = self.CLOSED_STATUS
+        self.closed_by = closed_by
+        if not self.resolution_date:
+            self.resolution_date = timezone.now()
+        self.save()
+        
+        FollowUp.objects.create(
+            ticket=self,
+            title="Ticket Closed",
+            user=closed_by,
+            public=False,
+            new_status=self.CLOSED_STATUS
+        )
+
+    def reopen(self, reason, reopened_by=None):
+        """Reopen a closed ticket"""
+        self.status = self.REOPENED_STATUS
+        self.resolution_date = None
+        self.closed_by = None
+        self.save()
+        
+        FollowUp.objects.create(
+            ticket=self,
+            title="Ticket Reopened",
+            comment=reason,
+            user=reopened_by,
+            public=True,
+            new_status=self.REOPENED_STATUS
+        )
+
+class FollowUpManager(models.Manager):
+    def private_followups(self):
+        return self.filter(public=False)
+
+    def public_followups(self):
+        return self.filter(public=True)
+
+    def recent(self, days=7):
+        """Get recent follow-ups"""
+        cutoff = timezone.now() - timedelta(days=days)
+        return self.filter(date__gte=cutoff)
+
+class FollowUp(models.Model):
+    """
+    Enhanced follow-up model with better categorization and tracking
+    """
+    FOLLOWUP_TYPES = [
+        ('comment', _('Comment')),
+        ('status_change', _('Status Change')),
+        ('assignment', _('Assignment')),
+        ('escalation', _('Escalation')),
+        ('resolution', _('Resolution')),
+        ('email', _('Email')),
+        ('phone', _('Phone Call')),
+        ('meeting', _('Meeting')),
+        ('system', _('System Generated')),
+    ]
+
+    # Basic Information
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        related_name='followups',
+        verbose_name=_('Ticket')
+    )
+    date = models.DateTimeField(
+        _('Date'),
+        default=timezone.now
+    )
+    title = models.CharField(
+        _('Title'),
+        max_length=200,
+        blank=True,
+        null=True
+    )
+    comment = models.TextField(
+        _('Comment'),
+        blank=True,
+        null=True
+    )
+    followup_type = models.CharField(
+        _('Follow-up Type'),
+        max_length=20,
+        choices=FOLLOWUP_TYPES,
+        default='comment',
+        help_text=_('Type of follow-up action')
+    )
+
+    # Visibility and User
+    public = models.BooleanField(
+        _('Public'),
+        default=False,
+        help_text=_('Public follow-ups are viewable by the submitter and all staff, but non-public follow-ups can only be seen by staff.')
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        verbose_name=_('User')
+    )
+
+    # Status Change Tracking
+    new_status = models.IntegerField(
+        _('New Status'),
+        choices=Ticket.STATUS_CHOICES,
+        blank=True,
+        null=True,
+        help_text=_('If the status was changed, what was it changed to?')
+    )
+    old_status = models.IntegerField(
+        _('Previous Status'),
+        choices=Ticket.STATUS_CHOICES,
+        blank=True,
+        null=True,
+        help_text=_('Previous status before this change')
+    )
+
+    # Time Tracking
+    time_spent = models.DurationField(
+        _('Time Spent'),
+        blank=True,
+        null=True,
+        help_text=_('Time spent on this follow-up')
+    )
+    is_billable = models.BooleanField(
+        _('Billable'),
+        default=True,
+        help_text=_('Whether this time should be billed to the customer')
+    )
+
+    # Email Integration
+    email_message_id = models.CharField(
+        _('Email Message ID'),
+        max_length=255,
+        blank=True,
+        help_text=_('Message ID for email-based follow-ups')
+    )
+    email_subject = models.CharField(
+        _('Email Subject'),
+        max_length=255,
+        blank=True
+    )
+
+    objects = FollowUpManager()
+
+    class Meta:
+        ordering = ('date',)
+        verbose_name = _('Follow-up')
+        verbose_name_plural = _('Follow-ups')
+        indexes = [
+            models.Index(fields=['ticket', 'date']),
+            models.Index(fields=['public', 'date']),
+        ]
+
+    def __str__(self):
+        return f'{self.title} - {self.ticket}'
+
+    def save(self, *args, **kwargs):
+        # Update ticket's modified date
+        self.ticket.modified = timezone.now()
+        
+        # Set first response date if this is the first public follow-up
+        if self.public and not self.ticket.first_response_date:
+            self.ticket.first_response_date = self.date
+        
+        self.ticket.save()
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return f"{self.ticket.get_absolute_url()}#followup{self.id}"
+
+class TicketChange(models.Model):
+    """
+    Enhanced ticket change tracking with better field mapping
+    """
+    followup = models.ForeignKey(
+        FollowUp,
+        on_delete=models.CASCADE,
+        related_name='changes',
+        verbose_name=_('Follow-up')
+    )
+    field = models.CharField(
+        _('Field'),
+        max_length=100
+    )
+    old_value = models.TextField(
+        _('Old Value'),
+        blank=True,
+        null=True
+    )
+    new_value = models.TextField(
+        _('New Value'),
+        blank=True,
+        null=True
+    )
+    
+    # Enhanced tracking
+    change_type = models.CharField(
+        _('Change Type'),
+        max_length=20,
+        choices=[
+            ('field_change', _('Field Change')),
+            ('assignment', _('Assignment')),
+            ('status', _('Status Change')),
+            ('priority', _('Priority Change')),
+        ],
+        default='field_change'
+    )
+
+    class Meta:
+        verbose_name = _('Ticket change')
+        verbose_name_plural = _('Ticket changes')
+        indexes = [
+            models.Index(fields=['followup', 'field']),
+        ]
+
+    def __str__(self):
+        if not self.new_value:
+            return f'{self.field} {gettext("removed")}'
+        elif not self.old_value:
+            return f'{self.field} {gettext("set to")} {self.new_value}'
+        else:
+            return f'{self.field} {gettext("changed from")} "{self.old_value}" {gettext("to")} "{self.new_value}"'
+
+def attachment_path(instance, filename):
+    """Provide a file path that will help prevent files being overwritten"""
+    os.umask(0)
+    path = f'helpdesk/attachments/{instance.followup.ticket.ticket_for_url}/{instance.followup.id}'
+    att_path = os.path.join(settings.MEDIA_ROOT, path)
+    if settings.DEFAULT_FILE_STORAGE == "django.core.files.storage.FileSystemStorage":
+        if not os.path.exists(att_path):
+            os.makedirs(att_path, 0o777)
+    return os.path.join(path, filename)
+
+class Attachment(models.Model):
+    """
+    Enhanced attachment model with better file handling
+    """
+    followup = models.ForeignKey(
+        FollowUp,
+        on_delete=models.CASCADE,
+        related_name='attachments',
+        verbose_name=_('Follow-up')
+    )
+    file = models.FileField(
+        _('File'),
+        upload_to=attachment_path,
+        max_length=1000
+    )
+    filename = models.CharField(
+        _('Filename'),
+        max_length=1000
+    )
+    mime_type = models.CharField(
+        _('MIME Type'),
+        max_length=255
+    )
+    size = models.IntegerField(
+        _('Size'),
+        help_text=_('Size of this file in bytes')
+    )
+    
+    # Enhanced fields
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text=_('User who uploaded this file')
+    )
+    uploaded_at = models.DateTimeField(
+        _('Uploaded At'),
+        auto_now_add=True
+    )
+    is_public = models.BooleanField(
+        _('Public'),
+        default=True,
+        help_text=_('Whether this attachment is visible to the ticket submitter')
+    )
+    virus_scanned = models.BooleanField(
+        _('Virus Scanned'),
+        default=False,
+        help_text=_('Whether this file has been scanned for viruses')
+    )
+
+    class Meta:
+        ordering = ('filename',)
+        verbose_name = _('Attachment')
+        verbose_name_plural = _('Attachments')
+
+    def __str__(self):
+        return self.filename
+
+    @property
+    def file_size_human(self):
+        """Return human-readable file size"""
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if self.size < 1024.0:
+                return f"{self.size:.1f} {unit}"
+            self.size /= 1024.0
+        return f"{self.size:.1f} TB"
+
+    @property
+    def is_image(self):
+        """Check if attachment is an image"""
+        return self.mime_type.startswith('image/')
+
+    @property
+    def is_document(self):
+        """Check if attachment is a document"""
+        document_types = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain'
+        ]
+        return self.mime_type in document_types
+
+# Continue with the rest of the models...

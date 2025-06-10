@@ -1,0 +1,468 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}<title>{% if object %}Edit Note{% else %}Add Note{% endif %} - {{ location.name }}</title>{% endblock %}
+{% block breadcrumb %}
+/ <a href="{% url 'location:location-list' %}">Locations</a>
+/ <a href="{{ location.get_absolute_url }}">{{ location.name }}</a>
+/ {% if object %}Edit Note{% else %}Add Note{% endif %}
+{% endblock %}
+
+{% block styler %}
+<style>
+.note-form-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.form-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+}
+
+.form-body {
+    padding: 30px;
+}
+
+.location-info {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.followup-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 15px;
+    display: none;
+}
+
+.priority-preview {
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.875em;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}
+
+.priority-low { background-color: #d4edda; color: #155724; }
+.priority-normal { background-color: #d1ecf1; color: #0c5460; }
+.priority-high { background-color: #fff3cd; color: #856404; }
+.priority-urgent { background-color: #f8d7da; color: #721c24; }
+
+.char-counter {
+    font-size: 0.8em;
+    color: #6c757d;
+    text-align: right;
+}
+
+.char-counter.warning {
+    color: #ffc107;
+}
+
+.char-counter.danger {
+    color: #dc3545;
+}
+
+.form-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.required-field::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+.help-text {
+    font-size: 0.875em;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    font-weight: 600;
+}
+
+.btn-save:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ba085 100%);
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="note-form-container">
+            <!-- Form Header -->
+            <div class="form-header">
+                <h3 class="mb-1">
+                    <i class="fas fa-sticky-note mr-2"></i>
+                    {% if object %}Edit Note{% else %}Add New Note{% endif %}
+                </h3>
+                <p class="mb-0">
+                    {% if object %}
+                        Update note for {{ location.name }}
+                    {% else %}
+                        Create a new note for {{ location.name }}
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Form Body -->
+            <div class="form-body">
+                <!-- Location Information -->
+                <div class="location-info">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6 class="mb-2">
+                                <i class="fas fa-map-marker-alt text-primary mr-2"></i>
+                                {{ location.name }}
+                            </h6>
+                            <p class="mb-1 small text-muted">
+                                <i class="fas fa-building mr-1"></i>
+                                {{ location.client.company_name }}
+                            </p>
+                            {% if location.business_category %}
+                                <span class="badge" style="background-color: {{ location.business_category.color }};">
+                                    <i class="{{ location.business_category.icon }} mr-1"></i>
+                                    {{ location.business_category.name }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <div class="small text-muted">
+                                <div>{{ location.notes.count }} existing notes</div>
+                                <div>{{ location.documents.count }} documents</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle mr-2"></i>Please correct the following errors:</h6>
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <form method="post" id="noteForm">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Note Information -->
+                    <div class="form-section">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-info-circle mr-2"></i>Note Information
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.note_type.id_for_label }}" class="form-label required-field">Note Type</label>
+                                    {{ form.note_type }}
+                                    {% if form.note_type.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.note_type.errors }}</div>
+                                    {% endif %}
+                                    <div class="help-text">Select the type of note you're creating</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="{{ form.priority.id_for_label }}" class="form-label">Priority Level</label>
+                                    {{ form.priority }}
+                                    {% if form.priority.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.priority.errors }}</div>
+                                    {% endif %}
+                                    <div id="priorityPreview" class="priority-preview priority-normal">Normal Priority</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.title.id_for_label }}" class="form-label required-field">Note Title</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">{{ form.title.errors }}</div>
+                            {% endif %}
+                            <div class="char-counter" id="titleCounter">0 / 200 characters</div>
+                        </div>
+                    </div>
+
+                    <!-- Note Content -->
+                    <div class="form-section">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-edit mr-2"></i>Note Content
+                        </h6>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.content.id_for_label }}" class="form-label required-field">Content</label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="invalid-feedback d-block">{{ form.content.errors }}</div>
+                            {% endif %}
+                            <div class="char-counter" id="contentCounter">0 / 2000 characters</div>
+                            <div class="help-text">Provide detailed information for this note. You can use basic formatting.</div>
+                        </div>
+                    </div>
+
+                    <!-- Visibility and Follow-up -->
+                    <div class="form-section">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-cog mr-2"></i>Settings
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    {{ form.is_client_visible }}
+                                    <label class="form-check-label" for="{{ form.is_client_visible.id_for_label }}">
+                                        <i class="fas fa-eye mr-1"></i>
+                                        Client Visible
+                                    </label>
+                                    {% if form.is_client_visible.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.is_client_visible.errors }}</div>
+                                    {% endif %}
+                                    <div class="help-text">Check this if the client should be able to see this note</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    {{ form.requires_followup }}
+                                    <label class="form-check-label" for="{{ form.requires_followup.id_for_label }}">
+                                        <i class="fas fa-calendar-check mr-1"></i>
+                                        Requires Follow-up
+                                    </label>
+                                    {% if form.requires_followup.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.requires_followup.errors }}</div>
+                                    {% endif %}
+                                    <div class="help-text">Check this if this note needs follow-up action</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Follow-up Section -->
+                        <div class="followup-section" id="followupSection">
+                            <div class="form-group">
+                                <label for="{{ form.followup_date.id_for_label }}" class="form-label">
+                                    <i class="fas fa-calendar mr-2"></i>Follow-up Date
+                                </label>
+                                {{ form.followup_date }}
+                                {% if form.followup_date.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.followup_date.errors }}</div>
+                                {% endif %}
+                                <div class="help-text">Select when this note should be followed up</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <a href="{{ location.get_absolute_url }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left mr-2"></i>Cancel
+                            </a>
+                        </div>
+                        <div>
+                            {% if object %}
+                                <button type="submit" name="action" value="update" class="btn btn-save">
+                                    <i class="fas fa-save mr-2"></i>Update Note
+                                </button>
+                            {% else %}
+                                <button type="submit" name="action" value="save" class="btn btn-save">
+                                    <i class="fas fa-save mr-2"></i>Save Note
+                                </button>
+                                <button type="submit" name="action" value="save_and_add" class="btn btn-outline-primary ml-2">
+                                    <i class="fas fa-plus mr-2"></i>Save & Add Another
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Actions Card -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-bolt mr-2"></i>Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <a href="{% url 'location:document-create' location.pk %}" class="btn btn-outline-success btn-block btn-sm">
+                            <i class="fas fa-file mr-2"></i>Add Document
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'location:location-update' location.pk %}" class="btn btn-outline-primary btn-block btn-sm">
+                            <i class="fas fa-edit mr-2"></i>Edit Location
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'location:location-list' %}" class="btn btn-outline-secondary btn-block btn-sm">
+                            <i class="fas fa-list mr-2"></i>All Locations
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script>
+$(document).ready(function() {
+    // Character counters
+    function updateCharCounter(input, counter, maxLength) {
+        const current = input.val().length;
+        const remaining = maxLength - current;
+        counter.text(`${current} / ${maxLength} characters`);
+        
+        if (remaining < 50) {
+            counter.removeClass('warning').addClass('danger');
+        } else if (remaining < 100) {
+            counter.removeClass('danger').addClass('warning');
+        } else {
+            counter.removeClass('warning danger');
+        }
+    }
+    
+    // Title character counter
+    const titleInput = $('#id_title');
+    const titleCounter = $('#titleCounter');
+    titleInput.on('input', function() {
+        updateCharCounter(titleInput, titleCounter, 200);
+    });
+    updateCharCounter(titleInput, titleCounter, 200);
+    
+    // Content character counter
+    const contentInput = $('#id_content');
+    const contentCounter = $('#contentCounter');
+    contentInput.on('input', function() {
+        updateCharCounter(contentInput, contentCounter, 2000);
+    });
+    updateCharCounter(contentInput, contentCounter, 2000);
+    
+    // Priority preview
+    $('#id_priority').on('change', function() {
+        const priority = $(this).val();
+        const preview = $('#priorityPreview');
+        
+        preview.removeClass('priority-low priority-normal priority-high priority-urgent');
+        
+        switch(priority) {
+            case 'low':
+                preview.addClass('priority-low').text('Low Priority');
+                break;
+            case 'high':
+                preview.addClass('priority-high').text('High Priority');
+                break;
+            case 'urgent':
+                preview.addClass('priority-urgent').text('Urgent Priority');
+                break;
+            default:
+                preview.addClass('priority-normal').text('Normal Priority');
+        }
+    });
+    
+    // Follow-up toggle
+    $('#id_requires_followup').on('change', function() {
+        if ($(this).is(':checked')) {
+            $('#followupSection').slideDown();
+            $('#id_followup_date').prop('required', true);
+        } else {
+            $('#followupSection').slideUp();
+            $('#id_followup_date').prop('required', false);
+        }
+    });
+    
+    // Initialize follow-up section
+    if ($('#id_requires_followup').is(':checked')) {
+        $('#followupSection').show();
+    }
+    
+    // Form validation
+    $('#noteForm').on('submit', function(e) {
+        let valid = true;
+        
+        // Check required fields
+        if (!$('#id_title').val().trim()) {
+            $('#id_title').addClass('is-invalid');
+            valid = false;
+        } else {
+            $('#id_title').removeClass('is-invalid');
+        }
+        
+        if (!$('#id_content').val().trim()) {
+            $('#id_content').addClass('is-invalid');
+            valid = false;
+        } else {
+            $('#id_content').removeClass('is-invalid');
+        }
+        
+        if ($('#id_requires_followup').is(':checked') && !$('#id_followup_date').val()) {
+            $('#id_followup_date').addClass('is-invalid');
+            valid = false;
+        } else {
+            $('#id_followup_date').removeClass('is-invalid');
+        }
+        
+        if (!valid) {
+            e.preventDefault();
+            $('html, body').animate({
+                scrollTop: $('.is-invalid').first().offset().top - 100
+            }, 500);
+        }
+    });
+    
+    // Auto-save functionality (optional)
+    let autoSaveTimeout;
+    $('#id_title, #id_content').on('input', function() {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(function() {
+            // Could implement auto-save to localStorage here
+            console.log('Auto-saving draft...');
+        }, 2000);
+    });
+    
+    // Keyboard shortcuts
+    $(document).on('keydown', function(e) {
+        // Ctrl+S to save
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            $('#noteForm').submit();
+        }
+        
+        // Esc to cancel
+        if (e.key === 'Escape') {
+            if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+                window.location.href = '{{ location.get_absolute_url }}';
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

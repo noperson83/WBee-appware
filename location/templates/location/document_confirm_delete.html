@@ -1,0 +1,569 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Delete Document - {{ object.title }}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'location/css/delete-confirm.css' %}" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
+    <li class="breadcrumb-item"><a href="{{ object.location.get_absolute_url }}">{{ object.location.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ object.location.get_absolute_url }}#documents-tab">Documents</a></li>
+    <li class="breadcrumb-item"><a href="{{ object.get_absolute_url }}">{{ object.title }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Delete</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Warning Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="alert alert-danger border-0 shadow-sm" role="alert">
+        <div class="d-flex align-items-center">
+          <div class="alert-icon me-3">
+            <i class="fas fa-exclamation-triangle fa-2x"></i>
+          </div>
+          <div>
+            <h4 class="alert-heading mb-1">
+              <i class="fas fa-trash me-2"></i>Delete Document
+            </h4>
+            <p class="mb-0">
+              You are about to permanently delete this document. This action cannot be undone.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Information -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow border-danger">
+        <div class="card-header bg-danger text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-file-alt me-2"></i>
+            Document to be Deleted
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-lg-8">
+              <div class="d-flex align-items-center mb-3">
+                <div class="file-icon-container me-3">
+                  {% if object.file %}
+                    {% with file_ext=object.file.name|slice:"-4:" %}
+                      {% if file_ext == ".pdf" %}
+                        <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                      {% elif file_ext == ".doc" or file_ext == "docx" %}
+                        <i class="fas fa-file-word fa-3x text-primary"></i>
+                      {% elif file_ext == ".xls" or file_ext == "xlsx" %}
+                        <i class="fas fa-file-excel fa-3x text-success"></i>
+                      {% elif file_ext == ".jpg" or file_ext == ".png" or file_ext == ".gif" %}
+                        <i class="fas fa-file-image fa-3x text-warning"></i>
+                      {% elif file_ext == ".txt" %}
+                        <i class="fas fa-file-alt fa-3x text-info"></i>
+                      {% else %}
+                        <i class="fas fa-file fa-3x text-secondary"></i>
+                      {% endif %}
+                    {% endwith %}
+                  {% else %}
+                    <i class="fas fa-file-times fa-3x text-muted"></i>
+                  {% endif %}
+                </div>
+                <div>
+                  <h4 class="mb-1">{{ object.title }}</h4>
+                  <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                    <span class="badge bg-primary">{{ object.get_document_type_display }}</span>
+                    {% if object.is_current %}
+                    <span class="badge bg-success">Current Version</span>
+                    {% endif %}
+                    {% if object.is_public %}
+                    <span class="badge bg-info">Client Visible</span>
+                    {% endif %}
+                    <span class="badge bg-light text-dark">v{{ object.version }}</span>
+                  </div>
+                  <p class="text-muted mb-0">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    <a href="{{ object.location.get_absolute_url }}" class="text-decoration-none">
+                      {{ object.location.name }}
+                    </a>
+                    <span class="mx-2">•</span>
+                    <a href="{{ object.location.client.get_absolute_url }}" class="text-decoration-none">
+                      {{ object.location.client.company_name }}
+                    </a>
+                  </p>
+                </div>
+              </div>
+              
+              {% if object.description %}
+              <div class="bg-light p-3 rounded">
+                <h6>Description:</h6>
+                <p class="mb-0">{{ object.description }}</p>
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="col-lg-4">
+              <!-- Document Properties -->
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h6 class="card-title">Document Details</h6>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-borderless mb-0">
+                      {% if object.file %}
+                      <tr>
+                        <td class="fw-bold">File:</td>
+                        <td>{{ object.file.name|slice:"uploads/location/documents/"|default:object.file.name }}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Size:</td>
+                        <td>{{ object.file.size|filesizeformat }}</td>
+                      </tr>
+                      {% endif %}
+                      <tr>
+                        <td class="fw-bold">Version:</td>
+                        <td>{{ object.version }}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Uploaded:</td>
+                        <td>{{ object.created_at|date:"M d, Y" }}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">By:</td>
+                        <td>{{ object.uploaded_by|default:"System" }}</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Impact Warning -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow border-warning">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            Deletion Impact
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <h6 class="text-danger">
+                <i class="fas fa-times-circle me-2"></i>What will be lost:
+              </h6>
+              <ul class="list-unstyled">
+                <li class="mb-2">
+                  <i class="fas fa-file text-danger me-2"></i>
+                  The document file will be permanently removed from the server
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-info-circle text-danger me-2"></i>
+                  All document metadata (title, description, version info)
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-history text-danger me-2"></i>
+                  Upload history and activity logs for this document
+                </li>
+                {% if object.is_current %}
+                <li class="mb-2">
+                  <i class="fas fa-star text-danger me-2"></i>
+                  Current version status (no document will be marked as current)
+                </li>
+                {% endif %}
+                {% if object.is_public %}
+                <li class="mb-2">
+                  <i class="fas fa-eye text-danger me-2"></i>
+                  Client access to this document will be removed
+                </li>
+                {% endif %}
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h6 class="text-success">
+                <i class="fas fa-check-circle me-2"></i>What will remain:
+              </h6>
+              <ul class="list-unstyled">
+                <li class="mb-2">
+                  <i class="fas fa-map-marker-alt text-success me-2"></i>
+                  The location and its other information
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-file-alt text-success me-2"></i>
+                  Other documents at this location
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-sticky-note text-success me-2"></i>
+                  Location notes and other data
+                </li>
+                <li class="mb-2">
+                  <i class="fas fa-users text-success me-2"></i>
+                  Client and location contacts
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Version Impact -->
+          {% if related_versions %}
+          <div class="mt-4 p-3 bg-info bg-opacity-10 border border-info rounded">
+            <h6 class="text-info">
+              <i class="fas fa-code-branch me-2"></i>Related Versions
+            </h6>
+            <p class="mb-2">This document has {{ related_versions.count }} other version{{ related_versions.count|pluralize }}:</p>
+            <div class="d-flex flex-wrap gap-2">
+              {% for version in related_versions %}
+              <span class="badge bg-info">
+                v{{ version.version }}{% if version.is_current %} (Current){% endif %}
+              </span>
+              {% endfor %}
+            </div>
+            {% if object.is_current and related_versions %}
+            <div class="alert alert-warning mt-3 mb-0">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>Warning:</strong> You are deleting the current version. 
+              Consider marking another version as current before deleting this one.
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Form -->
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="card shadow border-danger">
+        <div class="card-header bg-danger text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-shield-alt me-2"></i>
+            Confirm Deletion
+          </h5>
+        </div>
+        <div class="card-body">
+          <form method="post" id="deleteForm">
+            {% csrf_token %}
+            
+            <!-- Confirmation Checkbox -->
+            <div class="mb-3">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                <label class="form-check-label fw-bold" for="confirmDelete">
+                  I understand that this action is permanent and cannot be undone
+                </label>
+              </div>
+            </div>
+
+            <!-- Type to Confirm -->
+            <div class="mb-3">
+              <label for="confirmText" class="form-label">
+                To confirm deletion, type the document title exactly as shown:
+                <strong class="text-danger">{{ object.title }}</strong>
+              </label>
+              <input type="text" class="form-control" id="confirmText" placeholder="Type document title here..." required>
+              <div class="invalid-feedback">
+                Document title must match exactly
+              </div>
+            </div>
+
+            <!-- Reason for Deletion (Optional) -->
+            <div class="mb-4">
+              <label for="deleteReason" class="form-label">Reason for deletion (optional):</label>
+              <select class="form-select" id="deleteReason" name="delete_reason">
+                <option value="">Select a reason...</option>
+                <option value="duplicate">Duplicate document</option>
+                <option value="obsolete">Document is obsolete</option>
+                <option value="incorrect">Incorrect document uploaded</option>
+                <option value="replaced">Replaced by newer version</option>
+                <option value="confidential">Confidentiality concerns</option>
+                <option value="other">Other reason</option>
+              </select>
+            </div>
+
+            <!-- Custom Reason -->
+            <div class="mb-4 d-none" id="customReasonContainer">
+              <label for="customReason" class="form-label">Please specify:</label>
+              <textarea class="form-control" id="customReason" name="custom_reason" rows="3" placeholder="Explain why you're deleting this document..."></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <a href="{{ object.get_absolute_url }}" class="btn btn-outline-secondary me-2">
+                  <i class="fas fa-arrow-left me-1"></i>Cancel
+                </a>
+                <a href="{{ object.location.get_absolute_url }}#documents-tab" class="btn btn-outline-primary">
+                  <i class="fas fa-file-alt me-1"></i>Back to Documents
+                </a>
+              </div>
+              <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                <i class="fas fa-trash me-1"></i>
+                <span class="button-text">Delete Document Permanently</span>
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Additional Help -->
+  <div class="row mt-4">
+    <div class="col-lg-8 mx-auto">
+      <div class="card bg-light border-0">
+        <div class="card-body">
+          <h6 class="card-title">
+            <i class="fas fa-question-circle me-2"></i>Need Help?
+          </h6>
+          <p class="card-text mb-3">
+            If you're unsure about deleting this document, consider these alternatives:
+          </p>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="d-flex align-items-start mb-3">
+                <i class="fas fa-edit text-primary me-2 mt-1"></i>
+                <div>
+                  <strong>Edit the document</strong><br>
+                  <small class="text-muted">Update title, description, or replace the file</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-start mb-3">
+                <i class="fas fa-eye-slash text-warning me-2 mt-1"></i>
+                <div>
+                  <strong>Make it private</strong><br>
+                  <small class="text-muted">Remove client visibility instead of deleting</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-start mb-3">
+                <i class="fas fa-archive text-info me-2 mt-1"></i>
+                <div>
+                  <strong>Mark as archived</strong><br>
+                  <small class="text-muted">Unmark as current version to archive it</small>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="d-flex align-items-start mb-3">
+                <i class="fas fa-download text-success me-2 mt-1"></i>
+                <div>
+                  <strong>Download first</strong><br>
+                  <small class="text-muted">Keep a local copy before deleting</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center">
+            <a href="{{ object.get_absolute_url }}" class="btn btn-sm btn-outline-primary me-2">
+              <i class="fas fa-edit me-1"></i>Edit Document
+            </a>
+            {% if object.file %}
+            <a href="{% url 'location:document-download' object.pk %}" class="btn btn-sm btn-outline-success">
+              <i class="fas fa-download me-1"></i>Download First
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('deleteForm');
+    const confirmCheckbox = document.getElementById('confirmDelete');
+    const confirmText = document.getElementById('confirmText');
+    const deleteButton = document.getElementById('deleteButton');
+    const deleteReason = document.getElementById('deleteReason');
+    const customReasonContainer = document.getElementById('customReasonContainer');
+    const targetText = '{{ object.title }}';
+
+    // Validation function
+    function validateForm() {
+        const isChecked = confirmCheckbox.checked;
+        const textMatches = confirmText.value.trim() === targetText;
+        
+        if (isChecked && textMatches) {
+            deleteButton.disabled = false;
+            deleteButton.classList.remove('btn-outline-danger');
+            deleteButton.classList.add('btn-danger');
+            confirmText.classList.remove('is-invalid');
+            confirmText.classList.add('is-valid');
+        } else {
+            deleteButton.disabled = true;
+            deleteButton.classList.remove('btn-danger');
+            deleteButton.classList.add('btn-outline-danger');
+            
+            if (confirmText.value.trim() && !textMatches) {
+                confirmText.classList.add('is-invalid');
+                confirmText.classList.remove('is-valid');
+            } else {
+                confirmText.classList.remove('is-invalid', 'is-valid');
+            }
+        }
+    }
+
+    // Event listeners
+    confirmCheckbox.addEventListener('change', validateForm);
+    confirmText.addEventListener('input', validateForm);
+
+    // Show/hide custom reason
+    deleteReason.addEventListener('change', function() {
+        if (this.value === 'other') {
+            customReasonContainer.classList.remove('d-none');
+            document.getElementById('customReason').required = true;
+        } else {
+            customReasonContainer.classList.add('d-none');
+            document.getElementById('customReason').required = false;
+        }
+    });
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!validateForm()) {
+            return false;
+        }
+
+        // Show loading state
+        const buttonText = deleteButton.querySelector('.button-text');
+        const spinner = deleteButton.querySelector('.spinner-border');
+        
+        buttonText.textContent = 'Deleting...';
+        spinner.classList.remove('d-none');
+        deleteButton.disabled = true;
+
+        // Add a small delay to show the loading state
+        setTimeout(() => {
+            form.submit();
+        }, 1000);
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Escape to cancel
+        if (e.key === 'Escape') {
+            window.location.href = '{{ object.get_absolute_url }}';
+        }
+        
+        // Ctrl/Cmd + Enter to submit (if form is valid)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            if (!deleteButton.disabled) {
+                form.submit();
+            }
+        }
+    });
+
+    // Auto-focus on confirmation text after checkbox is checked
+    confirmCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            setTimeout(() => {
+                confirmText.focus();
+            }, 100);
+        }
+    });
+
+    // Warn about leaving page
+    let formSubmitted = false;
+    form.addEventListener('submit', function() {
+        formSubmitted = true;
+    });
+
+    window.addEventListener('beforeunload', function(e) {
+        if (!formSubmitted && (confirmCheckbox.checked || confirmText.value.trim())) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Initial validation
+    validateForm();
+});
+</script>
+
+<style>
+/* Custom CSS for delete confirmation */
+.alert-icon {
+    font-size: 1.5rem;
+    width: 60px;
+    text-align: center;
+}
+
+.file-icon-container {
+    width: 80px;
+    text-align: center;
+}
+
+.form-check-input:checked {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:disabled {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-outline-danger:disabled {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.form-control.is-valid {
+    border-color: #28a745;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='m2.3 6.73.4-.4 1.4-1.4.4-.4-.8-.8-.4.4-.7.7-1.1-1.1-.4-.4-.8.8.4.4 1.5 1.5z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23dc3545' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.4.4.4-.4M5.8 8.4l.4-.4.4.4M3.6 5.8l.4.4-.4.4M8.4 5.8l-.4.4.4.4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+@media (max-width: 768px) {
+    .file-icon-container {
+        width: 60px;
+    }
+    
+    .file-icon-container i {
+        font-size: 2rem !important;
+    }
+    
+    .alert-icon {
+        width: 50px;
+    }
+}
+</style>
+{% endblock %}

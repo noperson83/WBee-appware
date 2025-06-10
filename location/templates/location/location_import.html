@@ -1,0 +1,254 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}<title>Import Locations</title>{% endblock %}
+{% block breadcrumb %}/ <a href="{% url 'location:location-list' %}">Locations</a> / Import{% endblock %}
+
+{% block styler %}
+<style>
+.import-wizard {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.wizard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+}
+
+.wizard-steps {
+    display: flex;
+    background: #f8f9fa;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.wizard-step {
+    flex: 1;
+    text-align: center;
+    padding: 15px;
+    border-right: 1px solid #dee2e6;
+    position: relative;
+}
+
+.wizard-step:last-child {
+    border-right: none;
+}
+
+.wizard-step.active {
+    background: #007bff;
+    color: white;
+}
+
+.wizard-step.completed {
+    background: #28a745;
+    color: white;
+}
+
+.wizard-step::after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid #f8f9fa;
+    z-index: 1;
+}
+
+.wizard-step.active::after {
+    border-left-color: #007bff;
+}
+
+.wizard-step.completed::after {
+    border-left-color: #28a745;
+}
+
+.wizard-step:last-child::after {
+    display: none;
+}
+
+.wizard-content {
+    padding: 30px;
+    min-height: 400px;
+}
+
+.drop-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.drop-zone.dragover {
+    border-color: #28a745;
+    background-color: #d4edda;
+}
+
+.file-preview {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.mapping-table {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+}
+
+.mapping-row {
+    padding: 10px 15px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mapping-row:last-child {
+    border-bottom: none;
+}
+
+.mapping-row.required {
+    background-color: #fff3cd;
+}
+
+.progress-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.progress-item:last-child {
+    border-bottom: none;
+}
+
+.error-list {
+    max-height: 200px;
+    overflow-y: auto;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.sample-data {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.template-download {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="import-wizard">
+                <!-- Wizard Header -->
+                <div class="wizard-header">
+                    <h3 class="mb-1">
+                        <i class="fas fa-upload mr-2"></i>
+                        Import Locations
+                    </h3>
+                    <p class="mb-0">Import locations from CSV or Excel files</p>
+                </div>
+
+                <!-- Wizard Steps -->
+                <ul class="wizard-steps">
+                    <li class="wizard-step active" data-step="1">
+                        <i class="fas fa-file-upload d-block mb-1"></i>
+                        <small>Upload File</small>
+                    </li>
+                    <li class="wizard-step" data-step="2">
+                        <i class="fas fa-exchange-alt d-block mb-1"></i>
+                        <small>Map Fields</small>
+                    </li>
+                    <li class="wizard-step" data-step="3">
+                        <i class="fas fa-eye d-block mb-1"></i>
+                        <small>Preview</small>
+                    </li>
+                    <li class="wizard-step" data-step="4">
+                        <i class="fas fa-check d-block mb-1"></i>
+                        <small>Complete</small>
+                    </li>
+                </ul>
+
+                <!-- Wizard Content -->
+                <div class="wizard-content">
+                    <!-- Step 1: Upload File -->
+                    <div class="wizard-panel" id="step1" style="display: block;">
+                        <h4 class="mb-4">Step 1: Upload Your File</h4>
+                        
+                        <!-- Template Download -->
+                        <div class="template-download">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-download text-primary mr-2"></i>
+                                        Download Template
+                                    </h6>
+                                    <p class="mb-0 small text-muted">
+                                        Start with our template to ensure proper formatting
+                                    </p>
+                                </div>
+                                <div>
+                                    <a href="{% url 'location:download-template' %}?format=csv" class="btn btn-outline-primary btn-sm mr-2">
+                                        <i class="fas fa-file-csv mr-1"></i>CSV Template
+                                    </a>
+                                    <a href="{% url 'location:download-template' %}?format=xlsx" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-file-excel mr-1"></i>Excel Template
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- File Upload Area -->
+                        <div class="drop-zone" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h5>Drag and drop your file here</h5>
+                            <p class="text-muted mb-3">or click to browse</p>
+                            <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" style="display: none;">
+                            <button type="button" class="btn btn-primary" onclick="$('#fileInput').click()">
+                                <i class="fas fa-folder-open mr-2"></i>Choose File
+                            </button>
+                            <p class="small text-muted mt-3">
+                                Supports CSV, Excel (.xlsx, .xls) files up to 10MB
+                            </p>
+                        </div>
+
+                        <!-- File Preview -->
+                        <div class="file-preview" id="filePreview" style="display: none;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-file fa-2x text-success mr-3"></i>
+                                    <div>

@@ -1,0 +1,36 @@
+{% extends 'home/base.html' %}
+{% load i18n %}
+
+{% block title %}<title>Wbee Appware</title>{% endblock %}
+{% block head_title %}Calendar: {{ object.name }}{% endblock %}
+{% block tab_id %}id='home_tab'{% endblock %}
+{% block extrahead %}
+    {% include "fullcalendar_script.html" %}
+{% endblock %}
+{% block content %}
+
+<p style="clear:both">
+    <div id="body">
+        {% if messages %}
+            <ul id="messages">
+                {% for message in messages %}
+                <li id="message_{{ forloop.counter }}"><a href="#" onclick="$('#message_{{ forloop.counter }}').fadeOut(); return false;"><small>{% trans "clear" %}</small></a> {{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+<a class="btn btn-primary gradient" href="{% url 'calendar_create_event' calendar_slug %}">
+    <span class='glyphicon glyphicon-plus'></span>
+    {% trans "Add New Session" %}
+</a>
+<br>
+<br>
+<div id='calendar'></div>
+
+{% include "fullcalendar_modal.html" %}
+
+</div>
+
+<div id="footer">{% block footer %}{% endblock %}</div>
+
+    
+{% endblock %}

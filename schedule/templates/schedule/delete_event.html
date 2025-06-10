@@ -1,0 +1,22 @@
+{% extends "home/base.html" %}
+{% load i18n %}
+{% block title %}<title>Project info Delete</title> {% endblock %}
+{% block breadcrumb %} / <a href="{% url 'jobsite-list' %}">Job Site</a> / <a href="{% url 'project-list' %}">Project</a> / Delete project info{% endblock %}
+
+{% block content %}
+{% if request.user.admin %}
+  <div class="card mb-3">
+    <div class="card-header" style="background-color:rgb(0, 119, 255);">
+      <h3>Delete project info</h3> 
+    </div>
+    <form action="" method="post">{% csrf_token %}
+    <p>Are you sure you want to delete "{{ object }}"?</p>
+        <input type="submit" value="Confirm">
+        <input type="submit" name="cancel" value="Cancel">
+    </form>
+  </div>
+{% else %}
+Your not allowed to view this page..
+{% endif %} 
+{% endblock %} 
+

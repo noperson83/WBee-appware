@@ -1,0 +1,20 @@
+{% load scheduletags %}
+{% ifnotequal day.start.month month.start.month %}
+  <td style="color:blue;" class="muted"></td>
+{% else %}
+  {% if day.has_occurrences %}
+    <td style="color:blue;" class="btn-primary sched_day gradient calendr-day">
+  {% else %}
+    <td style="color:blue;">
+  {% endif %}
+  
+  <a style="color:#000;" href="{% url 'day_calendar' calendar.slug %}{% querystring_for_date day.start 3 %}">
+  <div style="text-align: center;height:100%;width:100%;">
+    <strong>{{day.start.day}}</strong>
+  </div>
+  </a>
+  {% ifnotequal size "small" %}
+    {% include "schedule/_day_cell_big.html" %}
+  {% endifnotequal %}
+</td>
+{% endifnotequal %}

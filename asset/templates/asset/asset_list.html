@@ -1,0 +1,667 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>Asset List - {{ request.user.company.company_name|default:"WBEE" }}</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Asset List</li>
+{% endblock %}
+
+{% block styler %}
+<link href="{% static 'home/css/asset-management.css' %}" rel="stylesheet" type="text/css">
+{% endblock %} 50%;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .pagination-container {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-top: 20px;
+    }
+    .bulk-actions {
+        background: #e3f2fd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+        display: none;
+    }
+    .btn-outline-custom {
+        border: 2px solid;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="h2 mb-0">
+                {% if legacy_type %}
+                    {{ legacy_type }}
+                {% else %}
+                    All Assets
+                {% endif %}
+            </h1>
+            <p class="text-muted">Manage and track your company assets</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <div class="btn-group" role="group">
+                <a href="{% url 'asset' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Add Asset
+                </a>
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="fas fa-cog me-1"></i>Actions
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="{% url 'asset' %}">
+                        <i class="fas fa-upload me-2"></i>Import Assets
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% url 'asset' %}">
+                        <i class="fas fa-download me-2"></i>Export Assets
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" id="bulk-actions-toggle">
+                        <i class="fas fa-edit me-2"></i>Bulk Actions
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-section">
+        <form method="get" id="filter-form">
+            <div class="row g-3">
+                <!-- Search -->
+                <div class="col-md-4">
+                    <div class="position-relative">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" 
+                               class="form-control search-box" 
+                               name="search" 
+                               value="{{ current_filters.search }}"
+                               placeholder="Search assets...">
+                    </div>
+                </div>
+                
+                <!-- Category Filter -->
+                <div class="col-md-2">
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.name }}" 
+                                {% if current_filters.category == category.name %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Status Filter -->
+                <div class="col-md-2">
+                    <select class="form-select" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="available" {% if current_filters.status == 'available' %}selected{% endif %}>Available</option>
+                        <option value="in_use" {% if current_filters.status == 'in_use' %}selected{% endif %}>In Use</option>
+                        <option value="maintenance" {% if current_filters.status == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                        <option value="repair" {% if current_filters.status == 'repair' %}selected{% endif %}>Repair</option>
+                        <option value="retired" {% if current_filters.status == 'retired' %}selected{% endif %}>Retired</option>
+                    </select>
+                </div>
+                
+                <!-- Worker Filter -->
+                <div class="col-md-2">
+                    <select class="form-select" name="assigned_to">
+                        <option value="">All Workers</option>
+                        {% for worker in workers %}
+                        <option value="{{ worker.id }}">
+                            {{ worker.get_full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Actions -->
+                <div class="col-md-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-outline-primary btn-outline-custom">
+                            <i class="fas fa-filter me-1"></i>Filter
+                        </button>
+                        <a href="{% url 'asset' %}" class="btn btn-outline-secondary btn-outline-custom">
+                            <i class="fas fa-times me-1"></i>Clear
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bulk Actions Bar -->
+    <div class="bulk-actions" id="bulk-actions-bar">
+        <form method="post" action="{% url 'asset' %}" id="bulk-form">
+            {% csrf_token %}
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <span class="fw-bold text-primary">
+                        <span id="selected-count">0</span> assets selected
+                    </span>
+                </div>
+                <div class="col-md-6">
+                    <div class="row g-2">
+                        <div class="col">
+                            <select class="form-select form-select-sm" name="bulk_status">
+                                <option value="">Change Status...</option>
+                                <option value="available">Available</option>
+                                <option value="in_use">In Use</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="retired">Retired</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <select class="form-select form-select-sm" name="bulk_office">
+                                <option value="">Change Office...</option>
+                                <!-- Office options would be populated -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit me-1"></i>Update Selected
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="cancel-bulk">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Assets Grid/Table View Toggle -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <div class="btn-group btn-group-sm" role="group">
+                <input type="radio" class="btn-check" name="view-mode" id="grid-view" checked>
+                <label class="btn btn-outline-secondary" for="grid-view">
+                    <i class="fas fa-th me-1"></i>Grid
+                </label>
+                <input type="radio" class="btn-check" name="view-mode" id="table-view">
+                <label class="btn btn-outline-secondary" for="table-view">
+                    <i class="fas fa-list me-1"></i>Table
+                </label>
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <small class="text-muted">
+                Showing {{ assets|length }} of {{ page_obj.paginator.count|default:assets|length }} assets
+            </small>
+        </div>
+    </div>
+
+    <!-- Grid View -->
+    <div id="grid-container">
+        <div class="row">
+            {% for asset in assets %}
+            <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                <div class="card asset-card h-100">
+                    <!-- Selection Checkbox -->
+                    <div class="position-absolute top-0 start-0 p-2" style="z-index: 10;">
+                        <input type="checkbox" class="form-check-input asset-checkbox" 
+                               value="{{ asset.uuid|default:asset.id }}" style="display: none;">
+                    </div>
+                    
+                    <!-- Asset Image -->
+                    <div class="card-img-top d-flex justify-content-center align-items-center bg-light" style="height: 200px;">
+                        {% if asset.primary_image %}
+                            <img src="{{ asset.primary_image.url }}" alt="{{ asset.name }}" class="img-fluid" style="max-height: 180px; max-width: 100%; object-fit: cover;">
+                        {% else %}
+                            <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-body">
+                        <!-- Asset Header -->
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title mb-0 fw-bold">{{ asset.asset_number|default:asset.name }}</h6>
+                            {% if asset.status == 'available' %}
+                                <span class="badge bg-success status-badge">{{ asset.status|default:"active" }}</span>
+                            {% elif asset.status == 'in_use' %}
+                                <span class="badge bg-primary status-badge">{{ asset.status }}</span>
+                            {% elif asset.status == 'maintenance' %}
+                                <span class="badge bg-warning status-badge">{{ asset.status }}</span>
+                            {% elif asset.status == 'repair' %}
+                                <span class="badge bg-danger status-badge">{{ asset.status }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary status-badge">{{ asset.status|default:"unknown" }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Asset Name -->
+                        <p class="card-text fw-medium mb-2">{{ asset.name|truncatechars:40 }}</p>
+                        
+                        <!-- Asset Details -->
+                        <div class="small text-muted mb-3">
+                            <div class="mb-1">
+                                <i class="{{ asset.category.icon|default:'fas fa-tag' }} me-1"></i>
+                                {{ asset.category.name|default:"Uncategorized" }}
+                            </div>
+                            {% if asset.manufacturer %}
+                            <div class="mb-1">
+                                <i class="fas fa-industry me-1"></i>
+                                {{ asset.manufacturer }} {{ asset.model }}
+                            </div>
+                            {% endif %}
+                            {% if asset.assigned_worker %}
+                            <div class="mb-1">
+                                <i class="fas fa-user me-1"></i>
+                                {{ asset.assigned_worker.get_full_name }}
+                            </div>
+                            {% endif %}
+                            {% if asset.current_project %}
+                            <div class="mb-1">
+                                <i class="fas fa-project-diagram me-1"></i>
+                                {{ asset.current_project.name|truncatechars:25 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Condition Indicator -->
+                        <div class="mb-2">
+                            {% if asset.condition == 'excellent' %}
+                                <span class="condition-indicator bg-success"></span>
+                            {% elif asset.condition == 'good' %}
+                                <span class="condition-indicator bg-primary"></span>
+                            {% elif asset.condition == 'fair' %}
+                                <span class="condition-indicator bg-warning"></span>
+                            {% elif asset.condition == 'poor' %}
+                                <span class="condition-indicator bg-danger"></span>
+                            {% else %}
+                                <span class="condition-indicator bg-secondary"></span>
+                            {% endif %}
+                            <small class="text-muted">{{ asset.get_condition_display|default:"Good" }}</small>
+                        </div>
+                        
+                        <!-- Maintenance Alert -->
+                        {% if asset.is_maintenance_due %}
+                        <div class="alert alert-warning alert-sm mb-2 py-1">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <small>Maintenance Due</small>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Value Information -->
+                        {% if asset.current_value %}
+                        <div class="small text-success mb-2">
+                            <i class="fas fa-dollar-sign me-1"></i>
+                            ${{ asset.current_value|floatformat:0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Card Actions -->
+                    <div class="card-footer bg-transparent border-0">
+                        <div class="d-flex gap-1">
+                            <a href="{% url 'asset' %}" class="btn btn-sm btn-outline-primary flex-fill">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                            <a href="{% url 'asset' %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    {% if asset.status == 'available' %}
+                                    <li><a class="dropdown-item" href="{% url 'asset' %}">
+                                        <i class="fas fa-user-plus me-2"></i>Assign
+                                    </a></li>
+                                    {% endif %}
+                                    <li><a class="dropdown-item" href="{% url 'asset' %}">
+                                        <i class="fas fa-wrench me-2"></i>Maintenance
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'asset' %}">
+                                        <i class="fas fa-copy me-2"></i>Duplicate
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="{% url 'asset' %}">
+                                        <i class="fas fa-trash me-2"></i>Delete
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-search text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="text-muted mt-3">No Assets Found</h4>
+                    <p class="text-muted">Try adjusting your search criteria or add a new asset.</p>
+                    <a href="{% url 'asset' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add First Asset
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Table View -->
+    <div id="table-container" style="display: none;">
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" class="form-check-input" id="select-all">
+                            </th>
+                            <th>Asset #</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Assigned To</th>
+                            <th>Condition</th>
+                            <th>Value</th>
+                            <th>Last Maintenance</th>
+                            <th class="table-actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for asset in assets %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input asset-checkbox" value="{{ asset.uuid|default:asset.id }}">
+                            </td>
+                            <td>
+                                <strong>{{ asset.asset_number|default:asset.name }}</strong>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if asset.primary_image %}
+                                    <img src="{{ asset.primary_image.url }}" alt="{{ asset.name }}" class="asset-image me-2">
+                                    {% else %}
+                                    <div class="bg-light d-flex align-items-center justify-content-center asset-image me-2">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-medium">{{ asset.name }}</div>
+                                        {% if asset.manufacturer %}
+                                        <small class="text-muted">{{ asset.manufacturer }} {{ asset.model }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge" style="background-color: {{ asset.category.color|default:'#6c757d' }};">
+                                    <i class="{{ asset.category.icon|default:'fas fa-tag' }} me-1"></i>
+                                    {{ asset.category.name|default:"Uncategorized" }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if asset.status == 'available' %}
+                                    <span class="badge bg-success status-badge">{{ asset.status|default:"active" }}</span>
+                                {% elif asset.status == 'in_use' %}
+                                    <span class="badge bg-primary status-badge">{{ asset.status }}</span>
+                                {% elif asset.status == 'maintenance' %}
+                                    <span class="badge bg-warning status-badge">{{ asset.status }}</span>
+                                {% elif asset.status == 'repair' %}
+                                    <span class="badge bg-danger status-badge">{{ asset.status }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary status-badge">{{ asset.status|default:"unknown" }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if asset.assigned_worker %}
+                                    <i class="fas fa-user me-1"></i>{{ asset.assigned_worker.get_full_name }}
+                                {% elif asset.current_project %}
+                                    <i class="fas fa-project-diagram me-1"></i>{{ asset.current_project.name }}
+                                {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if asset.condition == 'excellent' %}
+                                    <span class="condition-indicator bg-success"></span>
+                                {% elif asset.condition == 'good' %}
+                                    <span class="condition-indicator bg-primary"></span>
+                                {% elif asset.condition == 'fair' %}
+                                    <span class="condition-indicator bg-warning"></span>
+                                {% elif asset.condition == 'poor' %}
+                                    <span class="condition-indicator bg-danger"></span>
+                                {% else %}
+                                    <span class="condition-indicator bg-secondary"></span>
+                                {% endif %}
+                                {{ asset.get_condition_display|default:"Good" }}
+                            </td>
+                            <td>
+                                {% if asset.current_value %}
+                                    <span class="text-success fw-medium">${{ asset.current_value|floatformat:0 }}</span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if asset.last_maintenance_date %}
+                                    {{ asset.last_maintenance_date|date:"M d, Y" }}
+                                    {% if asset.is_maintenance_due %}
+                                    <br><small class="text-danger">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Due
+                                    </small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Never</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'asset' %}" class="btn btn-outline-primary" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'asset' %}" class="btn btn-outline-secondary" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        {% if asset.status == 'available' %}
+                                        <li><a class="dropdown-item" href="{% url 'asset' %}">
+                                            <i class="fas fa-user-plus me-2"></i>Assign
+                                        </a></li>
+                                        {% endif %}
+                                        <li><a class="dropdown-item" href="{% url 'asset' %}">
+                                            <i class="fas fa-wrench me-2"></i>Maintenance
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{% url 'asset' %}">
+                                            <i class="fas fa-copy me-2"></i>Duplicate
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="{% url 'asset' %}">
+                                            <i class="fas fa-trash me-2"></i>Delete
+                                        </a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="10" class="text-center py-5">
+                                <i class="fas fa-search text-muted" style="font-size: 3rem;"></i>
+                                <h5 class="text-muted mt-3">No Assets Found</h5>
+                                <p class="text-muted">Try adjusting your search criteria or add a new asset.</p>
+                                <a href="{% url 'asset' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>Add First Asset
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="pagination-container mt-4">
+        <div class="row w-100">
+            <div class="col-md-6">
+                <p class="text-muted">
+                    Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} assets
+                </p>
+            </div>
+            <div class="col-md-6">
+                <nav aria-label="Asset pagination">
+                    <ul class="pagination justify-content-end mb-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page=1">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.paginator.num_pages }}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script>
+    // View Mode Toggle
+    document.getElementById('grid-view').addEventListener('change', function() {
+        if (this.checked) {
+            document.getElementById('grid-container').style.display = 'block';
+            document.getElementById('table-container').style.display = 'none';
+        }
+    });
+
+    document.getElementById('table-view').addEventListener('change', function() {
+        if (this.checked) {
+            document.getElementById('grid-container').style.display = 'none';
+            document.getElementById('table-container').style.display = 'block';
+        }
+    });
+
+    // Bulk Actions
+    document.getElementById('bulk-actions-toggle').addEventListener('click', function(e) {
+        e.preventDefault();
+        const bulkBar = document.getElementById('bulk-actions-bar');
+        const checkboxes = document.querySelectorAll('.asset-checkbox');
+        
+        if (bulkBar.style.display === 'none' || bulkBar.style.display === '') {
+            bulkBar.style.display = 'block';
+            checkboxes.forEach(cb => cb.style.display = 'block');
+        } else {
+            bulkBar.style.display = 'none';
+            checkboxes.forEach(cb => {
+                cb.style.display = 'none';
+                cb.checked = false;
+            });
+            updateSelectedCount();
+        }
+    });
+
+    document.getElementById('cancel-bulk').addEventListener('click', function() {
+        document.getElementById('bulk-actions-bar').style.display = 'none';
+        document.querySelectorAll('.asset-checkbox').forEach(cb => {
+            cb.style.display = 'none';
+            cb.checked = false;
+        });
+        updateSelectedCount();
+    });
+
+    // Select All Functionality
+    document.getElementById('select-all').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.asset-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        updateSelectedCount();
+    });
+
+    // Individual Checkbox Handling
+    document.querySelectorAll('.asset-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+
+    function updateSelectedCount() {
+        const checked = document.querySelectorAll('.asset-checkbox:checked').length;
+        document.getElementById('selected-count').textContent = checked;
+        
+        // Update bulk form with selected IDs
+        const selectedIds = Array.from(document.querySelectorAll('.asset-checkbox:checked'))
+            .map(cb => cb.value);
+        
+        // Remove existing hidden inputs
+        document.querySelectorAll('input[name="asset_ids"]').forEach(input => input.remove());
+        
+        // Add new hidden inputs for selected assets
+        const bulkForm = document.getElementById('bulk-form');
+        selectedIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'asset_ids';
+            input.value = id;
+            bulkForm.appendChild(input);
+        });
+    }
+
+    // Auto-submit filter form on change
+    document.querySelectorAll('#filter-form select').forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('filter-form').submit();
+        });
+    });
+
+    // Search with delay
+    let searchTimeout;
+    document.querySelector('input[name="search"]').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            document.getElementById('filter-form').submit();
+        }, 500);
+    });
+</script>
+{% endblock %}

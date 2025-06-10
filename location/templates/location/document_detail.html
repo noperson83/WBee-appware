@@ -1,0 +1,803 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ document.title }} - Document Details{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'location/css/document-detail.css' %}" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-4">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
+    <li class="breadcrumb-item"><a href="{{ document.location.get_absolute_url }}">{{ document.location.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ document.location.get_absolute_url }}#documents-tab">Documents</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ document.title }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Document Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-lg-8">
+              <div class="d-flex align-items-center mb-3">
+                <div class="file-icon-container me-3">
+                  {% if document.file %}
+                    {% with file_ext=document.file.name|slice:"-4:" %}
+                      {% if file_ext == ".pdf" %}
+                        <i class="fas fa-file-pdf fa-3x text-danger"></i>
+                      {% elif file_ext == ".doc" or file_ext == "docx" %}
+                        <i class="fas fa-file-word fa-3x text-primary"></i>
+                      {% elif file_ext == ".xls" or file_ext == "xlsx" %}
+                        <i class="fas fa-file-excel fa-3x text-success"></i>
+                      {% elif file_ext == ".jpg" or file_ext == ".png" or file_ext == ".gif" %}
+                        <i class="fas fa-file-image fa-3x text-warning"></i>
+                      {% elif file_ext == ".txt" %}
+                        <i class="fas fa-file-alt fa-3x text-info"></i>
+                      {% else %}
+                        <i class="fas fa-file fa-3x text-secondary"></i>
+                      {% endif %}
+                    {% endwith %}
+                  {% else %}
+                    <i class="fas fa-file-times fa-3x text-muted"></i>
+                  {% endif %}
+                </div>
+                <div>
+                  <h1 class="h3 mb-1">{{ document.title }}</h1>
+                  <div class="d-flex align-items-center flex-wrap gap-2">
+                    <span class="badge bg-primary fs-6">{{ document.get_document_type_display }}</span>
+                    {% if document.is_current %}
+                    <span class="badge bg-success fs-6">Current Version</span>
+                    {% endif %}
+                    {% if document.is_public %}
+                    <span class="badge bg-info fs-6">
+                      <i class="fas fa-eye me-1"></i>Client Visible
+                    </span>
+                    {% endif %}
+                    <span class="badge bg-light text-dark fs-6">v{{ document.version }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <p class="text-muted mb-2">
+                <i class="fas fa-map-marker-alt me-2"></i>
+                <a href="{{ document.location.get_absolute_url }}" class="text-decoration-none">
+                  {{ document.location.name }}
+                </a>
+                <span class="mx-2">•</span>
+                <a href="{{ document.location.client.get_absolute_url }}" class="text-decoration-none">
+                  {{ document.location.client.company_name }}
+                </a>
+              </p>
+
+              {% if document.description %}
+              <p class="mb-0">{{ document.description }}</p>
+              {% endif %}
+            </div>
+
+            <div class="col-lg-4 text-lg-end">
+              <!-- File Preview -->
+              {% if document.file %}
+                {% with file_ext=document.file.name|slice:"-4:" %}
+                  {% if file_ext == ".jpg" or file_ext == ".png" or file_ext == ".gif" %}
+                  <div class="mb-3">
+                    <a href="{{ document.file.url }}" data-lightbox="document-preview" data-title="{{ document.title }}">
+                      <img src="{{ document.file.url }}" 
+                           alt="{{ document.title }}" 
+                           class="img-fluid rounded shadow-sm document-preview-image"
+                           style="max-height: 200px; width: auto;">
+                    </a>
+                  </div>
+                  {% endif %}
+                {% endwith %}
+              {% endif %}
+
+              <!-- Action Buttons -->
+              <div class="btn-group-vertical w-100" role="group">
+                {% if document.file %}
+                <a href="{% url 'location:document-download' document.pk %}" class="btn btn-primary">
+                  <i class="fas fa-download me-2"></i>Download Document
+                </a>
+                
+                {% with file_ext=document.file.name|slice:"-4:" %}
+                  {% if file_ext == ".pdf" %}
+                  <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#pdfViewerModal">
+                    <i class="fas fa-eye me-2"></i>View PDF
+                  </button>
+                  {% elif file_ext == ".jpg" or file_ext == ".png" or file_ext == ".gif" %}
+                  <a href="{{ document.file.url }}" data-lightbox="document-view" class="btn btn-outline-info">
+                    <i class="fas fa-search-plus me-2"></i>View Image
+                  </a>
+                  {% endif %}
+                {% endwith %}
+                {% endif %}
+
+                <a href="{% url 'location:document-update' document.pk %}" class="btn btn-outline-secondary">
+                  <i class="fas fa-edit me-2"></i>Edit Document
+                </a>
+
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="fas fa-cog me-2"></i>More Actions
+                  </button>
+                  <ul class="dropdown-menu w-100">
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#shareModal">
+                      <i class="fas fa-share me-2"></i>Share Document
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="copyDocumentLink()">
+                      <i class="fas fa-link me-2"></i>Copy Link
+                    </a></li>
+                    <li><a class="dropdown-item" href="#" onclick="printDocument()">
+                      <i class="fas fa-print me-2"></i>Print
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'location:document-create' document.location.pk %}">
+                      <i class="fas fa-plus me-2"></i>Upload New Version
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% if user.is_staff %}
+                    <li><a class="dropdown-item text-danger" href="{% url 'location:document-delete' document.pk %}">
+                      <i class="fas fa-trash me-2"></i>Delete Document
+                    </a></li>
+                    {% endif %}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Document Information Tabs -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow">
+        <div class="card-header">
+          <ul class="nav nav-tabs card-header-tabs" id="documentTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">
+                <i class="fas fa-info-circle me-1"></i>Details
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="versions-tab" data-bs-toggle="tab" data-bs-target="#versions" type="button" role="tab">
+                <i class="fas fa-history me-1"></i>Version History
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" type="button" role="tab">
+                <i class="fas fa-clock me-1"></i>Activity Log
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <div class="card-body">
+          <div class="tab-content" id="documentTabContent">
+            <!-- Details Tab -->
+            <div class="tab-pane fade show active" id="details" role="tabpanel">
+              <div class="row">
+                <div class="col-lg-6">
+                  <!-- Document Properties -->
+                  <h5 class="mb-3">Document Properties</h5>
+                  <div class="table-responsive">
+                    <table class="table table-borderless">
+                      <tr>
+                        <td class="fw-bold" width="40%">File Name:</td>
+                        <td>
+                          {% if document.file %}
+                            {{ document.file.name|slice:"uploads/location/documents/"|default:document.file.name }}
+                          {% else %}
+                            <span class="text-muted">No file attached</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">File Size:</td>
+                        <td>
+                          {% if document.file %}
+                            {{ document.file.size|filesizeformat }}
+                          {% else %}
+                            <span class="text-muted">—</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">File Type:</td>
+                        <td>
+                          {% if document.file %}
+                            {% with file_ext=document.file.name|slice:"-4:" %}
+                              {{ file_ext|upper|slice:"1:" }} Document
+                            {% endwith %}
+                          {% else %}
+                            <span class="text-muted">—</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Document Type:</td>
+                        <td>{{ document.get_document_type_display }}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Version:</td>
+                        <td>{{ document.version }}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Status:</td>
+                        <td>
+                          {% if document.is_current %}
+                            <span class="badge bg-success">Current Version</span>
+                          {% else %}
+                            <span class="badge bg-secondary">Archived Version</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Visibility:</td>
+                        <td>
+                          {% if document.is_public %}
+                            <span class="badge bg-info">
+                              <i class="fas fa-eye me-1"></i>Client Visible
+                            </span>
+                          {% else %}
+                            <span class="badge bg-warning">
+                              <i class="fas fa-eye-slash me-1"></i>Internal Only
+                            </span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+
+                  <!-- Upload Information -->
+                  <h5 class="mb-3 mt-4">Upload Information</h5>
+                  <div class="table-responsive">
+                    <table class="table table-borderless">
+                      <tr>
+                        <td class="fw-bold" width="40%">Uploaded:</td>
+                        <td>{{ document.created_at|date:"M d, Y g:i A" }}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Uploaded By:</td>
+                        <td>{{ document.uploaded_by|default:"System" }}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Last Modified:</td>
+                        <td>{{ document.updated_at|date:"M d, Y g:i A" }}</td>
+                      </tr>
+                      <tr>
+                        <td class="fw-bold">Days Since Upload:</td>
+                        <td>{{ document.created_at|timesince }}</td>
+                      </tr>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="col-lg-6">
+                  <!-- Location Information -->
+                  <h5 class="mb-3">Location Information</h5>
+                  <div class="card bg-light">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center mb-3">
+                        {% if document.location.business_category %}
+                        <div class="avatar rounded-circle d-flex align-items-center justify-content-center me-3"
+                             style="width: 50px; height: 50px; background-color: {{ document.location.business_category.color }};">
+                          <i class="{{ document.location.business_category.icon }} text-white"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                          <h6 class="mb-1">
+                            <a href="{{ document.location.get_absolute_url }}" class="text-decoration-none">
+                              {{ document.location.name }}
+                            </a>
+                          </h6>
+                          <p class="text-muted mb-0">
+                            <a href="{{ document.location.client.get_absolute_url }}" class="text-decoration-none">
+                              {{ document.location.client.company_name }}
+                            </a>
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {% if document.location.primary_address %}
+                      <p class="text-muted small mb-2">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        {{ document.location.primary_address.line1 }}<br>
+                        {{ document.location.primary_address.city }}, {{ document.location.primary_address.state_province }}
+                      </p>
+                      {% endif %}
+
+                      <div class="btn-group w-100" role="group">
+                        <a href="{{ document.location.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+                          <i class="fas fa-eye me-1"></i>View Location
+                        </a>
+                        <a href="{{ document.location.get_absolute_url }}#documents-tab" class="btn btn-sm btn-outline-secondary">
+                          <i class="fas fa-file-alt me-1"></i>All Documents
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Related Documents -->
+                  {% if related_documents %}
+                  <h5 class="mb-3 mt-4">Related Documents</h5>
+                  <div class="list-group">
+                    {% for related in related_documents %}
+                    <a href="{{ related.get_absolute_url }}" class="list-group-item list-group-item-action">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">{{ related.title }}</h6>
+                        <small class="text-muted">v{{ related.version }}</small>
+                      </div>
+                      <p class="mb-1 small">{{ related.get_document_type_display }}</p>
+                      <small class="text-muted">{{ related.created_at|date:"M d, Y" }}</small>
+                    </a>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+
+                  <!-- Quick Actions -->
+                  <h5 class="mb-3 mt-4">Quick Actions</h5>
+                  <div class="d-grid gap-2">
+                    <a href="{% url 'location:document-create' document.location.pk %}" class="btn btn-outline-primary">
+                      <i class="fas fa-plus me-2"></i>Upload Another Document
+                    </a>
+                    <a href="{% url 'location:note-create' document.location.pk %}" class="btn btn-outline-secondary">
+                      <i class="fas fa-sticky-note me-2"></i>Add Note to Location
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Version History Tab -->
+            <div class="tab-pane fade" id="versions" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Version History</h5>
+                <a href="{% url 'location:document-create' document.location.pk %}" class="btn btn-primary">
+                  <i class="fas fa-plus me-1"></i>Upload New Version
+                </a>
+              </div>
+
+              {% if version_history %}
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Version</th>
+                      <th>Title</th>
+                      <th>Status</th>
+                      <th>Uploaded</th>
+                      <th>Uploaded By</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for version in version_history %}
+                    <tr {% if version.id == document.id %}class="table-primary"{% endif %}>
+                      <td>
+                        <span class="fw-bold">{{ version.version }}</span>
+                        {% if version.id == document.id %}
+                        <span class="badge bg-primary ms-1">Current</span>
+                        {% endif %}
+                      </td>
+                      <td>{{ version.title }}</td>
+                      <td>
+                        {% if version.is_current %}
+                        <span class="badge bg-success">Current</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Archived</span>
+                        {% endif %}
+                      </td>
+                      <td>{{ version.created_at|date:"M d, Y" }}</td>
+                      <td>{{ version.uploaded_by|default:"System" }}</td>
+                      <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                          {% if version.file %}
+                          <a href="{% url 'location:document-download' version.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-download"></i>
+                          </a>
+                          {% endif %}
+                          {% if version.id != document.id %}
+                          <a href="{% url 'location:document-detail' version.pk %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-eye"></i>
+                          </a>
+                          {% endif %}
+                        </div>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% else %}
+              <div class="text-center py-4">
+                <i class="fas fa-history fa-3x text-gray-300 mb-3"></i>
+                <h6 class="text-muted">No version history available</h6>
+                <p class="text-muted">This is the only version of this document.</p>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Activity Log Tab -->
+            <div class="tab-pane fade" id="activity" role="tabpanel">
+              <h5 class="mb-3">Activity Log</h5>
+              <div class="timeline">
+                <div class="timeline-item">
+                  <div class="timeline-marker bg-success"></div>
+                  <div class="timeline-content">
+                    <h6 class="mb-1">Document Uploaded</h6>
+                    <p class="mb-1">{{ document.title }} was uploaded to {{ document.location.name }}</p>
+                    <small class="text-muted">{{ document.created_at|date:"M d, Y g:i A" }} by {{ document.uploaded_by|default:"System" }}</small>
+                  </div>
+                </div>
+
+                {% if document.updated_at != document.created_at %}
+                <div class="timeline-item">
+                  <div class="timeline-marker bg-primary"></div>
+                  <div class="timeline-content">
+                    <h6 class="mb-1">Document Modified</h6>
+                    <p class="mb-1">Document information was updated</p>
+                    <small class="text-muted">{{ document.updated_at|date:"M d, Y g:i A" }}</small>
+                  </div>
+                </div>
+                {% endif %}
+
+                {% if document.is_current %}
+                <div class="timeline-item">
+                  <div class="timeline-marker bg-warning"></div>
+                  <div class="timeline-content">
+                    <h6 class="mb-1">Marked as Current</h6>
+                    <p class="mb-1">This version was marked as the current version</p>
+                    <small class="text-muted">{{ document.updated_at|date:"M d, Y g:i A" }}</small>
+                  </div>
+                </div>
+                {% endif %}
+
+                <!-- Additional activity items would be added here if you track downloads, views, etc. -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PDF Viewer Modal -->
+{% if document.file %}
+  {% with file_ext=document.file.name|slice:"-4:" %}
+    {% if file_ext == ".pdf" %}
+    <div class="modal fade" id="pdfViewerModal" tabindex="-1" aria-labelledby="pdfViewerModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="pdfViewerModalLabel">
+              <i class="fas fa-file-pdf me-2"></i>{{ document.title }}
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-0">
+            <embed src="{{ document.file.url }}" type="application/pdf" width="100%" height="600px">
+          </div>
+          <div class="modal-footer">
+            <a href="{{ document.file.url }}" target="_blank" class="btn btn-primary">
+              <i class="fas fa-external-link-alt me-1"></i>Open in New Tab
+            </a>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endwith %}
+{% endif %}
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="shareModalLabel">
+          <i class="fas fa-share me-2"></i>Share Document
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="shareLink" class="form-label">Document Link</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="shareLink" value="{{ request.build_absolute_uri }}" readonly>
+            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('shareLink')">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+        </div>
+        
+        {% if document.file %}
+        <div class="mb-3">
+          <label for="directFileLink" class="form-label">Direct File Link</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="directFileLink" value="{{ request.scheme }}://{{ request.get_host }}{{ document.file.url }}" readonly>
+            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('directFileLink')">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="alert alert-info">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Note:</strong> Only users with appropriate permissions can access this document.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Tab persistence
+    const tabLinks = document.querySelectorAll('#documentTabs button[data-bs-toggle="tab"]');
+    const activeTab = localStorage.getItem('documentDetailActiveTab');
+    
+    if (activeTab) {
+        const tab = document.querySelector(`#documentTabs button[data-bs-target="${activeTab}"]`);
+        if (tab) {
+            const bsTab = new bootstrap.Tab(tab);
+            bsTab.show();
+        }
+    }
+
+    tabLinks.forEach(function(tabLink) {
+        tabLink.addEventListener('shown.bs.tab', function(event) {
+            localStorage.setItem('documentDetailActiveTab', event.target.getAttribute('data-bs-target'));
+        });
+    });
+});
+
+// Copy to clipboard function
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    element.select();
+    element.setSelectionRange(0, 99999); // For mobile devices
+    
+    try {
+        document.execCommand('copy');
+        
+        // Show success feedback
+        const button = element.nextElementSibling;
+        const originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.classList.remove('btn-outline-secondary');
+        button.classList.add('btn-success');
+        
+        setTimeout(() => {
+            button.innerHTML = originalContent;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-secondary');
+        }, 2000);
+        
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+        alert('Failed to copy link to clipboard');
+    }
+}
+
+// Copy document link function
+function copyDocumentLink() {
+    const link = window.location.href;
+    
+    // Create temporary input element
+    const tempInput = document.createElement('input');
+    tempInput.value = link;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    
+    try {
+        document.execCommand('copy');
+        
+        // Show success message (you can replace with a toast notification)
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        alert.style.top = '20px';
+        alert.style.right = '20px';
+        alert.style.zIndex = '9999';
+        alert.innerHTML = `
+            <i class="fas fa-check me-2"></i>Document link copied to clipboard!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.parentNode.removeChild(alert);
+            }
+        }, 3000);
+        
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+        alert('Failed to copy link to clipboard');
+    }
+    
+    document.body.removeChild(tempInput);
+}
+
+// Print document function
+function printDocument() {
+    {% if document.file %}
+        {% with file_ext=document.file.name|slice:"-4:" %}
+            {% if file_ext == ".pdf" %}
+                // Open PDF in new window for printing
+                window.open('{{ document.file.url }}', '_blank');
+            {% elif file_ext == ".jpg" or file_ext == ".png" or file_ext == ".gif" %}
+                // Open image in new window for printing
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Print - {{ document.title }}</title>
+                            <style>
+                                body { margin: 0; padding: 20px; text-align: center; }
+                                img { max-width: 100%; height: auto; }
+                                h1 { font-family: Arial, sans-serif; margin-bottom: 20px; }
+                            </style>
+                        </head>
+                        <body>
+                            <h1>{{ document.title }}</h1>
+                            <img src="{{ document.file.url }}" alt="{{ document.title }}">
+                            <script>window.print();</script>
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            {% else %}
+                // For other file types, open in new tab
+                window.open('{{ document.file.url }}', '_blank');
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + D to download
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        {% if document.file %}
+        window.location.href = '{% url "location:document-download" document.pk %}';
+        {% endif %}
+    }
+    
+    // Ctrl/Cmd + E to edit
+    if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault();
+        window.location.href = '{% url "location:document-update" document.pk %}';
+    }
+    
+    // Escape to go back
+    if (e.key === 'Escape') {
+        window.location.href = '{{ document.location.get_absolute_url }}#documents-tab';
+    }
+});
+</script>
+
+<style>
+/* Custom CSS for document detail page */
+.file-icon-container {
+    width: 80px;
+    text-align: center;
+}
+
+.document-preview-image {
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.document-preview-image:hover {
+    transform: scale(1.05);
+}
+
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -1.75rem;
+    top: 2rem;
+    width: 2px;
+    height: calc(100% + 1rem);
+    background-color: #e9ecef;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -2rem;
+    top: 0.5rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #e9ecef;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+}
+
+.avatar {
+    width: 50px;
+    height: 50px;
+}
+
+.table-primary {
+    --bs-table-accent-bg: rgba(13, 110, 253, 0.075);
+}
+
+.alert.position-fixed {
+    z-index: 1055;
+}
+
+@media (max-width: 768px) {
+    .timeline {
+        padding-left: 1rem;
+    }
+    
+    .timeline-marker {
+        left: -1.25rem;
+    }
+    
+    .timeline-item:not(:last-child)::before {
+        left: -1rem;
+    }
+    
+    .btn-group-vertical {
+        width: 100%;
+    }
+    
+    .file-icon-container {
+        width: 60px;
+    }
+    
+    .file-icon-container i {
+        font-size: 2rem !important;
+    }
+}
+</style>
+{% endblock %}

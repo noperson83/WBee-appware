@@ -1,0 +1,607 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Department{% else %}Create Department{% endif %}{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+{% if form.instance.pk %}
+    <li class="breadcrumb-item"><a href="{% url 'company:detail' form.instance.company.pk %}">{{ form.instance.company.company_name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'company:department-list' form.instance.company.pk %}">Departments</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'company:department-detail' form.instance.pk %}">{{ form.instance.name }}</a></li>
+    <li class="breadcrumb-item active">Edit</li>
+{% else %}
+    {% if request.resolver_match.kwargs.company_id %}
+        {% with company_id=request.resolver_match.kwargs.company_id %}
+        <li class="breadcrumb-item"><a href="{% url 'company:detail' company_id %}">Company</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'company:department-list' company_id %}">Departments</a></li>
+        {% endwith %}
+    {% endif %}
+    <li class="breadcrumb-item active">Create Department</li>
+{% endif %}
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus{% endif %}"></i>
+                    {% if form.instance.pk %}Edit Department{% else %}Create New Department{% endif %}
+                </h1>
+                <p class="mb-0 mt-2">
+                    {% if form.instance.pk %}
+                        Update {{ form.instance.name }}'s information
+                    {% else %}
+                        Add a new department to the organization
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                {% if form.instance.pk %}
+                    <a href="{% url 'company:department-detail' form.instance.pk %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Back to Department
+                    </a>
+                {% else %}
+                    {% if request.resolver_match.kwargs.company_id %}
+                        <a href="{% url 'company:department-list' request.resolver_match.kwargs.company_id %}" class="btn btn-outline-light">
+                            <i class="fas fa-arrow-left"></i> Back to Departments
+                        </a>
+                    {% else %}
+                        <a href="{% url 'company:list' %}" class="btn btn-outline-light">
+                            <i class="fas fa-arrow-left"></i> Back to Companies
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            <h6><i class="fas fa-exclamation-triangle"></i> Please correct the following errors:</h6>
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Main Form -->
+        <div class="col-lg-8">
+            <!-- Basic Information -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label required">Department Name</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.name.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">e.g., Sales, Human Resources, Information Technology</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.department_code.id_for_label }}" class="form-label">Department Code</label>
+                                {{ form.department_code }}
+                                {% if form.department_code.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.department_code.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Short code (e.g., SALES, HR, IT)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.company.id_for_label }}" class="form-label required">Company</label>
+                                {{ form.company }}
+                                {% if form.company.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.company.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.parent_department.id_for_label }}" class="form-label">Parent Department</label>
+                                {{ form.parent_department }}
+                                {% if form.parent_department.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.parent_department.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Select if this is a sub-department</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Brief description of the department's responsibilities and purpose</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management & Leadership -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-user-tie"></i> Management & Leadership</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="{{ form.department_head.id_for_label }}" class="form-label">Department Head</label>
+                                {{ form.department_head }}
+                                {% if form.department_head.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.department_head.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Name of the person leading this department</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.primary_office.id_for_label }}" class="form-label">Primary Office</label>
+                                {{ form.primary_office }}
+                                {% if form.primary_office.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.primary_office.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Main office location for this department</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Information -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-dollar-sign"></i> Financial Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.annual_budget.id_for_label }}" class="form-label">Annual Budget</label>
+                                {{ form.annual_budget }}
+                                {% if form.annual_budget.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.annual_budget.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Total annual budget allocated to this department</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.cost_center_code.id_for_label }}" class="form-label">Cost Center Code</label>
+                                {{ form.cost_center_code }}
+                                {% if form.cost_center_code.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.cost_center_code.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Accounting cost center code for tracking expenses</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.is_billable }}
+                                <label class="form-check-label" for="{{ form.is_billable.id_for_label }}">
+                                    Billable Department
+                                </label>
+                                <div class="form-text">Check if this department's time can be billed to clients</div>
+                            </div>
+                        </div>
+                        {% if form.instance.pk %}
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    Department is Active
+                                </label>
+                                <div class="form-text">Uncheck to deactivate this department</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Form Actions -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-save"></i> Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> 
+                            {% if form.instance.pk %}Update Department{% else %}Create Department{% endif %}
+                        </button>
+                        
+                        {% if form.instance.pk %}
+                            <a href="{% url 'company:department-detail' form.instance.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        {% else %}
+                            {% if request.resolver_match.kwargs.company_id %}
+                                <a href="{% url 'company:department-list' request.resolver_match.kwargs.company_id %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            {% else %}
+                                <a href="{% url 'company:list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if form.instance.pk and user.is_superuser %}
+                            <hr>
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="CompanyUtils.confirmDelete('{{ form.instance.name }}', '#')">
+                                <i class="fas fa-trash"></i> Delete Department
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Department Types Guide -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Common Departments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="department-examples">
+                        <div class="mb-2">
+                            <span class="badge bg-primary me-2">SALES</span>
+                            <small>Sales & Business Development</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-success me-2">HR</span>
+                            <small>Human Resources</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-info me-2">IT</span>
+                            <small>Information Technology</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-warning me-2">FIN</span>
+                            <small>Finance & Accounting</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-danger me-2">MKT</span>
+                            <small>Marketing</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-secondary me-2">OPS</span>
+                            <small>Operations</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-dark me-2">LEGAL</span>
+                            <small>Legal & Compliance</small>
+                        </div>
+                        <div class="mb-0">
+                            <span class="badge bg-light text-dark me-2">ADMIN</span>
+                            <small>Administration</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Department Hierarchy Preview -->
+            {% if form.instance.pk and form.instance.company %}
+            <div class="card company-card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-sitemap"></i> Department Structure</h5>
+                </div>
+                <div class="card-body">
+                    <small class="text-muted">Current department structure in {{ form.instance.company.company_name }}:</small>
+                    <div class="mt-2">
+                        {% for dept in form.instance.company.departments.all %}
+                            <div class="hierarchy-preview {% if dept == form.instance %}current{% elif dept.parent_department == form.instance %}child{% elif form.instance.parent_department == dept %}parent{% endif %}">
+                                {% if dept.parent_department %}
+                                    <i class="fas fa-level-down-alt text-info me-1"></i>
+                                {% else %}
+                                    <i class="fas fa-sitemap text-primary me-1"></i>
+                                {% endif %}
+                                <small>{{ dept.name }}</small>
+                                {% if dept == form.instance %}
+                                    <span class="badge bg-warning text-dark ms-1">Current</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Billable vs Non-billable Guide -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-question-circle"></i> Billable Departments</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6 class="text-success">✓ Typically Billable:</h6>
+                        <ul class="list-unstyled small">
+                            <li>• Sales & Business Development</li>
+                            <li>• Consulting Services</li>
+                            <li>• Professional Services</li>
+                            <li>• Project Management</li>
+                            <li>• Technical Support</li>
+                        </ul>
+                    </div>
+                    <div class="mb-0">
+                        <h6 class="text-muted">✗ Typically Non-billable:</h6>
+                        <ul class="list-unstyled small">
+                            <li>• Human Resources</li>
+                            <li>• Administration</li>
+                            <li>• Finance & Accounting</li>
+                            <li>• Marketing (unless agency)</li>
+                            <li>• Legal & Compliance</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help & Tips -->
+            <div class="card company-card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Clear Names:</strong> Use descriptive, standardized department names
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Hierarchy:</strong> Organize sub-departments under logical parent departments
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Budget:</strong> Set realistic budgets based on department size and scope
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Cost Centers:</strong> Use consistent naming for accounting integration
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Billable Status:</strong> Consider revenue generation potential carefully
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+// Form validation and enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    // Bootstrap form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+    
+    // Auto-generate department code from department name
+    const deptNameInput = document.getElementById('{{ form.name.id_for_label }}');
+    const deptCodeInput = document.getElementById('{{ form.department_code.id_for_label }}');
+    
+    if (deptNameInput && deptCodeInput) {
+        deptNameInput.addEventListener('blur', function() {
+            if (!deptCodeInput.value && this.value) {
+                // Generate code from first letters of words or common abbreviations
+                let code = '';
+                const name = this.value.trim().toLowerCase();
+                
+                // Common department abbreviations
+                const abbreviations = {
+                    'human resources': 'HR',
+                    'information technology': 'IT',
+                    'sales': 'SALES',
+                    'marketing': 'MKT',
+                    'finance': 'FIN',
+                    'accounting': 'ACCT',
+                    'operations': 'OPS',
+                    'administration': 'ADMIN',
+                    'legal': 'LEGAL',
+                    'research and development': 'RD',
+                    'customer service': 'CS',
+                    'quality assurance': 'QA',
+                    'business development': 'BD'
+                };
+                
+                // Check for exact matches first
+                if (abbreviations[name]) {
+                    code = abbreviations[name];
+                } else {
+                    // Generate from first letters of words
+                    const words = this.value.trim().split(' ');
+                    words.forEach(word => {
+                        if (word.length > 0) {
+                            code += word.charAt(0).toUpperCase();
+                        }
+                    });
+                    code = code.substring(0, 6); // Limit to 6 characters
+                }
+                
+                deptCodeInput.value = code;
+            }
+        });
+    }
+    
+    // Auto-generate cost center code
+    const costCenterInput = document.getElementById('{{ form.cost_center_code.id_for_label }}');
+    const companySelect = document.getElementById('{{ form.company.id_for_label }}');
+    
+    function generateCostCenter() {
+        if (costCenterInput && !costCenterInput.value && deptCodeInput && deptCodeInput.value) {
+            // Simple cost center format: CC-DEPTCODE-001
+            const code = `CC-${deptCodeInput.value}-001`;
+            costCenterInput.value = code;
+        }
+    }
+    
+    if (deptCodeInput) {
+        deptCodeInput.addEventListener('blur', generateCostCenter);
+    }
+    
+    // Dynamic parent department filtering based on company selection
+    const parentDeptSelect = document.getElementById('{{ form.parent_department.id_for_label }}');
+    const primaryOfficeSelect = document.getElementById('{{ form.primary_office.id_for_label }}');
+    
+    if (companySelect && (parentDeptSelect || primaryOfficeSelect)) {
+        companySelect.addEventListener('change', function() {
+            const companyId = this.value;
+            
+            // This would make AJAX calls to filter departments and offices
+            // For now, we'll just show a message
+            if (companyId) {
+                console.log(`Would filter departments and offices for company ${companyId}`);
+                // In a real implementation:
+                // - Make AJAX call to get departments for this company
+                // - Update parent department options
+                // - Make AJAX call to get offices for this company
+                // - Update primary office options
+            }
+        });
+    }
+    
+    // Budget formatting
+    const budgetInput = document.getElementById('{{ form.annual_budget.id_for_label }}');
+    if (budgetInput) {
+        budgetInput.addEventListener('blur', function() {
+            if (this.value) {
+                // Format as currency (remove non-numeric characters except decimal)
+                let value = this.value.replace(/[^\d.]/g, '');
+                if (value) {
+                    this.value = parseFloat(value).toFixed(2);
+                }
+            }
+        });
+        
+        // Add helpful placeholder
+        budgetInput.placeholder = 'e.g., 250000.00';
+    }
+    
+    // Billable department recommendations
+    const billableCheckbox = document.getElementById('{{ form.is_billable.id_for_label }}');
+    if (billableCheckbox && deptNameInput) {
+        deptNameInput.addEventListener('blur', function() {
+            const name = this.value.toLowerCase();
+            const billableDepts = ['sales', 'consulting', 'professional services', 'support', 'development'];
+            const nonBillableDepts = ['hr', 'human resources', 'admin', 'administration', 'finance', 'accounting', 'marketing', 'legal'];
+            
+            let shouldBeBillable = billableDepts.some(dept => name.includes(dept));
+            let shouldNotBeBillable = nonBillableDepts.some(dept => name.includes(dept));
+            
+            if (shouldBeBillable && !billableCheckbox.checked) {
+                // Suggest making it billable
+                billableCheckbox.style.boxShadow = '0 0 0 0.2rem rgba(40, 167, 69, 0.25)';
+                setTimeout(() => {
+                    billableCheckbox.style.boxShadow = '';
+                }, 2000);
+            } else if (shouldNotBeBillable && billableCheckbox.checked) {
+                // Suggest making it non-billable
+                billableCheckbox.style.boxShadow = '0 0 0 0.2rem rgba(220, 53, 69, 0.25)';
+                setTimeout(() => {
+                    billableCheckbox.style.boxShadow = '';
+                }, 2000);
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.required::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.department-examples .badge {
+    min-width: 60px;
+    text-align: center;
+}
+
+.hierarchy-preview {
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.hierarchy-preview.current {
+    background: rgba(255, 193, 7, 0.2);
+    padding: 0.5rem;
+    border-radius: 4px;
+    border-left: 3px solid #ffc107;
+}
+
+.hierarchy-preview.parent {
+    background: rgba(0, 123, 255, 0.1);
+    padding: 0.5rem;
+    border-radius: 4px;
+    border-left: 3px solid #007bff;
+}
+
+.hierarchy-preview.child {
+    background: rgba(23, 162, 184, 0.1);
+    padding: 0.5rem;
+    border-radius: 4px;
+    border-left: 3px solid #17a2b8;
+    margin-left: 1rem;
+}
+
+.form-control:invalid {
+    border-color: #dc3545;
+}
+
+.form-control:valid {
+    border-color: #28a745;
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+.was-validated .form-control:valid {
+    border-color: #28a745;
+}
+
+/* Smooth transitions for form interactions */
+.form-control, .form-select, .form-check-input {
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+</style>
+{% endblock %}

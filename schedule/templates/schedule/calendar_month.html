@@ -1,0 +1,73 @@
+{% extends "home/base.html" %}
+{% load static %}
+{% load scheduletags i18n %}
+
+{% block title %}<title>Calendar Month</title>{% endblock %}
+{% block breadcrumb %} / <a href="{% url 'calendar_list' %}">{{ calendar.name }}</a>{% endblock %}
+{% block styler %}  
+  <link rel="stylesheet" href="{% static 'schedule/schedule.css' %}" type="text/css" media="screen">
+  <link rel="stylesheet" href="{% static 'schedule/jquery-ui.css' %}" type="text/css" media="screen">
+{% endblock %}
+
+{% block content %}
+<p style="clear:both">
+<div id="body">
+  {% if messages %}
+    <ul id="messages">
+      {% for message in messages %}
+      <li id="message_{{ forloop.counter }}"><a href="#" onclick="$('#message_{{ forloop.counter }}').fadeOut(); return false;"><small>{% trans "clear" %}</small></a> {{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% include "schedule/_dialogs.html" %}
+   <div class="card sched_container scheduler_month">
+   <div class="row sched_navline" style="width: 100%;">
+    <div class="col">
+      <a href="{% url "day_calendar" calendar.slug %}"><div class="btn-custom sched_tab sched_tab_first" name="day_tab">{% trans "Day" %}</div></a>
+      <a href="{% url "week_calendar" calendar.slug %}"><div class="btn-custom sched_tab" name="week_tab">{% trans "Week" %}</div></a>
+      <a href="{% url "month_calendar" calendar.slug %}{% querystring_for_date period.start 2 %}"><div class="btn-custom sched_tab active" name="month_tab">{% trans "Month" %}</div></a>
+      <a href="{% url "year_calendar" calendar.slug %}{% querystring_for_date period.start 1 %}"><div class="btn-custom sched_tab sched_tab_last" name="month_tab">{% trans "Year" %}</div></a>
+    </div>
+    <div class="col sched_date"><span class="month_head">{% prevnext "month_calendar" calendar period "F Y"%}</span></div>
+    <div class="col sched_date"><span class="month_head"><div class="calendarname">{{ calendar.name }}</div></span></div>
+  </div>
+ 
+    <div>       
+      <div class="row-centered">
+        <div class="center span7" style="width: 100%;">
+          {% month_table calendar period "regular" %}
+        </div>
+      </div>
+      <div class="row-centered">
+        <a href="{% url "tri_month_calendar" calendar.slug %}{% querystring_for_date period.start 2 %}">
+          {% trans "Three Month Calendar" %}
+        </a>
+        <a href="{% url "year_calendar" calendar.slug %}{% querystring_for_date period.start 1 %}">
+          {% trans "Full Year Calendar" %}
+        </a>
+    </div>
+  </div>
+</div>
+
+<div id="footer">{% block footer %}{% endblock %}</div>
+{% endblock %}
+
+{% block scripter %}<script type="text/javascript" src="{% static 'schedule/schedule.js' %}"></script>{% endblock %}
+
+
+
+<div id="scheduler_here" class="dhx_cal_container dhx_scheduler_month" style="width:100%; height:100%;" role="application">
+		<div class="dhx_cal_navline" style="width: 848px; height: 59px; left: 0px; top: 0px;">
+			<div class="dhx_cal_prev_button" role="button" aria-label="Previous">&nbsp;</div>
+			<div class="dhx_cal_next_button" role="button" aria-label="Next">&nbsp;</div>
+			<div class="dhx_cal_today_button" aria-label="Today" role="button">Today</div>
+			<div class="dhx_cal_date" aria-label="April 2020">April 2020</div>
+
+
+			<div class="sched_tab sched_first" name="day_tab" role="button" style="right: auto; left: 16px;">Day</div>
+			<div class="sched_tab" name="week_tab" role="button" style="right: auto; left: 103px;">Week</div>
+			<div class="sched_tab sched_tab_last active" name="month_tab" role="button" style="right: auto; left: 192px;">Month</div>
+		</div>
+		<div class="dhx_cal_scale_placeholder" style="display: block; width: 848px; height: 21px; left: 0px; top: 60px;"></div><div class="dhx_cal_header" style="width: 848px; height: 20px; left: -1px; top: 60px;"><div class="dhx_scale_bar" aria-label="Monday" style="width: 120px; height: 18px; left: 0px; top: 0px;">Monday</div><div class="dhx_scale_bar" aria-label="Tuesday" style="width: 120px; height: 18px; left: 121px; top: 0px;">Tuesday</div><div class="dhx_scale_bar" aria-label="Wednesday" style="width: 120px; height: 18px; left: 242px; top: 0px;">Wednesday</div><div class="dhx_scale_bar" aria-label="Thursday" style="width: 120px; height: 18px; left: 363px; top: 0px;">Thursday</div><div class="dhx_scale_bar" aria-label="Friday" style="width: 120px; height: 18px; left: 484px; top: 0px;">Friday</div><div class="dhx_scale_bar" aria-label="Saturday" style="width: 120px; height: 18px; left: 605px; top: 0px;">Saturday</div><div class="dhx_scale_bar" aria-label="Sunday" style="width: 121px; height: 18px; left: 726px; top: 0px;">Sunday</div></div>
+		<div class="dhx_cal_data" style="width: 848px; height: 519px; left: 0px; top: 81px; cursor: default;"><table cellpadding="0" cellspacing="0"><tbody><tr><td class="dhx_before " aria-label="30 Mar 2020"><div class="dhx_month_head">30</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class="dhx_before " aria-label="31 Mar 2020"><div class="dhx_month_head">31</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="1 Apr 2020"><div class="dhx_month_head">01</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="2 Apr 2020"><div class="dhx_month_head">02</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="3 Apr 2020"><div class="dhx_month_head">03</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="4 Apr 2020"><div class="dhx_month_head">04</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="5 Apr 2020"><div class="dhx_month_head">05</div><div class="dhx_month_body" style="height: 81px; width: 121px;"></div></td></tr><tr><td class=" " aria-label="6 Apr 2020"><div class="dhx_month_head">06</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="7 Apr 2020"><div class="dhx_month_head">07</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="8 Apr 2020"><div class="dhx_month_head">08</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="9 Apr 2020"><div class="dhx_month_head">09</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="10 Apr 2020"><div class="dhx_month_head">10</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="11 Apr 2020"><div class="dhx_month_head">11</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="12 Apr 2020"><div class="dhx_month_head">12</div><div class="dhx_month_body" style="height: 81px; width: 121px;"></div></td></tr><tr><td class=" " aria-label="13 Apr 2020"><div class="dhx_month_head">13</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="14 Apr 2020"><div class="dhx_month_head">14</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="15 Apr 2020"><div class="dhx_month_head">15</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="16 Apr 2020"><div class="dhx_month_head">16</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="17 Apr 2020"><div class="dhx_month_head">17</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="18 Apr 2020"><div class="dhx_month_head">18</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="19 Apr 2020"><div class="dhx_month_head">19</div><div class="dhx_month_body" style="height: 81px; width: 121px;"></div></td></tr><tr><td class=" " aria-label="20 Apr 2020"><div class="dhx_month_head">20</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="21 Apr 2020"><div class="dhx_month_head">21</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="22 Apr 2020"><div class="dhx_month_head">22</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="23 Apr 2020"><div class="dhx_month_head">23</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class="dhx_now " aria-label="24 Apr 2020"><div class="dhx_month_head">24</div><div class="dhx_month_body" style="height: 81px; width: 120px;"><div class="dhx_marked_timespan dhx_now_time" style="top: 330px; height: 81px; line-height: 81px; left: 555px; width: 0px;"></div></div></td><td class=" " aria-label="25 Apr 2020"><div class="dhx_month_head">25</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="26 Apr 2020"><div class="dhx_month_head">26</div><div class="dhx_month_body" style="height: 81px; width: 121px;"></div></td></tr><tr><td class=" " aria-label="27 Apr 2020"><div class="dhx_month_head">27</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="28 Apr 2020"><div class="dhx_month_head">28</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="29 Apr 2020"><div class="dhx_month_head">29</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class=" " aria-label="30 Apr 2020"><div class="dhx_month_head">30</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class="dhx_after " aria-label="1 May 2020"><div class="dhx_month_head">01</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class="dhx_after " aria-label="2 May 2020"><div class="dhx_month_head">02</div><div class="dhx_month_body" style="height: 81px; width: 120px;"></div></td><td class="dhx_after " aria-label="3 May 2020"><div class="dhx_month_head">03</div><div class="dhx_month_body" style="height: 81px; width: 121px;"></div></td></tr></tbody></table><div event_id="1546116589567" class="dhx_cal_event_clear dhx_cal_event_line_start dhx_cal_event_line_end" style="position:absolute;top:331px;left:0px;width:106px;;;" aria-label=" Event: Front-end meeting Start date: 2020-04-20 10:00 End date: 2020-04-20 12:00" aria-selected="false">• <b>10:00</b> Front-end meeting</div><div event_id="1546116589568" class="dhx_cal_event_clear dhx_cal_event_line_start dhx_cal_event_line_end event_rest" style="position:absolute;top:331px;left:121px;width:106px;;;" aria-label=" Event: Feed ducks and city walking Start date: 2020-04-21 16:30 End date: 2020-04-21 18:30" aria-selected="false">• <b>16:30</b> Feed ducks and city walking</div><div event_id="1546116589569" class="dhx_cal_event_clear dhx_cal_event_line_start dhx_cal_event_line_end" style="position:absolute;top:331px;left:242px;width:106px;;;" aria-label=" Event: World Darts Championship (morning session) Start date: 2020-04-22 08:00 End date: 2020-04-22 11:55" aria-selected="false">• <b>08:00</b> World Darts Championship (morning session)</div><div event_id="1546116589570" class="dhx_cal_event_clear dhx_cal_event_line_start dhx_cal_event_line_end event_meeting" style="position:absolute;top:355px;left:242px;width:106px;;;" aria-label=" Event: Lunch with Ann &amp; Alex Start date: 2020-04-22 12:00 End date: 2020-04-22 14:00" aria-selected="false">• <b>12:00</b> Lunch with Ann &amp; Alex</div><div event_id="1546116589574" class="dhx_cal_event_clear dhx_cal_event_line_start dhx_cal_event_line_end" style="position:absolute;top:331px;left:363px;width:106px;;;" aria-label=" Event: Couchsurfing. Family from Portugal Start date: 2020-04-23 00:00 End date: 2020-04-23 00:05" aria-selected="false">• <b>00:00</b> Couchsurfing. Family from Portugal</div><div event_id="1546116589571" class="dhx_cal_event_clear dhx_cal_event_line_start dhx_cal_event_line_end event_movies" style="position:absolute;top:355px;left:363px;width:106px;;;" aria-label=" Event: Game of Thrones Start date: 2020-04-23 16:00 End date: 2020-04-23 17:30" aria-selected="false">• <b>16:00</b> Game of Thrones</div><div event_id="1546116589572" class="dhx_cal_event_clear dhx_cal_event_line_start dhx_cal_event_line_end event_work" style="position:absolute;top:331px;left:605px;width:106px;;;" aria-label=" Event: Design workshop Start date: 2020-04-25 09:00 End date: 2020-04-25 11:00" aria-selected="false">• <b>09:00</b> Design workshop</div><div event_id="1546116589573" class="dhx_cal_event_clear dhx_cal_event_line_start dhx_cal_event_line_end" style="position:absolute;top:355px;left:605px;width:106px;;;" aria-label=" Event: World Darts Championship (evening session) Start date: 2020-04-25 14:00 End date: 2020-04-25 17:00" aria-selected="false">• <b>14:00</b> World Darts Championship (evening session)</div></div>
+	</div>

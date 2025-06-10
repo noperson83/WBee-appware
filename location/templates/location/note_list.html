@@ -1,0 +1,343 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}<title>Notes - {{ location.name }}</title>{% endblock %}
+{% block breadcrumb %}
+/ <a href="{% url 'location:location-list' %}">Locations</a>
+/ <a href="{{ location.get_absolute_url }}">{{ location.name }}</a>
+/ Notes
+{% endblock %}
+
+{% block styler %}
+<link href="{% static 'home/vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet" type="text/css">
+<style>
+.priority-urgent { border-left: 4px solid #dc3545; }
+.priority-high { border-left: 4px solid #ffc107; }
+.priority-normal { border-left: 4px solid #007bff; }
+.priority-low { border-left: 4px solid #28a745; }
+.note-card { transition: all 0.2s ease; }
+.note-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+.followup-overdue { background-color: #f8d7da; }
+.followup-today { background-color: #fff3cd; }
+.followup-upcoming { background-color: #d1ecf1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="mb-1">
+          <i class="fas fa-sticky-note text-primary mr-2"></i>
+          Notes for {{ location.name }}
+        </h2>
+        <p class="text-muted mb-0">{{ location.client.company_name }}</p>
+      </div>
+      {% if user.is_staff %}
+        <a href="{% url 'location:note-create' location.pk %}" class="btn btn-primary">
+          <i class="fas fa-plus mr-2"></i>Add Note
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <form method="get" class="row align-items-end">
+          <div class="col-md-3">
+            <label for="search" class="form-label">Search Notes</label>
+            <input type="text" class="form-control" id="search" name="search" 
+                   value="{{ request.GET.search }}" placeholder="Search title or content">
+          </div>
+          <div class="col-md-2">
+            <label for="note_type" class="form-label">Type</label>
+            <select class="form-control" id="note_type" name="note_type">
+              <option value="">All Types</option>
+              {% for type_choice in note_type_choices %}
+                <option value="{{ type_choice.0 }}" {% if request.GET.note_type == type_choice.0 %}selected{% endif %}>
+                  {{ type_choice.1 }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="priority" class="form-label">Priority</label>
+            <select class="form-control" id="priority" name="priority">
+              <option value="">All Priorities</option>
+              <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+              <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>High</option>
+              <option value="normal" {% if request.GET.priority == 'normal' %}selected{% endif %}>Normal</option>
+              <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>Low</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="requires_followup" class="form-label">Follow-up</label>
+            <select class="form-control" id="requires_followup" name="requires_followup">
+              <option value="">All Notes</option>
+              <option value="true" {% if request.GET.requires_followup == 'true' %}selected{% endif %}>Needs Follow-up</option>
+              <option value="false" {% if request.GET.requires_followup == 'false' %}selected{% endif %}>No Follow-up</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="client_visible" class="form-label">Visibility</label>
+            <select class="form-control" id="client_visible" name="client_visible">
+              <option value="">All Notes</option>
+              <option value="true" {% if request.GET.client_visible == 'true' %}selected{% endif %}>Client Visible</option>
+              <option value="false" {% if request.GET.client_visible == 'false' %}selected{% endif %}>Internal Only</option>
+            </select>
+          </div>
+          <div class="col-md-1">
+            <button type="submit" class="btn btn-outline-primary">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Statistics Row -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="card bg-primary text-white">
+          <div class="card-body">
+            <div class="d-flex">
+              <div class="flex-grow-1">
+                <h5 class="mb-0">{{ total_notes }}</h5>
+                <p class="mb-0">Total Notes</p>
+              </div>
+              <div class="align-self-center">
+                <i class="fas fa-sticky-note fa-2x"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-warning text-white">
+          <div class="card-body">
+            <div class="d-flex">
+              <div class="flex-grow-1">
+                <h5 class="mb-0">{{ followup_notes_count }}</h5>
+                <p class="mb-0">Need Follow-up</p>
+              </div>
+              <div class="align-self-center">
+                <i class="fas fa-calendar-check fa-2x"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-success text-white">
+          <div class="card-body">
+            <div class="d-flex">
+              <div class="flex-grow-1">
+                <h5 class="mb-0">{{ client_visible_count }}</h5>
+                <p class="mb-0">Client Visible</p>
+              </div>
+              <div class="align-self-center">
+                <i class="fas fa-eye fa-2x"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-danger text-white">
+          <div class="card-body">
+            <div class="d-flex">
+              <div class="flex-grow-1">
+                <h5 class="mb-0">{{ overdue_followups_count }}</h5>
+                <p class="mb-0">Overdue Follow-ups</p>
+              </div>
+              <div class="align-self-center">
+                <i class="fas fa-exclamation-triangle fa-2x"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes List -->
+    {% if notes %}
+      <div class="row">
+        {% for note in notes %}
+          <div class="col-lg-6 mb-4">
+            <div class="card note-card h-100 priority-{{ note.priority }}
+              {% if note.requires_followup and note.followup_date %}
+                {% if note.followup_date < today %}followup-overdue
+                {% elif note.followup_date == today %}followup-today
+                {% elif note.followup_date <= week_from_now %}followup-upcoming
+                {% endif %}
+              {% endif %}">
+              
+              <div class="card-header d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1">
+                  <h6 class="mb-1">
+                    <a href="{% url 'location:note-detail' note.pk %}" class="text-decoration-none">
+                      {{ note.title }}
+                    </a>
+                  </h6>
+                  <div class="d-flex gap-2 flex-wrap">
+                    <span class="badge badge-info badge-sm">{{ note.get_note_type_display|default:note.note_type }}</span>
+                    <span class="badge badge-sm 
+                      {% if note.priority == 'urgent' %}badge-danger
+                      {% elif note.priority == 'high' %}badge-warning
+                      {% elif note.priority == 'normal' %}badge-primary
+                      {% else %}badge-secondary
+                      {% endif %}">
+                      {{ note.get_priority_display|default:note.priority|title }}
+                    </span>
+                    {% if note.is_client_visible %}
+                      <span class="badge badge-success badge-sm">
+                        <i class="fas fa-eye mr-1"></i>Client Visible
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if user.is_staff %}
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                            data-toggle="dropdown">
+                      <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">
+                      <a class="dropdown-item" href="{% url 'location:note-detail' note.pk %}">
+                        <i class="fas fa-eye mr-2"></i>View Details
+                      </a>
+                      <a class="dropdown-item" href="{% url 'location:note-update' note.pk %}">
+                        <i class="fas fa-edit mr-2"></i>Edit
+                      </a>
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item text-danger" href="{% url 'location:note-delete' note.pk %}">
+                        <i class="fas fa-trash mr-2"></i>Delete
+                      </a>
+                    </div>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="card-body">
+                <p class="card-text">{{ note.content|truncatewords:20|linebreaks }}</p>
+                
+                {% if note.requires_followup %}
+                  <div class="alert alert-sm alert-warning mb-2">
+                    <i class="fas fa-calendar-check mr-1"></i>
+                    <strong>Follow-up:</strong> {{ note.followup_date|date:"M d, Y" }}
+                    {% if note.followup_date < today %}
+                      <span class="badge badge-danger ml-2">Overdue</span>
+                    {% elif note.followup_date == today %}
+                      <span class="badge badge-warning ml-2">Due Today</span>
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="card-footer small text-muted d-flex justify-content-between">
+                <span>
+                  {{ note.created_at|date:"M d, Y g:i A" }}
+                  {% if note.created_by %}
+                    by {{ note.created_by }}
+                  {% endif %}
+                </span>
+                {% if note.updated_at != note.created_at %}
+                  <span>Updated: {{ note.updated_at|date:"M d" }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if is_paginated %}
+        <nav aria-label="Notes pagination">
+          <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page=1{{ request.GET.urlencode|slice:'5:' }}">First</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ request.GET.urlencode|slice:'5:' }}">Previous</a>
+              </li>
+            {% endif %}
+
+            <li class="page-item active">
+              <span class="page-link">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+              </span>
+            </li>
+
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ request.GET.urlencode|slice:'5:' }}">Next</a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ request.GET.urlencode|slice:'5:' }}">Last</a>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      {% endif %}
+
+    {% else %}
+      <!-- Empty State -->
+      <div class="card">
+        <div class="card-body text-center py-5">
+          <i class="fas fa-sticky-note fa-3x text-muted mb-3"></i>
+          <h4 class="text-muted">No Notes Found</h4>
+          <p class="text-muted">
+            {% if request.GET.search or request.GET.note_type or request.GET.priority %}
+              No notes match your current filters. Try adjusting your search criteria.
+            {% else %}
+              There are no notes for this location yet.
+            {% endif %}
+          </p>
+          {% if user.is_staff %}
+            <a href="{% url 'location:note-create' location.pk %}" class="btn btn-primary">
+              <i class="fas fa-plus mr-2"></i>Add First Note
+            </a>
+          {% endif %}
+          <a href="{{ location.get_absolute_url }}" class="btn btn-outline-secondary ml-2">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Location
+          </a>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script src="{% static 'home/vendor/datatables/jquery.dataTables.js' %}"></script>
+<script src="{% static 'home/vendor/datatables/dataTables.bootstrap4.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Auto-clear search on input clear
+    $('#search').on('input', function() {
+        if ($(this).val() === '') {
+            // Optionally auto-submit form when search is cleared
+        }
+    });
+
+    // Smooth animations for note cards
+    $('.note-card').hover(
+        function() { $(this).addClass('shadow-sm'); },
+        function() { $(this).removeClass('shadow-sm'); }
+    );
+
+    // Highlight overdue follow-ups
+    $('.followup-overdue').each(function() {
+        $(this).find('.card-header').prepend('<i class="fas fa-exclamation-triangle text-danger mr-2"></i>');
+    });
+
+    // Highlight today's follow-ups
+    $('.followup-today').each(function() {
+        $(this).find('.card-header').prepend('<i class="fas fa-clock text-warning mr-2"></i>');
+    });
+});
+</script>
+{% endblock %}

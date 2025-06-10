@@ -1,0 +1,193 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}{{ company.company_name }} Dashboard{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+<li class="breadcrumb-item"><a href="{% url 'company:detail' company.pk %}">{{ company.company_name }}</a></li>
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.css" rel="stylesheet">
+<style>
+    .dashboard-metric {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dashboard-metric::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.1);
+        transform: skewY(-5deg);
+        transform-origin: top left;
+    }
+    
+    .dashboard-metric.blue {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .dashboard-metric.green {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .dashboard-metric.orange {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+    
+    .dashboard-metric.red {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    }
+    
+    .dashboard-metric .metric-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .dashboard-metric .metric-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .dashboard-metric .metric-icon {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        font-size: 2rem;
+        opacity: 0.3;
+        z-index: 1;
+    }
+    
+    .quick-action-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+    }
+    
+    .quick-action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .recent-activity {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .activity-item {
+        border-left: 3px solid #e9ecef;
+        padding-left: 1rem;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+    
+    .activity-item::before {
+        content: '';
+        position: absolute;
+        left: -6px;
+        top: 0.5rem;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #007bff;
+    }
+    
+    .activity-item.success::before { background: #28a745; }
+    .activity-item.warning::before { background: #ffc107; }
+    .activity-item.danger::before { background: #dc3545; }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+    
+    .utilization-bar {
+        height: 20px;
+        background: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .utilization-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+        transition: width 0.5s ease;
+    }
+    
+    .utilization-fill.warning {
+        background: linear-gradient(90deg, #ffc107 0%, #fd7e14 100%);
+    }
+    
+    .utilization-fill.danger {
+        background: linear-gradient(90deg, #dc3545 0%, #e74c3c 100%);
+    }
+</style>
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center">
+                    {% if company.logo %}
+                        <img src="{{ company.logo.url }}" alt="{{ company.company_name }}" class="logo-preview me-3" style="max-width: 60px; max-height: 45px;">
+                    {% else %}
+                        <i class="fas fa-chart-bar fa-2x me-3"></i>
+                    {% endif %}
+                    <div>
+                        <h1 class="mb-0">{{ company.company_name }} Dashboard</h1>
+                        <p class="mb-0 mt-1 opacity-75">Real-time company metrics and insights</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'company:detail' company.pk %}" class="btn btn-outline-light">
+                        <i class="fas fa-info-circle"></i> Company Details
+                    </a>
+                    {% if user.is_staff %}
+                        <a href="{% url 'company:update' company.pk %}" class="btn btn-light">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics Row -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="dashboard-metric blue">
+            <i class="fas fa-building metric-icon"></i>
+            <div class="metric-value">{{ total_offices }}</div>
+            <div class="metric-label">Office Locations</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="dashboard-metric green">
+            <i class="fas fa-sitemap metric-icon"></i>
+            <div class="metric-value">{{ total_departments }}</div>
+            <div class="metric-label">Departments</div>
+        </div>
+    </div>

@@ -1,0 +1,98 @@
+body {
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  text-align: center;
+}
+
+a {
+  color: #000;
+}
+
+table, th, td {
+  border-left: 1px solid #dddddd;;
+}
+
+.btn-custom {
+  color: #FFF;
+  background-color: #1b6cb5;
+  border-color: #949596;
+}
+.btn-custom:hover,
+.btn-custom:focus,
+.btn-custom:active,
+.btn-custom.active {
+  color: #FFF;
+  background-color: #175b97;
+  border-color: #949596;
+}
+.btn-custom.disabled:hover,
+.btn-custom.disabled:focus,
+.btn-custom.disabled:active,
+.btn-custom.disabled.active,
+.btn-custom[disabled]:hover,
+.btn-custom[disabled]:focus,
+.btn-custom[disabled]:active,
+.btn-custom[disabled].active,
+fieldset[disabled] .btn-custom:hover,
+fieldset[disabled] .btn-custom:focus,
+fieldset[disabled] .btn-custom:active,
+fieldset[disabled] .btn-custom.active {
+  background-color: #175b97;
+  border-color: #949596;
+}
+
+.row-centered {
+    text-align:center;
+}
+
+.modal-content {
+  color: #000;
+}
+
+.center {
+     float: none;
+     margin-left: auto;
+     margin-right: auto;
+}
+.sched_day {
+  background-color: #666666;
+} 
+
+.sched_day:hover {
+  background-color: #333666;
+}
+
+.sched_day:focus, .sched_day.focus {
+  box-shadow: 0 0 0 0.2rem rgba(110, 110, 110, 0.5);
+}
+.sched_tab{  
+  width:60px;height:30px;
+  text-align:center;
+  text-decoration:none;
+  text-transform:none;font-weight:700;
+  padding-top:0;border-radius:0;cursor:pointer;
+  font-size:inherit;
+  float:left;}
+.sched_tab.active{
+  text-decoration:none;cursor:default;
+  font-weight:700;font-size:inherit;
+  color:#454544;border:1px solid #cecece;
+  border-bottom:1;background-color:#f0ede7;z-index:25}
+.sched_tab_first{border-radius:5px 0 0 5px;border-right:0}
+.sched_tab_last{border-radius:0 5px 5px 0}
+.sched_tab.active{text-shadow:0 1px 0 #fff}
+
+.sched_tab,.sched_today_button{line-height:30px;background:#267c99;}
+.sched_navline{padding-bottom:6px;position:relative;z-index:3;color:#2f3a48}
+.sched_navline div{position:relative;white-space:nowrap;}
+.sched_navline .sched_date{border:0;font-size:18px;font-weight:400;font-family:Arial,san-serif;width:100%;text-align:center;padding:1px 0 0;color:#454544;z-index:-1}
+.scheduler_month {border-bottom:0;border-left:2px solid red}
+.sched_container{user-select:none;-moz-user-select:none}
+.sched_container :focus{outline-style:auto}
+.sched_container{position:relative;overflow:hidden;background-color:#fff;font-family:Arial,san-serif;font-size:12px}
+.sched_container div{-moz-user-select:none;-moz-user-select:-moz-none}
+.sched_container{background-color:none}
+.sched_container{box-sizing:border-box;border:1px solid #CECECE;box-shadow:2px 2px 5px #CCC;border-radius:3px}
+.calendarname{float:right;}

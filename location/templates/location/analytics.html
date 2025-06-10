@@ -1,0 +1,1023 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}<title>Location Analytics Dashboard</title>{% endblock %}
+{% block breadcrumb %}/ <a href="{% url 'location:location-list' %}">Locations</a> / Analytics{% endblock %}
+
+{% block styler %}
+<link href="{% static 'home/vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.analytics-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.analytics-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.metric-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.metric-card.success {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.metric-card.warning {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.metric-card.info {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 20px;
+}
+
+.chart-container.large {
+    height: 400px;
+}
+
+.table-responsive {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.progress-stacked {
+    height: 20px;
+    background-color: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-stacked .progress-bar {
+    height: 100%;
+    float: left;
+    line-height: 20px;
+    font-size: 12px;
+    color: white;
+    text-align: center;
+}
+
+.filter-panel {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.data-table-wrapper {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.export-buttons {
+    margin-bottom: 15px;
+}
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.trend-indicator {
+    font-size: 0.8em;
+    margin-left: 8px;
+}
+
+.trend-up {
+    color: #28a745;
+}
+
+.trend-down {
+    color: #dc3545;
+}
+
+.trend-flat {
+    color: #6c757d;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">
+                    <i class="fas fa-chart-line text-primary mr-2"></i>
+                    Location Analytics Dashboard
+                </h2>
+                <p class="text-muted mb-0">Comprehensive insights and performance metrics</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary" id="refreshData">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#" id="exportPDF">
+                            <i class="fas fa-file-pdf mr-2"></i>Export as PDF
+                        </a>
+                        <a class="dropdown-item" href="#" id="exportExcel">
+                            <i class="fas fa-file-excel mr-2"></i>Export as Excel
+                        </a>
+                        <a class="dropdown-item" href="#" id="exportCSV">
+                            <i class="fas fa-file-csv mr-2"></i>Export as CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Panel -->
+        <div class="filter-panel">
+            <div class="row">
+                <div class="col-md-3">
+                    <label class="form-label">Date Range</label>
+                    <select class="form-control" id="dateRange">
+                        <option value="30">Last 30 Days</option>
+                        <option value="90">Last 3 Months</option>
+                        <option value="180">Last 6 Months</option>
+                        <option value="365" selected>Last Year</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Business Category</label>
+                    <select class="form-control" id="businessCategoryFilter">
+                        <option value="">All Categories</option>
+                        {% for category in business_categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-control" id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="prospect">Prospect</option>
+                        <option value="active">Active</option>
+                        <option value="complete">Complete</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Client</label>
+                    <select class="form-control" id="clientFilter">
+                        <option value="">All Clients</option>
+                        {% for client in clients %}
+                            <option value="{{ client.id }}">{{ client.company_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="kpi-grid">
+            <div class="metric-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1" id="totalLocations">{{ total_locations }}</h3>
+                        <p class="mb-0">Total Locations</p>
+                    </div>
+                    <div class="text-right">
+                        <i class="fas fa-map-marker-alt fa-2x opacity-75"></i>
+                        <div class="trend-indicator trend-up" id="locationsTrend">
+                            <i class="fas fa-arrow-up"></i> 12%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1" id="activeLocations">{{ active_locations }}</h3>
+                        <p class="mb-0">Active Locations</p>
+                    </div>
+                    <div class="text-right">
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                        <div class="trend-indicator trend-up" id="activeTrend">
+                            <i class="fas fa-arrow-up"></i> 8%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1" id="totalValue">${{ total_contract_value|floatformat:0 }}</h3>
+                        <p class="mb-0">Total Contract Value</p>
+                    </div>
+                    <div class="text-right">
+                        <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
+                        <div class="trend-indicator trend-up" id="valueTrend">
+                            <i class="fas fa-arrow-up"></i> 15%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card info">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1" id="avgValue">${{ avg_contract_value|floatformat:0 }}</h3>
+                        <p class="mb-0">Avg. Contract Value</p>
+                    </div>
+                    <div class="text-right">
+                        <i class="fas fa-chart-line fa-2x opacity-75"></i>
+                        <div class="trend-indicator trend-flat" id="avgTrend">
+                            <i class="fas fa-minus"></i> 0%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie text-primary mr-2"></i>
+                            Locations by Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-bar text-success mr-2"></i>
+                            Business Categories
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="row mb-4">
+            <div class="col-lg-8">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line text-info mr-2"></i>
+                            Location Growth Trend
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container large">
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-map-marked-alt text-warning mr-2"></i>
+                            Geographic Distribution
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="geographicStats">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tachometer-alt text-danger mr-2"></i>
+                            Performance Metrics
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-primary" id="conversionRate">72%</h4>
+                                    <p class="text-muted">Prospect to Active Rate</p>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-primary" style="width: 72%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-success" id="completionRate">85%</h4>
+                                    <p class="text-muted">Project Completion Rate</p>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-success" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-warning" id="avgDuration">45 days</h4>
+                                    <p class="text-muted">Avg. Project Duration</p>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-warning" style="width: 60%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    <h4 class="text-info" id="clientSatisfaction">4.7/5</h4>
+                                    <p class="text-muted">Client Satisfaction</p>
+                                    <div class="progress">
+                                        <div class="progress-bar bg-info" style="width: 94%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Tables -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="data-table-wrapper">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-trophy text-warning mr-2"></i>
+                            Top Performing Locations
+                        </h5>
+                        <small class="text-muted">By contract value</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Location</th>
+                                    <th>Client</th>
+                                    <th>Value</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topLocationsTable">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="data-table-wrapper">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clock text-info mr-2"></i>
+                            Recent Activity
+                        </h5>
+                        <small class="text-muted">Last 30 days</small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Action</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentActivityTable">
+                                <!-- Populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Analytics -->
+        <div class="row mt-4">
+            <div class="col-lg-4">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Contract Value Distribution</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="valueDistributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Monthly New Locations</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="monthlyNewChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card analytics-card">
+                    <div class="card-header">
+                        <h6 class="mb-0">Client Distribution</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="clientStats">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export Analytics Data</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Preparing your analytics export...</p>
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                         style="width: 0%" id="exportProgress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script src="{% static 'home/vendor/datatables/jquery.dataTables.js' %}"></script>
+<script src="{% static 'home/vendor/datatables/dataTables.bootstrap4.js' %}"></script>
+
+<script>
+class LocationAnalytics {
+    constructor() {
+        this.charts = {};
+        this.data = {};
+        this.filters = {
+            dateRange: '365',
+            businessCategory: '',
+            status: '',
+            client: ''
+        };
+        
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.loadAnalyticsData();
+    }
+    
+    async loadAnalyticsData() {
+        try {
+            const params = new URLSearchParams(this.filters);
+            const response = await fetch(`{% url 'location:analytics-data' %}?${params}`);
+            this.data = await response.json();
+            
+            this.updateKPIs();
+            this.createCharts();
+            this.updateTables();
+            this.updateGeographicStats();
+            this.updateClientStats();
+            
+        } catch (error) {
+            console.error('Error loading analytics data:', error);
+            this.showError('Failed to load analytics data');
+        }
+    }
+    
+    updateKPIs() {
+        $('#totalLocations').text(this.data.kpis.total_locations);
+        $('#activeLocations').text(this.data.kpis.active_locations);
+        $('#totalValue').text(`${this.formatNumber(this.data.kpis.total_value)}`);
+        $('#avgValue').text(`${this.formatNumber(this.data.kpis.avg_value)}`);
+        
+        // Update trends
+        this.updateTrend('locationsTrend', this.data.trends.locations);
+        this.updateTrend('activeTrend', this.data.trends.active);
+        this.updateTrend('valueTrend', this.data.trends.value);
+        this.updateTrend('avgTrend', this.data.trends.avg_value);
+    }
+    
+    updateTrend(elementId, trend) {
+        const element = $(`#${elementId}`);
+        const isPositive = trend >= 0;
+        const icon = isPositive ? 'arrow-up' : 'arrow-down';
+        const className = isPositive ? 'trend-up' : 'trend-down';
+        
+        element.removeClass('trend-up trend-down trend-flat')
+               .addClass(className)
+               .html(`<i class="fas fa-${icon}"></i> ${Math.abs(trend)}%`);
+    }
+    
+    createCharts() {
+        this.createStatusChart();
+        this.createCategoryChart();
+        this.createGrowthChart();
+        this.createValueDistributionChart();
+        this.createMonthlyNewChart();
+    }
+    
+    createStatusChart() {
+        const ctx = document.getElementById('statusChart').getContext('2d');
+        
+        if (this.charts.statusChart) {
+            this.charts.statusChart.destroy();
+        }
+        
+        this.charts.statusChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: this.data.charts.status.labels,
+                datasets: [{
+                    data: this.data.charts.status.data,
+                    backgroundColor: [
+                        '#ffc107', // prospect
+                        '#28a745', // active
+                        '#6c757d', // complete
+                        '#dc3545'  // inactive
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    createCategoryChart() {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        
+        if (this.charts.categoryChart) {
+            this.charts.categoryChart.destroy();
+        }
+        
+        this.charts.categoryChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: this.data.charts.categories.labels,
+                datasets: [{
+                    label: 'Locations',
+                    data: this.data.charts.categories.data,
+                    backgroundColor: [
+                        '#007bff', '#28a745', '#ffc107', '#dc3545', 
+                        '#6f42c1', '#fd7e14', '#20c997', '#6c757d'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    
+    createGrowthChart() {
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        
+        if (this.charts.growthChart) {
+            this.charts.growthChart.destroy();
+        }
+        
+        this.charts.growthChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: this.data.charts.growth.labels,
+                datasets: [{
+                    label: 'Total Locations',
+                    data: this.data.charts.growth.total,
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Active Locations',
+                    data: this.data.charts.growth.active,
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+    
+    createValueDistributionChart() {
+        const ctx = document.getElementById('valueDistributionChart').getContext('2d');
+        
+        if (this.charts.valueChart) {
+            this.charts.valueChart.destroy();
+        }
+        
+        this.charts.valueChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: this.data.charts.value_distribution.labels,
+                datasets: [{
+                    data: this.data.charts.value_distribution.data,
+                    backgroundColor: [
+                        '#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            fontSize: 10
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    createMonthlyNewChart() {
+        const ctx = document.getElementById('monthlyNewChart').getContext('2d');
+        
+        if (this.charts.monthlyChart) {
+            this.charts.monthlyChart.destroy();
+        }
+        
+        this.charts.monthlyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: this.data.charts.monthly_new.labels,
+                datasets: [{
+                    label: 'New Locations',
+                    data: this.data.charts.monthly_new.data,
+                    backgroundColor: '#17a2b8',
+                    borderColor: '#117a8b',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    
+    updateTables() {
+        // Top performing locations
+        const topLocationsTable = $('#topLocationsTable');
+        topLocationsTable.empty();
+        
+        this.data.tables.top_locations.forEach(location => {
+            const row = `
+                <tr>
+                    <td><a href="${location.url}" target="_blank">${location.name}</a></td>
+                    <td>${location.client}</td>
+                    <td>${this.formatNumber(location.value)}</td>
+                    <td><span class="badge badge-${this.getStatusBadgeClass(location.status)}">${location.status}</span></td>
+                </tr>
+            `;
+            topLocationsTable.append(row);
+        });
+        
+        // Recent activity
+        const recentActivityTable = $('#recentActivityTable');
+        recentActivityTable.empty();
+        
+        this.data.tables.recent_activity.forEach(activity => {
+            const row = `
+                <tr>
+                    <td>${activity.date}</td>
+                    <td><a href="${activity.url}" target="_blank">${activity.location}</a></td>
+                    <td>${activity.action}</td>
+                    <td><span class="badge badge-${this.getStatusBadgeClass(activity.status)}">${activity.status}</span></td>
+                </tr>
+            `;
+            recentActivityTable.append(row);
+        });
+    }
+    
+    updateGeographicStats() {
+        const container = $('#geographicStats');
+        container.empty();
+        
+        this.data.geographic.forEach(item => {
+            const percentage = (item.count / this.data.kpis.total_locations * 100).toFixed(1);
+            const row = `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>${item.state}</span>
+                    <span class="badge badge-primary">${item.count}</span>
+                </div>
+                <div class="progress mb-3" style="height: 5px;">
+                    <div class="progress-bar" style="width: ${percentage}%"></div>
+                </div>
+            `;
+            container.append(row);
+        });
+    }
+    
+    updateClientStats() {
+        const container = $('#clientStats');
+        container.empty();
+        
+        this.data.clients.forEach(client => {
+            const percentage = (client.count / this.data.kpis.total_locations * 100).toFixed(1);
+            const row = `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small">${client.name}</span>
+                    <span class="badge badge-info">${client.count}</span>
+                </div>
+                <div class="progress mb-3" style="height: 5px;">
+                    <div class="progress-bar bg-info" style="width: ${percentage}%"></div>
+                </div>
+            `;
+            container.append(row);
+        });
+    }
+    
+    getStatusBadgeClass(status) {
+        const classes = {
+            'prospect': 'warning',
+            'active': 'success',
+            'complete': 'secondary',
+            'inactive': 'danger'
+        };
+        return classes[status] || 'primary';
+    }
+    
+    formatNumber(num) {
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1) + 'M';
+        } else if (num >= 1000) {
+            return (num / 1000).toFixed(1) + 'K';
+        }
+        return num.toString();
+    }
+    
+    updateFilters() {
+        this.filters = {
+            dateRange: $('#dateRange').val(),
+            businessCategory: $('#businessCategoryFilter').val(),
+            status: $('#statusFilter').val(),
+            client: $('#clientFilter').val()
+        };
+        
+        this.loadAnalyticsData();
+    }
+    
+    exportData(format) {
+        $('#exportModal').modal('show');
+        
+        // Simulate export progress
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            $('#exportProgress').css('width', progress + '%');
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    $('#exportModal').modal('hide');
+                    this.downloadFile(format);
+                }, 500);
+            }
+        }, 100);
+    }
+    
+    downloadFile(format) {
+        // In a real implementation, this would trigger an actual download
+        const params = new URLSearchParams(this.filters);
+        params.append('format', format);
+        
+        const url = `{% url 'location:analytics-export' %}?${params}`;
+        window.open(url, '_blank');
+    }
+    
+    showError(message) {
+        const alert = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                ${message}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+        `;
+        
+        $('.container-fluid').prepend(alert);
+        
+        setTimeout(() => {
+            $('.alert').fadeOut();
+        }, 5000);
+    }
+    
+    setupEventListeners() {
+        // Filter changes
+        $('#dateRange, #businessCategoryFilter, #statusFilter, #clientFilter').on('change', () => {
+            this.updateFilters();
+        });
+        
+        // Refresh button
+        $('#refreshData').on('click', () => {
+            this.loadAnalyticsData();
+        });
+        
+        // Export buttons
+        $('#exportPDF').on('click', (e) => {
+            e.preventDefault();
+            this.exportData('pdf');
+        });
+        
+        $('#exportExcel').on('click', (e) => {
+            e.preventDefault();
+            this.exportData('excel');
+        });
+        
+        $('#exportCSV').on('click', (e) => {
+            e.preventDefault();
+            this.exportData('csv');
+        });
+    }
+}
+
+// Mock data for demo purposes - replace with real API calls
+const mockData = {
+    kpis: {
+        total_locations: 156,
+        active_locations: 98,
+        total_value: 2850000,
+        avg_value: 18269
+    },
+    trends: {
+        locations: 12,
+        active: 8,
+        value: 15,
+        avg_value: 0
+    },
+    charts: {
+        status: {
+            labels: ['Prospect', 'Active', 'Complete', 'Inactive'],
+            data: [23, 98, 31, 4]
+        },
+        categories: {
+            labels: ['Construction', 'Entertainment', 'Investigation', 'Consulting'],
+            data: [65, 34, 28, 19]
+        },
+        growth: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            total: [120, 125, 135, 142, 150, 156],
+            active: [75, 82, 88, 92, 95, 98]
+        },
+        value_distribution: {
+            labels: ['$0-10K', '$10K-50K', '$50K-100K', '$100K-500K', '$500K+'],
+            data: [45, 62, 28, 18, 3]
+        },
+        monthly_new: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            data: [8, 5, 10, 7, 8, 6]
+        }
+    },
+    tables: {
+        top_locations: [
+            { name: 'Downtown Convention Center', client: 'City Events LLC', value: 250000, status: 'active', url: '#' },
+            { name: 'Tech Campus Building A', client: 'Innovation Corp', value: 180000, status: 'active', url: '#' },
+            { name: 'Retail Plaza Phase 2', client: 'Retail Group', value: 150000, status: 'complete', url: '#' }
+        ],
+        recent_activity: [
+            { date: 'Jun 8', location: 'New Office Complex', action: 'Created', status: 'prospect', url: '#' },
+            { date: 'Jun 7', location: 'Mall Renovation', action: 'Status Updated', status: 'active', url: '#' },
+            { date: 'Jun 6', location: 'Hotel Lobby', action: 'Completed', status: 'complete', url: '#' }
+        ]
+    },
+    geographic: [
+        { state: 'California', count: 45 },
+        { state: 'Texas', count: 32 },
+        { state: 'New York', count: 28 },
+        { state: 'Florida', count: 22 }
+    ],
+    clients: [
+        { name: 'Construction Corp', count: 35 },
+        { name: 'Event Solutions', count: 28 },
+        { name: 'Tech Innovations', count: 22 },
+        { name: 'Retail Group', count: 18 }
+    ]
+};
+
+// Initialize analytics dashboard
+$(document).ready(function() {
+    // Create analytics instance
+    const analytics = new LocationAnalytics();
+    
+    // Override loadAnalyticsData to use mock data for demo
+    analytics.loadAnalyticsData = function() {
+        this.data = mockData;
+        this.updateKPIs();
+        this.createCharts();
+        this.updateTables();
+        this.updateGeographicStats();
+        this.updateClientStats();
+    };
+    
+    // Initial load
+    analytics.loadAnalyticsData();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}<title>Delete {{ object.get_full_name }} - Confirm</title>{% endblock %}
+
+{% block breadcrumb %}
+/ <a href="{% url 'hr:index' %}">HR</a> 
+/ <a href="{% url 'hr:worker-list' %}">Staff</a> 
+/ <a href="{% url 'hr:worker-detail' object.pk %}">{{ object.get_short_name }}</a>
+/ Delete
+{% endblock %}
+
+{% block content %}
+{% if perms.hr.delete_worker %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="m-0">
+                    <i class="fas fa-exclamation-triangle"></i> Confirm Deletion
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Worker Summary -->
+                <div class="text-center mb-4">
+                    {% if object.profile_picture %}
+                        <img src="{{ object.profile_picture.url }}" alt="Profile Picture" 
+                             class="rounded-circle img-fluid mb-3" style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center mx-auto mb-3" 
+                             style="width: 80px; height: 80px; font-size: 32px;">
+                            {{ object.first_name|first }}{{ object.last_name|first }}
+                        </div>
+                    {% endif %}
+                    
+                    <h4 class="font-weight-bold">{{ object.get_full_name }}</h4>
+                    {% if object.position %}
+                        <p class="text-muted">{{ object.position.title }}</p>
+                    {% endif %}
+                    {% if object.employee_id %}
+                        <p class="text-muted">Employee ID: {{ object.employee_id }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Warning Message -->
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Warning</h6>
+                    <p class="mb-2">Are you sure you want to delete this worker? This action will:</p>
+                    <ul class="mb-0">
+                        <li>Permanently remove <strong>{{ object.get_full_name }}</strong> from the system</li>
+                        <li>Delete all associated time off requests</li>
+                        <li>Remove performance review records</li>
+                        <li>Clear clearance and certification assignments</li>
+                        <li><strong>This action cannot be undone!</strong></li>
+                    </ul>
+                </div>
+
+                <!-- Additional Information -->
+                {% if object.direct_reports.exists %}
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-users"></i> Direct Reports Warning</h6>
+                    <p>This worker manages {{ object.direct_reports.count }} direct report{{ object.direct_reports.count|pluralize }}:</p>
+                    <ul class="mb-0">
+                        {% for report in object.direct_reports.all %}
+                            <li>{{ report.get_full_name }} ({{ report.position.title|default:"No position" }})</li>
+                        {% endfor %}
+                    </ul>
+                    <p class="mt-2 mb-0"><strong>These workers will lose their manager assignment.</strong></p>
+                </div>
+                {% endif %}
+
+                {% if object.is_active %}
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> Active Worker</h6>
+                    <p class="mb-0">This is an active worker. Consider deactivating instead of deleting to preserve historical records.</p>
+                </div>
+                {% endif %}
+
+                <!-- Worker Details Summary -->
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title">Worker Summary</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Email:</strong><br>
+                                <span class="text-muted">{{ object.email }}</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>Phone:</strong><br>
+                                <span class="text-muted">{{ object.phone_number|default:"Not provided" }}</span>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <strong>Hire Date:</strong><br>
+                                <span class="text-muted">{{ object.date_of_hire|date:"M d, Y"|default:"Not set" }}</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>Department:</strong><br>
+                                <span class="text-muted">{{ object.department.name|default:"Not assigned" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmation Form -->
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="confirmDelete" required>
+                            <label class="custom-control-label" for="confirmDelete">
+                                I understand that this action is permanent and cannot be undone
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'hr:worker-detail' object.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Cancel
+                        </a>
+                        
+                        <div>
+                            <a href="{% url 'hr:worker-update' object.pk %}" class="btn btn-warning mr-2">
+                                <i class="fas fa-user-slash"></i> Deactivate Instead
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                                <i class="fas fa-trash"></i> Delete Worker
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="alert alert-danger text-center">
+            <h4><i class="fas fa-lock"></i> Access Denied</h4>
+            <p>You don't have permission to delete workers.</p>
+            <a href="{% url 'hr:worker-detail' object.pk %}" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Back to Worker Details
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripter %}
+<script>
+$(document).ready(function() {
+    // Enable/disable delete button based on checkbox
+    $('#confirmDelete').change(function() {
+        $('#deleteBtn').prop('disabled', !this.checked);
+    });
+    
+    // Add confirmation dialog as extra safety
+    $('form').submit(function(e) {
+        if (!confirm('Are you absolutely sure you want to delete {{ object.get_full_name }}? This cannot be undone!')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

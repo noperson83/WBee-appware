@@ -1,0 +1,74 @@
+{% extends "home/base.html" %}
+{% load i18n scheduletags %}
+{% load static %}
+{% block title %}<title>Schedule</title>{% endblock %}
+{% block styler %}<link href="{% static 'home/vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet" type="text/css"> {% endblock %}
+{% block breadcrumb %} / <a href="{% url 'schedule' %}">Schedule</a> / <b>{{ day }}</b>
+{% if request.user.staff %} / <a href="{% url 'create-event' proj=0 %}">add a new event</a>{% else %}{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row" style="margin: auto; width:300px;">
+  {% if previous_day %}
+  <a style="margin: auto;font-size:large;color:black;font-weight:bold;" href="{% with year=previous_day.year month=previous_day|date:'b' day=previous_day.day %}{% url 'archive_day' year month day %}{% endwith %}">
+  <div class="col-lg-12">
+    <i class="fa fa-arrow-circle-left" aria-hidden="true"></i> {{ previous_day|date:'m/d' }}</div></a>
+  {% endif %}
+  {% if previous_day and next_day %}
+  <a style="margin: auto;font-size:large;color:black;font-weight:bold;" href="{% url 'archive_today' %}">
+  <div class="col-lg-12" style="text-align:center; border-style:groove; border-radius:8px;">Today</div></a>
+  {% endif %}
+  {% if next_day %}
+  <a style="margin: auto;font-size:large;color:black;font-weight:bold;" href="{% with year=next_day.year month=next_day|date:'b' day=next_day.day %}{% url 'archive_day' year month day %}{% endwith %}">
+  <div class="col-lg-12">{{ next_day|date:'m/d' }} <i class="fa fa-arrow-circle-right" aria-hidden="true"></i></div></a>
+  {% endif %}
+</div>
+<div class="table-responsive">
+  <table class="table table-bordered" width="100%" cellspacing="0">
+    <thead>
+      <tr>
+        <th style="font-weight: inherit;">Date </th>
+        <th style="font-weight: inherit;">Tech<i class="fa fa-fw fa-user"></i></th>
+        <th style="font-weight: inherit;">Office <i class="fa fa-clock-o"></i></th>
+        <th style="font-weight: inherit;">Site <i class="fa fa-clock-o"></i></th>
+        <th style="font-weight: inherit;">Projcet name <i class="fa fa-fw fa-building"></i></th>
+        <th style="font-weight: inherit;">Address <i class="fa fa-fw fa-map"></i></th>
+        <th style="font-weight: inherit;">Job #</th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr>
+        <th style="font-weight: inherit;">Date </th>
+        <th style="font-weight: inherit;">Tech<i class="fa fa-fw fa-user"></i></th>
+        <th style="font-weight: inherit;">Office <i class="fa fa-clock-o"></i></th>
+        <th style="font-weight: inherit;">Site <i class="fa fa-clock-o"></i></th>
+        <th style="font-weight: inherit;">Projcet name <i class="fa fa-fw fa-building"></i></th>
+        <th style="font-weight: inherit;">Address <i class="fa fa-fw fa-map"></i></th>
+        <th style="font-weight: inherit;">Job #</th>
+      </tr>
+    </tfoot>
+    <tbody>
+      {% for event in object_list %}
+        {% for workers in event.workers.all %}
+          <tr style="background-color:{{event.color_event}};">
+            <td style="min-width:68px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ event.get_absolute_url }}">{{event.start|date:'m/d'}}</a> </td>
+            <td style="min-width:80px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ workers.get_absolute_url }}">{{ workers.first_name }} {{ workers.last_name }}</a><br> </td>
+            <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ event.get_absolute_url }}">{{ event.start_time|date:'f A' }}</a> </td>
+            <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ event.get_absolute_url }}">{{ event.start|date:'f A' }}</a> </td>
+            <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ event.project.get_absolute_url }}">{{ event.project.job_name|truncatechars:48 }}</a> </td>
+            <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ event.project.jobsite.google_maps_link }}">{{ event.project.jobsite.street_address }}, {{ event.project.jobsite.city }}, {{ event.project.jobsite.state }}, {{ event.project.jobsite.zipcode }}</a></td>
+            <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="{{ event.project.get_absolute_url }}">{{ event.project.job_num }}</a> </td>
+          </tr>
+        {% if not forloop.last %} {% endif %}
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %} 
+
+{% block scripter %} 
+<script src="{% static 'home/js/sb-admin-datatables.min.js' %}"></script>
+<script src="{% static 'home/vendor/datatables/jquery.dataTables.js' %}"></script>
+<script src="{% static 'home/vendor/datatables/dataTables.bootstrap4.js' %}"></script> 
+{% endblock %}

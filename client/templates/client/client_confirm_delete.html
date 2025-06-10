@@ -1,0 +1,391 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>Delete {{ object.company_name }} - Confirm Deletion</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+  <a href="{% url 'client:dashboard' %}">Client Management</a>
+</li>
+<li class="breadcrumb-item">
+  <a href="{% url 'client:list' %}">Directory</a>
+</li>
+<li class="breadcrumb-item">
+  <a href="{{ object.get_absolute_url }}">{{ object.company_name }}</a>
+</li>
+<li class="breadcrumb-item active">Delete Client</li>
+{% endblock %}
+
+{% block styler %}
+<style>
+  .danger-zone {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .danger-zone::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transform: rotate(45deg);
+  }
+
+  .warning-card {
+    border-left: 4px solid #ffc107;
+    background: #fff8e1;
+    border-radius: 8px;
+  }
+
+  .impact-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-left: 4px solid #dc3545;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .stat-item {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    border: 1px solid #e9ecef;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #dc3545;
+  }
+
+  .stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .confirm-checkbox {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .btn-danger-confirm {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+
+  .btn-danger-confirm:hover {
+    background: linear-gradient(45deg, #c82333, #bd2130);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+  }
+
+  .btn-danger-confirm:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .safe-actions {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Danger Header -->
+      <div class="danger-zone mb-4">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <h1 class="h2 mb-2">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              Delete Client
+            </h1>
+            <p class="mb-0 opacity-75">
+              You are about to permanently delete <strong>{{ object.company_name }}</strong>
+            </p>
+          </div>
+          <div class="text-end">
+            <i class="fas fa-trash" style="font-size: 3rem; opacity: 0.3;"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Warning Card -->
+      <div class="card warning-card mb-4">
+        <div class="card-body">
+          <div class="d-flex align-items-start">
+            <i class="fas fa-exclamation-triangle text-warning me-3 mt-1" style="font-size: 1.5rem;"></i>
+            <div>
+              <h5 class="text-warning mb-2">⚠️ This action cannot be undone!</h5>
+              <p class="mb-0">
+                Deleting this client will permanently remove all associated data from the system. 
+                This includes addresses, contacts, revenue records, and any relationships with job sites or projects.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Client Information -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">
+            <i class="fas fa-building me-2"></i>Client to be deleted
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              {% if object.logo %}
+                <img src="{{ object.logo.url }}" alt="{{ object.company_name }}" 
+                     style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;">
+              {% else %}
+                <div class="bg-secondary d-flex align-items-center justify-content-center" 
+                     style="width: 60px; height: 60px; border-radius: 8px;">
+                  <i class="fas fa-building text-white"></i>
+                </div>
+              {% endif %}
+            </div>
+            <div class="col">
+              <h4 class="mb-1">{{ object.company_name }}</h4>
+              {% if object.business_type %}
+                <p class="text-muted mb-1">{{ object.get_business_type_display }}</p>
+              {% endif %}
+              <span class="badge badge-{% if object.status == 'active' %}success{% elif object.status == 'prospect' %}warning{% elif object.status == 'inactive' %}secondary{% else %}danger{% endif %}">
+                {{ object.get_status_display }}
+              </span>
+            </div>
+            <div class="col-auto text-end">
+              {% if object.total_revenue %}
+                <div class="text-muted small">Total Revenue</div>
+                <div class="h5 mb-0">${{ object.total_revenue|floatformat:2 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Impact Assessment -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-line me-2"></i>Deletion Impact
+          </h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted mb-3">
+            The following data will be permanently deleted along with this client:
+          </p>
+
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-number">{{ related_counts.addresses }}</div>
+              <div class="stat-label">Addresses</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">{{ related_counts.contacts }}</div>
+              <div class="stat-label">Contacts</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">{{ related_counts.revenues }}</div>
+              <div class="stat-label">Revenue Records</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">{{ object.locations.count|default:0 }}</div>
+              <div class="stat-label">Job Sites</div>
+            </div>
+          </div>
+
+          <div class="impact-item">
+            <h6 class="mb-2">
+              <i class="fas fa-database me-2"></i>Data Loss
+            </h6>
+            <ul class="mb-0">
+              <li>All contact information and communication history</li>
+              <li>Address records and location data</li>
+              <li>Financial records and revenue tracking</li>
+              <li>Custom fields and client notes</li>
+              {% if object.locations.count > 0 %}
+              <li>Associated job sites and project relationships</li>
+              {% endif %}
+            </ul>
+          </div>
+
+          <div class="impact-item">
+            <h6 class="mb-2">
+              <i class="fas fa-link me-2"></i>System Relationships
+            </h6>
+            <ul class="mb-0">
+              <li>References from invoices and financial reports</li>
+              <li>Project assignments and job site connections</li>
+              <li>User activity logs and audit trails</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation Form -->
+      <div class="card">
+        <div class="card-body">
+          <form method="post" id="deleteForm">
+            {% csrf_token %}
+            
+            <div class="confirm-checkbox">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                <label class="form-check-label" for="confirmDelete">
+                  <strong>I understand that this action cannot be undone</strong>
+                </label>
+              </div>
+            </div>
+
+            <div class="confirm-checkbox">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="confirmDataLoss" required>
+                <label class="form-check-label" for="confirmDataLoss">
+                  <strong>I understand that all client data will be permanently lost</strong>
+                </label>
+              </div>
+            </div>
+
+            <div class="confirm-checkbox">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="confirmName" required>
+                <label class="form-check-label" for="confirmName">
+                  <strong>I confirm I want to delete "{{ object.company_name }}"</strong>
+                </label>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+              <div>
+                <a href="{{ object.get_absolute_url }}" class="btn btn-outline-secondary">
+                  <i class="fas fa-arrow-left me-1"></i>Cancel and go back
+                </a>
+                <a href="{% url 'client:list' %}" class="btn btn-outline-primary ms-2">
+                  <i class="fas fa-list me-1"></i>Return to Client List
+                </a>
+              </div>
+              <button type="submit" class="btn btn-danger btn-danger-confirm text-white" id="deleteButton" disabled>
+                <i class="fas fa-trash me-2"></i>
+                Delete {{ object.company_name }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Safe Actions -->
+      <div class="safe-actions">
+        <h6 class="mb-3">
+          <i class="fas fa-lightbulb me-2"></i>Consider these alternatives instead:
+        </h6>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{% url 'client:update' object.pk %}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-edit me-1"></i>Edit Client Information
+          </a>
+          <button class="btn btn-outline-secondary btn-sm" onclick="markInactive()">
+            <i class="fas fa-pause me-1"></i>Mark as Inactive
+          </button>
+          <a href="#" class="btn btn-outline-info btn-sm">
+            <i class="fas fa-archive me-1"></i>Archive Client Data
+          </a>
+          <a href="#" class="btn btn-outline-success btn-sm">
+            <i class="fas fa-download me-1"></i>Export Client Data
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script>
+$(document).ready(function() {
+  // Enable delete button only when all checkboxes are checked
+  function checkConfirmation() {
+    const allChecked = $('#confirmDelete').is(':checked') && 
+                      $('#confirmDataLoss').is(':checked') && 
+                      $('#confirmName').is(':checked');
+    
+    $('#deleteButton').prop('disabled', !allChecked);
+    
+    if (allChecked) {
+      $('#deleteButton').removeClass('btn-secondary').addClass('btn-danger');
+    } else {
+      $('#deleteButton').removeClass('btn-danger').addClass('btn-secondary');
+    }
+  }
+
+  // Check on any checkbox change
+  $('.form-check-input').change(checkConfirmation);
+
+  // Final confirmation before submit
+  $('#deleteForm').submit(function(e) {
+    if (!confirm('Are you absolutely sure you want to delete this client? This action cannot be undone!')) {
+      e.preventDefault();
+      return false;
+    }
+  });
+});
+
+function markInactive() {
+  if (confirm('Mark this client as inactive instead of deleting?')) {
+    // Submit a form to update status to inactive
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "client:update" object.pk %}';
+    
+    const csrfToken = document.createElement('input');
+    csrfToken.type = 'hidden';
+    csrfToken.name = 'csrfmiddlewaretoken';
+    csrfToken.value = '{{ csrf_token }}';
+    
+    const statusField = document.createElement('input');
+    statusField.type = 'hidden';
+    statusField.name = 'status';
+    statusField.value = 'inactive';
+    
+    form.appendChild(csrfToken);
+    form.appendChild(statusField);
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+</script>
+{% endblock %}

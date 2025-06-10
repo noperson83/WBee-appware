@@ -1,0 +1,346 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}{% if company %}{{ company.company_name }} Offices{% else %}All Offices{% endif %}{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+{% if company %}
+    <li class="breadcrumb-item"><a href="{% url 'company:detail' company.pk %}">{{ company.company_name }}</a></li>
+    <li class="breadcrumb-item active">Offices</li>
+{% else %}
+    <li class="breadcrumb-item active">All Offices</li>
+{% endif %}
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="fas fa-building"></i> 
+                    {% if company %}{{ company.company_name }} Offices{% else %}All Office Locations{% endif %}
+                </h1>
+                <p class="mb-0 mt-2">
+                    {% if company %}
+                        Manage office locations for {{ company.company_name }}
+                    {% else %}
+                        View and manage all office locations across companies
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                {% if company and user.is_staff %}
+                    <a href="{% url 'company:office-create' company.pk %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-plus"></i> Add Office
+                    </a>
+                {% endif %}
+                {% if company %}
+                    <a href="{% url 'company:detail' company.pk %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Back to Company
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Office Statistics -->
+{% if offices %}
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card blue">
+            <div class="h3 mb-0">{{ offices.count }}</div>
+            <small>Total Offices</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card green">
+            <div class="h3 mb-0">
+                {% widthratio offices|length 1 1 as active_count %}
+                {% for office in offices %}
+                    {% if office.is_active %}{{ forloop.counter }}{% endif %}
+                {% endfor %}
+            </div>
+            <small>Active Offices</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card orange">
+            <div class="h3 mb-0">
+                {% for office in offices %}{{ office.employee_count|add:0 }}{% endfor %}
+            </div>
+            <small>Total Employees</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card">
+            <div class="h3 mb-0">
+                {% for office in offices %}
+                    {% if office.employee_capacity %}{{ office.employee_capacity|add:0 }}{% endif %}
+                {% endfor %}
+            </div>
+            <small>Total Capacity</small>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Office Grid -->
+<div class="row">
+    {% for office in offices %}
+    <div class="col-lg-6 col-xl-4 mb-4">
+        <div class="card company-card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0">
+                        <a href="{% url 'company:office-detail' office.pk %}" class="text-decoration-none">
+                            {{ office.office_name }}
+                        </a>
+                        {% if office.office_code %}
+                            <small class="text-muted">({{ office.office_code }})</small>
+                        {% endif %}
+                    </h6>
+                    <span class="badge office-type-badge {% if office.office_type == 'headquarters' %}bg-primary{% elif office.office_type == 'branch' %}bg-info{% elif office.office_type == 'warehouse' %}bg-warning{% elif office.office_type == 'retail' %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ office.get_office_type_display }}
+                    </span>
+                </div>
+                <span class="badge {% if office.is_active %}bg-success{% else %}bg-secondary{% endif %} status-badge">
+                    {% if office.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+            </div>
+            
+            <div class="card-body">
+                <!-- Office Statistics -->
+                <div class="row text-center mb-3">
+                    <div class="col-6">
+                        <div class="p-2 bg-light rounded">
+                            <div class="h5 mb-0 text-primary">{{ office.employee_count }}</div>
+                            <small class="text-muted">Employees</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 bg-light rounded">
+                            <div class="h5 mb-0 text-info">
+                                {% if office.employee_capacity %}{{ office.employee_capacity }}{% else %}—{% endif %}
+                            </div>
+                            <small class="text-muted">Capacity</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Utilization Bar -->
+                {% if office.employee_capacity and office.employee_capacity > 0 %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted">Utilization</small>
+                        <small class="text-muted">{{ office.utilization_rate|floatformat:1 }}%</small>
+                    </div>
+                    <div class="utilization-bar">
+                        <div class="utilization-fill {% if office.utilization_rate >= 90 %}danger{% elif office.utilization_rate >= 75 %}warning{% endif %}" 
+                             style="width: {{ office.utilization_rate }}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Office Details -->
+                {% if office.office_manager %}
+                    <p class="mb-2">
+                        <i class="fas fa-user-tie text-muted"></i> 
+                        <strong>Manager:</strong> {{ office.office_manager }}
+                    </p>
+                {% endif %}
+                
+                {% if office.phone_number %}
+                    <p class="mb-2">
+                        <i class="fas fa-phone text-muted"></i> 
+                        <a href="tel:{{ office.phone_number }}">{{ office.phone_number }}</a>
+                    </p>
+                {% endif %}
+                
+                {% if office.email %}
+                    <p class="mb-2">
+                        <i class="fas fa-envelope text-muted"></i> 
+                        <a href="mailto:{{ office.email }}">{{ office.email }}</a>
+                    </p>
+                {% endif %}
+                
+                {% if office.square_footage %}
+                    <p class="mb-2">
+                        <i class="fas fa-ruler-combined text-muted"></i> 
+                        {{ office.square_footage|floatformat:0 }} sq ft
+                    </p>
+                {% endif %}
+                
+                {% if office.opened_date %}
+                    <p class="mb-2">
+                        <i class="fas fa-calendar text-muted"></i> 
+                        Opened: {{ office.opened_date|date:"M Y" }}
+                    </p>
+                {% endif %}
+                
+                <!-- Primary Address -->
+                {% if office.primary_address %}
+                    <div class="mt-3 p-2 bg-light rounded">
+                        <small class="text-muted d-block mb-1">
+                            <i class="fas fa-map-marker-alt"></i> Address
+                        </small>
+                        <small>
+                            {{ office.primary_address.line1 }}<br>
+                            {% if office.primary_address.line2 %}{{ office.primary_address.line2 }}<br>{% endif %}
+                            {{ office.primary_address.city }}, {{ office.primary_address.state_province }} {{ office.primary_address.postal_code }}
+                        </small>
+                    </div>
+                {% endif %}
+                
+                {% if office.description %}
+                    <div class="mt-3">
+                        <small class="text-muted">{{ office.description|truncatewords:15 }}</small>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-footer bg-transparent">
+                <div class="btn-group w-100" role="group">
+                    <a href="{% url 'company:office-detail' office.pk %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                    {% if user.is_staff %}
+                        <a href="{% url 'company:office-update' office.pk %}" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    {% endif %}
+                    <button type="button" class="btn btn-outline-info btn-sm" 
+                            onclick="showOfficeOnMap('{{ office.pk }}')">
+                        <i class="fas fa-map"></i> Map
+                    </button>
+                </div>
+                
+                {% if not company %}
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-building"></i> 
+                            <a href="{% url 'company:detail' office.company.pk %}">{{ office.company.company_name }}</a>
+                        </small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="text-center py-5">
+            <i class="fas fa-building fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No Offices Found</h4>
+            <p class="text-muted">
+                {% if company %}
+                    {{ company.company_name }} doesn't have any offices yet.
+                {% else %}
+                    No offices have been created yet.
+                {% endif %}
+            </p>
+            {% if company and user.is_staff %}
+                <a href="{% url 'company:office-create' company.pk %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add First Office
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Office pagination">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+        {% endif %}
+        
+        <li class="page-item active">
+            <span class="page-link">
+                {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+        </li>
+        
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+function showOfficeOnMap(officeId) {
+    // This would integrate with a mapping service
+    alert(`Mapping functionality for office ${officeId} would be implemented here`);
+    // In a real implementation, this would:
+    // 1. Get office address via AJAX
+    // 2. Open Google Maps or similar service
+    // 3. Show office location
+}
+
+// Add some interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to utilization bars
+    const utilizationBars = document.querySelectorAll('.utilization-fill');
+    utilizationBars.forEach(bar => {
+        bar.addEventListener('mouseenter', function() {
+            this.style.transform = 'scaleY(1.1)';
+            this.style.transformOrigin = 'bottom';
+        });
+        bar.addEventListener('mouseleave', function() {
+            this.style.transform = 'scaleY(1)';
+        });
+    });
+});
+</script>
+
+<style>
+.utilization-bar {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.utilization-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.utilization-fill.warning {
+    background: linear-gradient(90deg, #ffc107 0%, #fd7e14 100%);
+}
+
+.utilization-fill.danger {
+    background: linear-gradient(90deg, #dc3545 0%, #e74c3c 100%);
+}
+
+.office-type-badge {
+    font-size: 0.75rem;
+}
+</style>
+{% endblock %}

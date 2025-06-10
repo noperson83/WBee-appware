@@ -1,0 +1,325 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}{{ office.office_name }}{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+<li class="breadcrumb-item"><a href="{% url 'company:detail' office.company.pk %}">{{ office.company.company_name }}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'company:office-list' office.company.pk %}">Offices</a></li>
+<li class="breadcrumb-item active">{{ office.office_name }}</li>
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-building fa-3x me-3"></i>
+                    <div>
+                        <h1 class="mb-0">{{ office.office_name }}</h1>
+                        {% if office.office_code %}
+                            <p class="mb-0 opacity-75">Office Code: {{ office.office_code }}</p>
+                        {% endif %}
+                        <div class="mt-2">
+                            <span class="badge office-type-badge {% if office.office_type == 'headquarters' %}bg-primary{% elif office.office_type == 'branch' %}bg-info{% elif office.office_type == 'warehouse' %}bg-warning{% elif office.office_type == 'retail' %}bg-success{% else %}bg-secondary{% endif %} me-2">
+                                {{ office.get_office_type_display }}
+                            </span>
+                            <span class="badge {% if office.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if office.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'company:office-list' office.company.pk %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Back to Offices
+                    </a>
+                    {% if user.is_staff %}
+                        <a href="{% url 'company:office-update' office.pk %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Office Information -->
+    <div class="col-lg-8">
+        <!-- Office Overview -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> Office Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Contact Information</h6>
+                        {% if office.office_manager %}
+                            <p class="mb-2">
+                                <strong><i class="fas fa-user-tie text-muted"></i> Manager:</strong> {{ office.office_manager }}
+                            </p>
+                        {% endif %}
+                        {% if office.phone_number %}
+                            <p class="mb-2">
+                                <i class="fas fa-phone text-muted"></i> 
+                                <a href="tel:{{ office.phone_number }}">{{ office.phone_number }}</a>
+                            </p>
+                        {% endif %}
+                        {% if office.email %}
+                            <p class="mb-2">
+                                <i class="fas fa-envelope text-muted"></i> 
+                                <a href="mailto:{{ office.email }}">{{ office.email }}</a>
+                            </p>
+                        {% endif %}
+                        <p class="mb-2">
+                            <i class="fas fa-building text-muted"></i> 
+                            <a href="{% url 'company:detail' office.company.pk %}">{{ office.company.company_name }}</a>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Office Details</h6>
+                        {% if office.opened_date %}
+                            <p class="mb-2">
+                                <i class="fas fa-calendar text-muted"></i> Opened: {{ office.opened_date|date:"F d, Y" }}
+                            </p>
+                        {% endif %}
+                        {% if office.square_footage %}
+                            <p class="mb-2">
+                                <i class="fas fa-ruler-combined text-muted"></i> {{ office.square_footage|floatformat:0 }} sq ft
+                            </p>
+                        {% endif %}
+                        {% if office.employee_capacity %}
+                            <p class="mb-2">
+                                <i class="fas fa-users text-muted"></i> Capacity: {{ office.employee_capacity }} employees
+                            </p>
+                        {% endif %}
+                        <p class="mb-2">
+                            <i class="fas fa-chart-pie text-muted"></i> 
+                            Current: {{ office.employee_count }} employees
+                            {% if office.employee_capacity %}
+                                ({{ office.utilization_rate|floatformat:1 }}% utilization)
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                {% if office.description %}
+                    <div class="mt-3">
+                        <h6 class="text-muted">Description</h6>
+                        <p>{{ office.description|linebreaks }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Office Address -->
+        {% if office.primary_address %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt"></i> Office Address</h5>
+                <button type="button" class="btn btn-light btn-sm" onclick="openInMaps()">
+                    <i class="fas fa-external-link-alt"></i> Open in Maps
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <address class="mb-0">
+                            {% if office.primary_address.attention_line %}
+                                <strong>{{ office.primary_address.attention_line }}</strong><br>
+                            {% endif %}
+                            {{ office.primary_address.line1 }}<br>
+                            {% if office.primary_address.line2 %}
+                                {{ office.primary_address.line2 }}<br>
+                            {% endif %}
+                            {{ office.primary_address.city }}, {{ office.primary_address.state_province }} {{ office.primary_address.postal_code }}
+                            {% if office.primary_address.country and office.primary_address.country != 'United States' %}
+                                <br>{{ office.primary_address.country }}
+                            {% endif %}
+                        </address>
+                    </div>
+                    <div class="col-md-6">
+                        <!-- Placeholder for map integration -->
+                        <div class="bg-light rounded p-3 text-center" style="height: 150px; display: flex; align-items: center; justify-content: center;">
+                            <div>
+                                <i class="fas fa-map fa-2x text-muted mb-2"></i>
+                                <div class="text-muted">Map integration placeholder</div>
+                                <small class="text-muted">Google Maps/OpenStreetMap would go here</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Operating Hours -->
+        {% if office.operating_hours %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-clock"></i> Operating Hours</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for day, hours in office.operating_hours.items %}
+                    <div class="col-md-6 mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-capitalize">{{ day }}:</span>
+                            <span>{{ hours|default:"Closed" }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Office Employees -->
+        {% comment %} This section would show employees when HR integration is available {% endcomment %}
+        <div class="card company-card mb-4">
+            <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-users"></i> Office Team ({{ office.employee_count }})</h5>
+                {% if user.is_staff %}
+                    <button type="button" class="btn btn-dark btn-sm">
+                        <i class="fas fa-plus"></i> Add Employee
+                    </button>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if office.employee_count > 0 %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-users fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">Employee integration pending</p>
+                        <small class="text-muted">This section will show office employees when HR module is integrated</small>
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="fas fa-user-plus fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No employees assigned to this office yet</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Office Statistics -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Office Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 mb-3">
+                        <div class="stat-card blue">
+                            <div class="h3 mb-0">{{ office.employee_count }}</div>
+                            <small>Current Employees</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <div class="stat-card green">
+                            <div class="h3 mb-0">
+                                {% if office.employee_capacity %}{{ office.employee_capacity }}{% else %}∞{% endif %}
+                            </div>
+                            <small>Capacity</small>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="stat-card orange">
+                            <div class="h3 mb-0">
+                                {% if office.employee_capacity %}{{ office.utilization_rate|floatformat:1 }}%{% else %}—{% endif %}
+                            </div>
+                            <small>Utilization Rate</small>
+                        </div>
+                    </div>
+                    {% if office.square_footage %}
+                    <div class="col-12">
+                        <div class="stat-card">
+                            <div class="h3 mb-0">{{ office.square_footage|floatformat:0 }}</div>
+                            <small>Square Feet</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Utilization Visual -->
+                {% if office.employee_capacity and office.employee_capacity > 0 %}
+                <hr>
+                <h6 class="text-muted">Capacity Utilization</h6>
+                <div class="utilization-bar mb-2" style="height: 20px;">
+                    <div class="utilization-fill {% if office.utilization_rate >= 90 %}danger{% elif office.utilization_rate >= 75 %}warning{% endif %}" 
+                         style="width: {{ office.utilization_rate }}%"></div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <small class="text-muted">0</small>
+                    <small class="text-muted">{{ office.employee_capacity }}</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-lightning-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if user.is_staff %}
+                        <a href="{% url 'company:office-update' office.pk %}" class="btn btn-outline-warning">
+                            <i class="fas fa-edit"></i> Edit Office Details
+                        </a>
+                        <button type="button" class="btn btn-outline-primary" onclick="manageEmployees()">
+                            <i class="fas fa-users"></i> Manage Employees
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="viewReports()">
+                            <i class="fas fa-chart-line"></i> View Reports
+                        </button>
+                    {% endif %}
+                    <button type="button" class="btn btn-outline-success" onclick="openInMaps()">
+                        <i class="fas fa-map"></i> Get Directions
+                    </button>
+                    {% if office.phone_number %}
+                        <a href="tel:{{ office.phone_number }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-phone"></i> Call Office
+                        </a>
+                    {% endif %}
+                    {% if user.is_superuser %}
+                        <hr>
+                        <button type="button" class="btn btn-outline-danger" 
+                                onclick="CompanyUtils.confirmDelete('{{ office.office_name }}', '#')">
+                            <i class="fas fa-trash"></i> Delete Office
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Office Activity -->
+        <div class="card company-card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="recent-activity">
+                    <div class="activity-item success">
+                        <div class="d-flex justify-content-between">
+                            <span>Office created</span>
+                            <small class="text-muted">{{ office.created_at|date:"M d" }}</small>
+                        </div>
+                        <small class="text-muted">{{ office.created_at|date:"g:i A" }}</small>
+                    </div>
+                    
+                    {% if office.updated_at != office.created_at %}
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between">
+                            <span>Office updated</span>
+                            <small class="text

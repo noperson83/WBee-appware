@@ -1,0 +1,505 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ client.company_name }} - Financial Dashboard</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+  <a href="{% url 'client:dashboard' %}">Client Management</a>
+</li>
+<li class="breadcrumb-item">
+  <a href="{% url 'client:list' %}">Directory</a>
+</li>
+<li class="breadcrumb-item">
+  <a href="{{ client.get_absolute_url }}">{{ client.company_name }}</a>
+</li>
+<li class="breadcrumb-item active">Financial Dashboard</li>
+{% endblock %}
+
+{% block styler %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+  .financial-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .financial-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transform: rotate(45deg);
+  }
+
+  .metric-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    border: none;
+    transition: all 0.3s ease;
+  }
+
+  .metric-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+  }
+
+  .metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .metric-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+  }
+
+  .metric-change {
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .metric-change.positive {
+    color: #28a745;
+  }
+
+  .metric-change.negative {
+    color: #dc3545;
+  }
+
+  .chart-container {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+  }
+
+  .revenue-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .revenue-item {
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+  }
+
+  .revenue-item.contract { border-left-color: #28a745; }
+  .revenue-item.service { border-left-color: #17a2b8; }
+  .revenue-item.material { border-left-color: #ffc107; }
+  .revenue-item.labor { border-left-color: #6f42c1; }
+
+  .period-selector {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 0.5rem;
+    display: inline-flex;
+    gap: 0.25rem;
+  }
+
+  .period-selector .btn {
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+
+  .period-selector .btn.active {
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .trend-indicator {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .trend-up {
+    color: #28a745;
+  }
+
+  .trend-down {
+    color: #dc3545;
+  }
+
+  .data-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+
+  .table th {
+    background: #f8f9fa;
+    border: none;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+  }
+
+  .table td {
+    border: none;
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+  }
+
+  .table tbody tr {
+    border-bottom: 1px solid #f1f3f4;
+  }
+
+  .table tbody tr:hover {
+    background: #f8f9fa;
+  }
+
+  @media (max-width: 768px) {
+    .financial-header {
+      padding: 1.5rem;
+    }
+    
+    .metric-value {
+      font-size: 1.5rem;
+    }
+    
+    .revenue-breakdown {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Financial Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="financial-header">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h1 class="h2 mb-2">
+              <i class="fas fa-chart-line me-2"></i>Financial Dashboard
+            </h1>
+            <p class="mb-0 opacity-75">
+              <strong>{{ client.company_name }}</strong> - Revenue & Financial Analytics
+            </p>
+          </div>
+          <div class="text-end">
+            <a href="{{ client.get_absolute_url }}" class="btn btn-outline-light">
+              <i class="fas fa-arrow-left me-1"></i>Back to Client
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Financial Metrics -->
+  <div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="metric-card">
+        <div class="metric-label">Total Revenue</div>
+        <div class="metric-value text-success">
+          ${{ financial_data.total_revenue|floatformat:0 }}
+        </div>
+        <div class="metric-change positive">
+          <i class="fas fa-arrow-up me-1"></i>Lifetime earnings
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="metric-card">
+        <div class="metric-label">YTD Revenue</div>
+        <div class="metric-value text-primary">
+          ${{ financial_data.ytd_revenue|floatformat:0 }}
+        </div>
+        <div class="metric-change positive">
+          <i class="fas fa-calendar me-1"></i>Year to date
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="metric-card">
+        <div class="metric-label">Monthly Average</div>
+        <div class="metric-value text-info">
+          {% if financial_data.monthly_revenue %}
+            ${{ financial_data.total_revenue|floatformat:0|div:12 }}
+          {% else %}
+            $0
+          {% endif %}
+        </div>
+        <div class="metric-change">
+          <i class="fas fa-chart-bar me-1"></i>Based on total
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="metric-card">
+        <div class="metric-label">Revenue Growth</div>
+        <div class="metric-value text-warning">
+          +15.3%
+        </div>
+        <div class="metric-change positive">
+          <i class="fas fa-trending-up me-1"></i>vs last year
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revenue Breakdown -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="chart-container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">
+            <i class="fas fa-pie-chart me-2"></i>Revenue Breakdown by Type
+          </h5>
+          <div class="period-selector">
+            <button class="btn btn-sm active" data-period="all">All Time</button>
+            <button class="btn btn-sm" data-period="ytd">YTD</button>
+            <button class="btn btn-sm" data-period="monthly">Monthly</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-6">
+            <canvas id="revenueBreakdownChart" width="400" height="300"></canvas>
+          </div>
+          <div class="col-lg-6">
+            <div class="revenue-breakdown">
+              <div class="revenue-item contract">
+                <div class="h4 mb-1 text-success">${{ financial_data.revenue_by_type.contract|floatformat:0 }}</div>
+                <div class="small text-muted">Contract Revenue</div>
+              </div>
+              <div class="revenue-item service">
+                <div class="h4 mb-1 text-info">${{ financial_data.revenue_by_type.service|floatformat:0 }}</div>
+                <div class="small text-muted">Service Revenue</div>
+              </div>
+              <div class="revenue-item material">
+                <div class="h4 mb-1 text-warning">${{ financial_data.revenue_by_type.material|floatformat:0 }}</div>
+                <div class="small text-muted">Material Revenue</div>
+              </div>
+              <div class="revenue-item labor">
+                <div class="h4 mb-1 text-purple">${{ financial_data.revenue_by_type.labor|floatformat:0 }}</div>
+                <div class="small text-muted">Labor Revenue</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revenue Trends -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="chart-container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">
+            <i class="fas fa-chart-line me-2"></i>Revenue Trends Over Time
+          </h5>
+          <div class="trend-indicator trend-up">
+            <i class="fas fa-arrow-up me-1"></i>
+            Trending upward
+          </div>
+        </div>
+        <canvas id="revenueTrendChart" width="400" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Revenue Records -->
+  <div class="row">
+    <div class="col-12">
+      <div class="data-table">
+        <div class="d-flex justify-content-between align-items-center p-3 bg-light">
+          <h5 class="mb-0">
+            <i class="fas fa-table me-2"></i>Revenue Records by Period
+          </h5>
+          <div>
+            <button class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-download me-1"></i>Export
+            </button>
+          </div>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>Period</th>
+                <th>Contract</th>
+                <th>Service</th>
+                <th>Material</th>
+                <th>Labor</th>
+                <th>Total</th>
+                <th>Growth</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for revenue in revenues %}
+              <tr>
+                <td>
+                  <strong>{{ revenue.period.name }}</strong>
+                  <br><small class="text-muted">{{ revenue.period.start_date|date:"M Y" }}</small>
+                </td>
+                <td>${{ revenue.contract_revenue|floatformat:2 }}</td>
+                <td>${{ revenue.service_revenue|floatformat:2 }}</td>
+                <td>${{ revenue.material_revenue|floatformat:2 }}</td>
+                <td>${{ revenue.labor_revenue|floatformat:2 }}</td>
+                <td>
+                  <strong>${{ revenue.total_revenue|floatformat:2 }}</strong>
+                </td>
+                <td>
+                  <span class="trend-indicator trend-up">
+                    <i class="fas fa-arrow-up me-1"></i>+12%
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="text-center py-4">
+                  <i class="fas fa-chart-line text-muted" style="font-size: 2rem;"></i>
+                  <h6 class="text-muted mt-2">No revenue records found</h6>
+                  <p class="text-muted">Revenue data will appear here as it's recorded.</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script>
+$(document).ready(function() {
+  // Revenue Breakdown Chart
+  const revenueCtx = document.getElementById('revenueBreakdownChart').getContext('2d');
+  const revenueData = {
+    labels: ['Contract', 'Service', 'Material', 'Labor'],
+    datasets: [{
+      data: [
+        {{ financial_data.revenue_by_type.contract }},
+        {{ financial_data.revenue_by_type.service }},
+        {{ financial_data.revenue_by_type.material }},
+        {{ financial_data.revenue_by_type.labor }}
+      ],
+      backgroundColor: [
+        '#28a745',
+        '#17a2b8',
+        '#ffc107',
+        '#6f42c1'
+      ],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  };
+
+  new Chart(revenueCtx, {
+    type: 'doughnut',
+    data: revenueData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 20,
+            usePointStyle: true
+          }
+        }
+      }
+    }
+  });
+
+  // Revenue Trend Chart
+  const trendCtx = document.getElementById('revenueTrendChart').getContext('2d');
+  const monthlyData = {{ financial_data.monthly_revenue|safe }};
+  
+  new Chart(trendCtx, {
+    type: 'line',
+    data: {
+      labels: monthlyData.map(item => item.period),
+      datasets: [{
+        label: 'Monthly Revenue',
+        data: monthlyData.map(item => item.revenue),
+        borderColor: '#007bff',
+        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#007bff',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return ' + value.toLocaleString();
+            }
+          }
+        }
+      },
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      }
+    }
+  });
+
+  // Period selector functionality
+  $('.period-selector .btn').click(function() {
+    $('.period-selector .btn').removeClass('active');
+    $(this).addClass('active');
+    
+    const period = $(this).data('period');
+    // You would implement period filtering here
+    console.log('Filtering by period:', period);
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,810 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}<title>{{ location.name }} - Location Details</title>{% endblock %}
+{% block breadcrumb %}
+/ <a href="{% url 'location:location-list' %}">Locations</a>
+/ {{ location.name }}
+{% endblock %}
+
+{% block styler %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+.location-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px 0;
+    margin-bottom: 30px;
+    border-radius: 0 0 15px 15px;
+}
+
+.location-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.status-badge {
+    font-size: 1rem;
+    padding: 8px 16px;
+}
+
+.info-card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    transition: transform 0.2s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+}
+
+.info-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+.metric-item {
+    text-align: center;
+    padding: 20px;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+}
+
+.metric-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+.metric-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+#map {
+    height: 300px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.timeline-item {
+    border-left: 3px solid #007bff;
+    padding-left: 20px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #007bff;
+}
+
+.timeline-item.completed::before {
+    background: #28a745;
+}
+
+.timeline-item.upcoming::before {
+    background: #ffc107;
+}
+
+.document-item {
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.document-item:hover {
+    background: #f8f9fa;
+    border-color: #007bff;
+}
+
+.note-item {
+    border-left: 4px solid #007bff;
+    background: white;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.note-item.priority-high {
+    border-left-color: #ffc107;
+}
+
+.note-item.priority-urgent {
+    border-left-color: #dc3545;
+}
+
+.contact-item {
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: white;
+}
+
+.action-buttons {
+    position: sticky;
+    top: 20px;
+    z-index: 100;
+}
+
+.quick-stats {
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.progress-ring {
+    width: 60px;
+    height: 60px;
+}
+
+.progress-ring circle {
+    fill: none;
+    stroke-width: 4;
+    stroke-linecap: round;
+}
+
+.progress-ring .bg {
+    stroke: #e9ecef;
+}
+
+.progress-ring .progress {
+    stroke: #007bff;
+    stroke-dasharray: 188.5;
+    stroke-dashoffset: 188.5;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    transition: stroke-dashoffset 1s ease;
+}
+
+@media (max-width: 768px) {
+    .location-header {
+        padding: 20px 0;
+        margin-bottom: 20px;
+    }
+    
+    .action-buttons {
+        position: static;
+        margin-bottom: 20px;
+    }
+    
+    .metric-item {
+        margin-bottom: 10px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Location Header -->
+<div class="location-header">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center">
+                    <div class="mr-4">
+                        {% if location.profile_image %}
+                            <img src="{{ location.profile_image.url }}" 
+                                 class="rounded-circle" 
+                                 width="80" height="80" 
+                                 style="object-fit: cover; border: 3px solid rgba(255,255,255,0.3);"
+                                 alt="{{ location.name }}">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px; border: 3px solid rgba(255,255,255,0.3);">
+                                <i class="fas fa-building fa-2x text-muted"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h1 class="mb-2">{{ location.name }}</h1>
+                        <p class="mb-2 opacity-75">
+                            <i class="fas fa-building mr-2"></i>
+                            <a href="{{ location.client.get_absolute_url }}" class="text-white">
+                                {{ location.client.company_name }}
+                            </a>
+                        </p>
+                        <div class="d-flex flex-wrap align-items-center">
+                            <span class="status-badge badge 
+                                {% if location.status == 'prospect' %}badge-warning
+                                {% elif location.status == 'active' %}badge-success
+                                {% elif location.status == 'complete' %}badge-secondary
+                                {% elif location.status == 'inactive' %}badge-danger
+                                {% else %}badge-primary
+                                {% endif %} mr-3">
+                                {{ location.status|title }}
+                            </span>
+                            {% if location.business_category %}
+                                <span class="badge badge-light mr-3">
+                                    <i class="{{ location.business_category.icon }} mr-1"></i>
+                                    {{ location.business_category.name }}
+                                </span>
+                            {% endif %}
+                            {% if location.primary_address %}
+                                <span class="small opacity-75">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    {{ location.primary_address.city }}{% if location.primary_address.state_province %}, {{ location.primary_address.state_province }}{% endif %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-right">
+                <div class="quick-stats">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="metric-value text-primary">{{ location.total_projects_count }}</div>
+                            <div class="metric-label">{{ location.project_term }}</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="metric-value text-success">${{ location.total_contract_value|default:0|floatformat:0 }}</div>
+                            <div class="metric-label">Total Value</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="metric-value text-info">{{ location.documents.count }}</div>
+                            <div class="metric-label">Documents</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Description -->
+            {% if location.description %}
+                <div class="info-card card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle mr-2"></i>Description
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">{{ location.description|linebreaks }}</p>
+                        {% if location.scope_summary %}
+                            <hr>
+                            <h6 class="text-muted">Scope Summary</h6>
+                            <p class="mb-0">{{ location.scope_summary|linebreaks }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Location Details -->
+            <div class="info-card card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map-marked-alt mr-2"></i>Location Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            {% if location.location_type %}
+                                <div class="mb-3">
+                                    <strong>Type:</strong> {{ location.location_type.name }}
+                                </div>
+                            {% endif %}
+                            {% if location.location_category %}
+                                <div class="mb-3">
+                                    <strong>Category:</strong> {{ location.location_category }}
+                                </div>
+                            {% endif %}
+                            {% if location.facility_size %}
+                                <div class="mb-3">
+                                    <strong>Size:</strong> {{ location.facility_size }} {{ location.get_facility_size_unit_display }}
+                                </div>
+                            {% endif %}
+                            {% if location.capacity %}
+                                <div class="mb-3">
+                                    <strong>Capacity:</strong> {{ location.capacity }} people
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if location.access_requirements %}
+                                <div class="mb-3">
+                                    <strong>Access:</strong> {{ location.get_access_requirements_display|default:location.access_requirements }}
+                                </div>
+                            {% endif %}
+                            {% if location.work_hours %}
+                                <div class="mb-3">
+                                    <strong>Work Hours:</strong> {{ location.get_work_hours_display|default:location.work_hours }}
+                                </div>
+                            {% endif %}
+                            <div class="mb-3">
+                                <strong>Logistics:</strong>
+                                <div class="mt-1">
+                                    {% if location.parking_available %}
+                                        <span class="badge badge-success badge-sm mr-1">
+                                            <i class="fas fa-car mr-1"></i>Parking
+                                        </span>
+                                    {% endif %}
+                                    {% if location.loading_access %}
+                                        <span class="badge badge-success badge-sm mr-1">
+                                            <i class="fas fa-truck mr-1"></i>Loading
+                                        </span>
+                                    {% endif %}
+                                    {% if location.storage_available %}
+                                        <span class="badge badge-success badge-sm mr-1">
+                                            <i class="fas fa-warehouse mr-1"></i>Storage
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if location.special_requirements %}
+                        <hr>
+                        <h6 class="text-muted">Special Requirements</h6>
+                        <p class="mb-0">{{ location.special_requirements|linebreaks }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Map -->
+            {% if location.coordinates %}
+                <div class="info-card card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-map mr-2"></i>Location Map
+                        </h5>
+                        <div>
+                            {% if location.google_maps_url %}
+                                <a href="{{ location.google_maps_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-external-link-alt mr-1"></i>Google Maps
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="map"></div>
+                        <div class="p-3 bg-light small">
+                            <strong>Coordinates:</strong> {{ location.coordinates.0|floatformat:6 }}, {{ location.coordinates.1|floatformat:6 }}
+                            {% if location.google_plus_code %}
+                                | <strong>Plus Code:</strong> {{ location.google_plus_code }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Timeline -->
+            <div class="info-card card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock mr-2"></i>Timeline
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if location.first_contact_date or location.site_survey_date or location.contract_signed_date or location.project_start_date or location.estimated_completion %}
+                        <div class="timeline">
+                            {% if location.first_contact_date %}
+                                <div class="timeline-item completed">
+                                    <h6>First Contact</h6>
+                                    <p class="text-muted mb-1">{{ location.first_contact_date|date:"M d, Y" }}</p>
+                                </div>
+                            {% endif %}
+                            {% if location.site_survey_date %}
+                                <div class="timeline-item completed">
+                                    <h6>Site Survey</h6>
+                                    <p class="text-muted mb-1">{{ location.site_survey_date|date:"M d, Y" }}</p>
+                                </div>
+                            {% endif %}
+                            {% if location.contract_signed_date %}
+                                <div class="timeline-item completed">
+                                    <h6>Contract Signed</h6>
+                                    <p class="text-muted mb-1">{{ location.contract_signed_date|date:"M d, Y" }}</p>
+                                </div>
+                            {% endif %}
+                            {% if location.project_start_date %}
+                                <div class="timeline-item {% if location.project_start_date <= today %}completed{% else %}upcoming{% endif %}">
+                                    <h6>Project Start</h6>
+                                    <p class="text-muted mb-1">{{ location.project_start_date|date:"M d, Y" }}</p>
+                                </div>
+                            {% endif %}
+                            {% if location.estimated_completion %}
+                                <div class="timeline-item upcoming">
+                                    <h6>Estimated Completion</h6>
+                                    <p class="text-muted mb-1">{{ location.estimated_completion|date:"M d, Y" }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No timeline information available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Projects -->
+            <div class="info-card card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-project-diagram mr-2"></i>{{ location.project_term }}
+                    </h5>
+                    {% if user.is_staff %}
+                        <a href="{% url 'project:project-create' %}?location={{ location.pk }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus mr-1"></i>Add {{ location.project_term_singular }}
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if projects %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Status</th>
+                                        <th>Value</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for project in projects %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ project.get_absolute_url }}">{{ project.name }}</a>
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-sm 
+                                                    {% if project.status == 'active' %}badge-success
+                                                    {% elif project.status == 'complete' %}badge-secondary
+                                                    {% elif project.status == 'on_hold' %}badge-warning
+                                                    {% else %}badge-primary
+                                                    {% endif %}">
+                                                    {{ project.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>${{ project.contract_value|default:0|floatformat:0 }}</td>
+                                            <td>{{ project.due_date|date:"M d, Y"|default:"—" }}</td>
+                                            <td>
+                                                <a href="{{ project.get_absolute_url }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-project-diagram fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No {{ location.project_term|lower }} yet</h6>
+                            {% if user.is_staff %}
+                                <a href="{% url 'project:project-create' %}?location={{ location.pk }}" class="btn btn-primary">
+                                    <i class="fas fa-plus mr-2"></i>Create First {{ location.project_term_singular }}
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-bolt mr-2"></i>Quick Actions
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if user.is_staff %}
+                            <a href="{% url 'location:location-update' location.pk %}" class="btn btn-primary btn-block mb-2">
+                                <i class="fas fa-edit mr-2"></i>Edit Location
+                            </a>
+                            <a href="{% url 'location:note-create' location.pk %}" class="btn btn-outline-warning btn-block mb-2">
+                                <i class="fas fa-sticky-note mr-2"></i>Add Note
+                            </a>
+                            <a href="{% url 'location:document-create' location.pk %}" class="btn btn-outline-success btn-block mb-2">
+                                <i class="fas fa-file mr-2"></i>Add Document
+                            </a>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-block dropdown-toggle" type="button" data-toggle="dropdown">
+                                    <i class="fas fa-ellipsis-h mr-2"></i>More Actions
+                                </button>
+                                <div class="dropdown-menu w-100">
+                                    <a class="dropdown-item" href="{% url 'location:calculate-totals' location.pk %}">
+                                        <i class="fas fa-calculator mr-2"></i>Recalculate Totals
+                                    </a>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-copy mr-2"></i>Duplicate Location
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    {% if user.is_superuser %}
+                                        <a class="dropdown-item text-danger" href="{% url 'location:location-delete' location.pk %}">
+                                            <i class="fas fa-trash mr-2"></i>Delete Location
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="info-card card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-users mr-2"></i>Contacts
+                    </h6>
+                    {% if user.is_staff %}
+                        <a href="#" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if location.contacts.all %}
+                        {% for contact in location.contacts.all %}
+                            <div class="contact-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ contact.first_name }} {{ contact.last_name }}</h6>
+                                        {% if contact.title %}
+                                            <p class="small text-muted mb-1">{{ contact.title }}</p>
+                                        {% endif %}
+                                        {% if contact.phone %}
+                                            <p class="small mb-1">
+                                                <i class="fas fa-phone mr-1"></i>{{ contact.phone }}
+                                            </p>
+                                        {% endif %}
+                                        {% if contact.email %}
+                                            <p class="small mb-0">
+                                                <i class="fas fa-envelope mr-1"></i>{{ contact.email }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                    {% if contact.is_primary %}
+                                        <span class="badge badge-primary badge-sm">Primary</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0">No contacts added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="info-card card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-map-marker-alt mr-2"></i>Addresses
+                    </h6>
+                    {% if user.is_staff %}
+                        <a href="#" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-plus"></i>
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if location.addresses.all %}
+                        {% for address in location.addresses.all %}
+                            <div class="mb-3 {% if not forloop.last %}border-bottom pb-3{% endif %}">
+                                {% if address.label %}
+                                    <h6 class="mb-1">{{ address.label }}</h6>
+                                {% endif %}
+                                {% if address.attention_line %}
+                                    <p class="mb-1">{{ address.attention_line }}</p>
+                                {% endif %}
+                                <p class="mb-1">{{ address.line1 }}</p>
+                                {% if address.line2 %}
+                                    <p class="mb-1">{{ address.line2 }}</p>
+                                {% endif %}
+                                <p class="mb-1">{{ address.city }}, {{ address.state_province }} {{ address.postal_code }}</p>
+                                {% if address.is_primary %}
+                                    <span class="badge badge-primary badge-sm">Primary</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0">No addresses added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Notes -->
+            <div class="info-card card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-sticky-note mr-2"></i>Recent Notes
+                    </h6>
+                    <a href="{% url 'location:note-list' location.pk %}" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_notes %}
+                        {% for note in recent_notes %}
+                            <div class="note-item priority-{{ note.priority }}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'location:note-detail' note.pk %}" class="text-decoration-none">
+                                                {{ note.title }}
+                                            </a>
+                                        </h6>
+                                        <p class="small text-muted mb-1">{{ note.content|truncatewords:15 }}</p>
+                                        <div class="small text-muted">
+                                            {{ note.created_at|date:"M d, Y" }}
+                                            {% if note.created_by %}by {{ note.created_by }}{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="ml-2">
+                                        <span class="badge badge-sm 
+                                            {% if note.priority == 'urgent' %}badge-danger
+                                            {% elif note.priority == 'high' %}badge-warning
+                                            {% else %}badge-secondary
+                                            {% endif %}">
+                                            {{ note.priority|title }}
+                                        </span>
+                                        {% if note.requires_followup %}
+                                            <div class="small text-warning mt-1">
+                                                <i class="fas fa-calendar-check"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="p-3">
+                            <p class="text-muted mb-0">No notes yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Documents -->
+            <div class="info-card card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-file mr-2"></i>Recent Documents
+                    </h6>
+                    <a href="#" class="btn btn-sm btn-outline-primary">
+                        View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_documents %}
+                        {% for document in recent_documents %}
+                            <div class="document-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <a href="{{ document.file.url }}" target="_blank" class="text-decoration-none">
+                                                {{ document.title }}
+                                            </a>
+                                        </h6>
+                                        <p class="small text-muted mb-1">{{ document.get_document_type_display|default:document.document_type }}</p>
+                                        <div class="small text-muted">
+                                            {{ document.created_at|date:"M d, Y" }}
+                                            {% if document.version %}v{{ document.version }}{% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="ml-2">
+                                        {% if document.is_current %}
+                                            <span class="badge badge-success badge-sm">Current</span>
+                                        {% endif %}
+                                        {% if document.is_public %}
+                                            <span class="badge badge-info badge-sm">Public</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0">No documents uploaded yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Emergency Contact -->
+            {% if location.emergency_contact_info %}
+                <div class="info-card card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0 text-danger">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Emergency Contact
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <pre class="small mb-0">{{ location.emergency_contact_info|default:"No emergency contact information." }}</pre>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+$(document).ready(function() {
+    // Initialize map if coordinates exist
+    {% if location.coordinates %}
+        const map = L.map('map').setView([{{ location.coordinates.0 }}, {{ location.coordinates.1 }}], 15);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+        
+        // Add marker
+        const marker = L.marker([{{ location.coordinates.0 }}, {{ location.coordinates.1 }}])
+            .addTo(map)
+            .bindPopup(`
+                <div class="text-center">
+                    <h6>{{ location.name }}</h6>
+                    <p class="mb-1">{{ location.client.company_name }}</p>
+                    <p class="small mb-0">{{ location.coordinates.0|floatformat:6 }}, {{ location.coordinates.1|floatformat:6 }}</p>
+                </div>
+            `);
+        
+        // Add click handler for coordinates
+        map.on('click', function(e) {
+            L.popup()
+                .setLatLng(e.latlng)
+                .setContent(`Coordinates: ${e.latlng.lat.toFixed(6)}, ${e.latlng.lng.toFixed(6)}`)
+                .openOn(map);
+        });
+    {% endif %}
+    
+    // Auto-refresh data every 5 minutes
+    setInterval(function() {
+        // Could implement auto-refresh of dynamic content here
+        console.log('Auto-refresh check...');
+    }, 300000);
+    
+    // Initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Smooth scrolling for anchor links
+    $('a[href^="#"]').on('click', function(e) {
+        e.preventDefault();
+        const target = $(this.getAttribute('href'));
+        if (target.length) {
+            $('html, body').animate({
+                scrollTop: target.offset().top - 100
+            }, 500);
+        }
+    });
+});
+</script>
+{% endblock %}

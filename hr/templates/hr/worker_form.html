@@ -1,0 +1,374 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{% if object %}Edit {{ object.get_full_name }}{% else %}Add New Worker{% endif %}</title>
+{% endblock %}
+
+{% block breadcrumb %}
+/ <a href="{% url 'hr:index' %}">HR</a> 
+/ <a href="{% url 'hr:worker-list' %}">Staff</a> 
+/ {% if object %}Edit {{ object.get_short_name }}{% else %}Add Worker{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if perms.hr.add_worker or perms.hr.change_worker %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    {% if object %}
+                        <i class="fas fa-edit"></i> Edit Worker: {{ object.get_full_name }}
+                    {% else %}
+                        <i class="fas fa-plus"></i> Add New Worker
+                    {% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Display form errors -->
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Please correct the following errors:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ field|title }}: {{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <!-- Personal Information Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-user"></i> Personal Information
+                            </h5>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.first_name.id_for_label }}" class="font-weight-bold">
+                                    First Name <span class="text-danger">*</span>
+                                </label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.last_name.id_for_label }}" class="font-weight-bold">
+                                    Last Name <span class="text-danger">*</span>
+                                </label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.middle_name.id_for_label }}" class="font-weight-bold">Middle Name</label>
+                                {{ form.middle_name }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.preferred_name.id_for_label }}" class="font-weight-bold">Preferred Name</label>
+                                {{ form.preferred_name }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.email.id_for_label }}" class="font-weight-bold">
+                                    Email <span class="text-danger">*</span>
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.phone_number.id_for_label }}" class="font-weight-bold">Phone Number</label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                    <div class="text-danger small">{{ form.phone_number.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="font-weight-bold">Date of Birth</label>
+                                {{ form.date_of_birth }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.gender.id_for_label }}" class="font-weight-bold">Gender</label>
+                                {{ form.gender }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Employment Information Section -->
+                    <hr class="my-4">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-briefcase"></i> Employment Information
+                            </h5>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.position.id_for_label }}" class="font-weight-bold">Position</label>
+                                {{ form.position }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.department.id_for_label }}" class="font-weight-bold">Department</label>
+                                {{ form.department }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.office.id_for_label }}" class="font-weight-bold">Office</label>
+                                {{ form.office }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.manager.id_for_label }}" class="font-weight-bold">Manager</label>
+                                {{ form.manager }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.employment_status.id_for_label }}" class="font-weight-bold">Employment Status</label>
+                                {{ form.employment_status }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.date_of_hire.id_for_label }}" class="font-weight-bold">Date of Hire</label>
+                                {{ form.date_of_hire }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Compensation Section -->
+                    <hr class="my-4">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-dollar-sign"></i> Compensation
+                            </h5>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.current_annual_salary.id_for_label }}" class="font-weight-bold">Annual Salary</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">$</span>
+                                    </div>
+                                    {{ form.current_annual_salary }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.current_hourly_rate.id_for_label }}" class="font-weight-bold">Hourly Rate</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">$</span>
+                                    </div>
+                                    {{ form.current_hourly_rate }}
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">/hr</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Contact Section -->
+                    <hr class="my-4">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-phone"></i> Emergency Contact
+                            </h5>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.emergency_contact_name.id_for_label }}" class="font-weight-bold">Emergency Contact Name</label>
+                                {{ form.emergency_contact_name }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.emergency_contact_phone.id_for_label }}" class="font-weight-bold">Emergency Contact Phone</label>
+                                {{ form.emergency_contact_phone }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="{{ form.emergency_contact_relationship.id_for_label }}" class="font-weight-bold">Relationship</label>
+                                {{ form.emergency_contact_relationship }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information Section -->
+                    <hr class="my-4">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-info-circle"></i> Additional Information
+                            </h5>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.profile_picture.id_for_label }}" class="font-weight-bold">Profile Picture</label>
+                                {{ form.profile_picture }}
+                                {% if object and object.profile_picture %}
+                                    <div class="mt-2">
+                                        <small class="text-muted">Current:</small>
+                                        <img src="{{ object.profile_picture.url }}" alt="Current profile" class="rounded" style="max-width: 100px; max-height: 100px;">
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.resume.id_for_label }}" class="font-weight-bold">Resume</label>
+                                {{ form.resume }}
+                                {% if object and object.resume %}
+                                    <div class="mt-2">
+                                        <small class="text-muted">Current:</small>
+                                        <a href="{{ object.resume.url }}" target="_blank" class="btn btn-sm btn-outline-info">View Resume</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.bio.id_for_label }}" class="font-weight-bold">Biography</label>
+                        {{ form.bio }}
+                        <small class="form-text text-muted">Professional biography (max 500 characters)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.skills.id_for_label }}" class="font-weight-bold">Skills</label>
+                        {{ form.skills }}
+                        <small class="form-text text-muted">Skills and competencies (JSON format)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.roles.id_for_label }}" class="font-weight-bold">Business Roles</label>
+                        {{ form.roles }}
+                        <small class="form-text text-muted">Business-specific roles (JSON format)</small>
+                    </div>
+
+                    <!-- System Settings Section -->
+                    <hr class="my-4">
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-cog"></i> System Settings
+                            </h5>
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            <strong>Active Worker</strong>
+                        </label>
+                        <small class="form-text text-muted">Uncheck to deactivate this worker account</small>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <hr class="my-4">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% if object %}{% url 'hr:worker-detail' object.pk %}{% else %}{% url 'hr:worker-list' %}{% endif %}" 
+                                   class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> 
+                                    {% if object %}Update Worker{% else %}Create Worker{% endif %}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="alert alert-danger text-center">
+    <h4>Access Denied</h4>
+    <p>You don't have permission to {% if object %}edit workers{% else %}add workers{% endif %}.</p>
+    <a href="{% url 'hr:worker-list' %}" class="btn btn-primary">Back to Worker List</a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripter %}
+<script>
+$(document).ready(function() {
+    // Add Bootstrap classes to form fields
+    $('input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="number"], select, textarea').addClass('form-control');
+    $('input[type="file"]').addClass('form-control-file');
+    $('input[type="checkbox"]').addClass('form-check-input');
+    
+    // Date picker for date fields
+    $('input[type="date"]').attr('placeholder', 'YYYY-MM-DD');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,496 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}{% if form.instance.pk %}Edit Office{% else %}Create Office{% endif %}{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+{% if form.instance.pk %}
+    <li class="breadcrumb-item"><a href="{% url 'company:detail' form.instance.company.pk %}">{{ form.instance.company.company_name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'company:office-list' form.instance.company.pk %}">Offices</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'company:office-detail' form.instance.pk %}">{{ form.instance.office_name }}</a></li>
+    <li class="breadcrumb-item active">Edit</li>
+{% else %}
+    {% if request.resolver_match.kwargs.company_id %}
+        {% with company_id=request.resolver_match.kwargs.company_id %}
+        <li class="breadcrumb-item"><a href="{% url 'company:detail' company_id %}">Company</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'company:office-list' company_id %}">Offices</a></li>
+        {% endwith %}
+    {% endif %}
+    <li class="breadcrumb-item active">Create Office</li>
+{% endif %}
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus{% endif %}"></i>
+                    {% if form.instance.pk %}Edit Office{% else %}Create New Office{% endif %}
+                </h1>
+                <p class="mb-0 mt-2">
+                    {% if form.instance.pk %}
+                        Update {{ form.instance.office_name }}'s information
+                    {% else %}
+                        Add a new office location
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-end">
+                {% if form.instance.pk %}
+                    <a href="{% url 'company:office-detail' form.instance.pk %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Back to Office
+                    </a>
+                {% else %}
+                    {% if request.resolver_match.kwargs.company_id %}
+                        <a href="{% url 'company:office-list' request.resolver_match.kwargs.company_id %}" class="btn btn-outline-light">
+                            <i class="fas fa-arrow-left"></i> Back to Offices
+                        </a>
+                    {% else %}
+                        <a href="{% url 'company:list' %}" class="btn btn-outline-light">
+                            <i class="fas fa-arrow-left"></i> Back to Companies
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    {% csrf_token %}
+    
+    <!-- Form Errors -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            <h6><i class="fas fa-exclamation-triangle"></i> Please correct the following errors:</h6>
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Main Form -->
+        <div class="col-lg-8">
+            <!-- Basic Information -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label for="{{ form.office_name.id_for_label }}" class="form-label required">Office Name</label>
+                                {{ form.office_name }}
+                                {% if form.office_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.office_name.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">e.g., Headquarters, Phoenix Branch, Downtown Office</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.office_code.id_for_label }}" class="form-label">Office Code</label>
+                                {{ form.office_code }}
+                                {% if form.office_code.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.office_code.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Short code (e.g., HQ, PHX)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.company.id_for_label }}" class="form-label required">Company</label>
+                                {{ form.company }}
+                                {% if form.company.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.company.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.office_type.id_for_label }}" class="form-label">Office Type</label>
+                                {{ form.office_type }}
+                                {% if form.office_type.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.office_type.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Brief description of this office location</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact & Management -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-address-book"></i> Contact & Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="{{ form.office_manager.id_for_label }}" class="form-label">Office Manager</label>
+                        {{ form.office_manager }}
+                        {% if form.office_manager.errors %}
+                            <div class="invalid-feedback d-block">{{ form.office_manager.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Name of the person managing this office</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                                {{ form.phone_number }}
+                                {% if form.phone_number.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.phone_number.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Main office phone number</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">General office email address</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capacity & Logistics -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> Capacity & Logistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.employee_capacity.id_for_label }}" class="form-label">Employee Capacity</label>
+                                {{ form.employee_capacity }}
+                                {% if form.employee_capacity.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.employee_capacity.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Maximum number of employees this office can accommodate</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.square_footage.id_for_label }}" class="form-label">Square Footage</label>
+                                {{ form.square_footage }}
+                                {% if form.square_footage.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.square_footage.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">Total office space in square feet</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.opened_date.id_for_label }}" class="form-label">Opened Date</label>
+                        {{ form.opened_date }}
+                        {% if form.opened_date.errors %}
+                            <div class="invalid-feedback d-block">{{ form.opened_date.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">Date this office was opened</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Settings -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs"></i> Advanced Settings
+                        <button type="button" class="btn btn-sm btn-outline-light float-end" data-bs-toggle="collapse" data-bs-target="#advancedSettings">
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </h5>
+                </div>
+                <div class="collapse" id="advancedSettings">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="{{ form.operating_hours.id_for_label }}" class="form-label">Operating Hours</label>
+                            {{ form.operating_hours }}
+                            {% if form.operating_hours.errors %}
+                                <div class="invalid-feedback d-block">{{ form.operating_hours.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                JSON format: {"monday": "9:00-17:00", "tuesday": "9:00-17:00", ...}
+                            </div>
+                        </div>
+                        
+                        {% if form.instance.pk %}
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                Office is Active
+                            </label>
+                            <div class="form-text">Uncheck to deactivate this office</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Form Actions -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-save"></i> Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> 
+                            {% if form.instance.pk %}Update Office{% else %}Create Office{% endif %}
+                        </button>
+                        
+                        {% if form.instance.pk %}
+                            <a href="{% url 'company:office-detail' form.instance.pk %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        {% else %}
+                            {% if request.resolver_match.kwargs.company_id %}
+                                <a href="{% url 'company:office-list' request.resolver_match.kwargs.company_id %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            {% else %}
+                                <a href="{% url 'company:list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if form.instance.pk and user.is_superuser %}
+                            <hr>
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="CompanyUtils.confirmDelete('{{ form.instance.office_name }}', '#')">
+                                <i class="fas fa-trash"></i> Delete Office
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Office Type Guide -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Office Types</h5>
+                </div>
+                <div class="card-body">
+                    <div class="office-type-guide">
+                        <div class="mb-2">
+                            <span class="badge bg-primary me-2">Headquarters</span>
+                            <small>Main corporate office</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-info me-2">Branch</span>
+                            <small>Regional or satellite office</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-warning me-2">Warehouse</span>
+                            <small>Storage and distribution facility</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-success me-2">Retail</span>
+                            <small>Customer-facing retail location</small>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-secondary me-2">Field Office</span>
+                            <small>Temporary or project-based location</small>
+                        </div>
+                        <div class="mb-0">
+                            <span class="badge bg-dark me-2">Remote</span>
+                            <small>Virtual or home-based office</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help & Tips -->
+            <div class="card company-card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Office Name:</strong> Use clear, descriptive names that identify the location
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Office Code:</strong> Short abbreviations help with quick identification
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Capacity:</strong> Set realistic employee capacity based on workstations
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Contact Info:</strong> Ensure phone and email are monitored regularly
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Operating Hours Helper -->
+            <div class="card company-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Operating Hours Format</h5>
+                </div>
+                <div class="card-body">
+                    <small class="text-muted">Example JSON format:</small>
+                    <pre class="bg-light p-2 rounded mt-2" style="font-size: 0.8rem;">{
+  "monday": "9:00-17:00",
+  "tuesday": "9:00-17:00",
+  "wednesday": "9:00-17:00",
+  "thursday": "9:00-17:00",
+  "friday": "9:00-17:00",
+  "saturday": "Closed",
+  "sunday": "Closed"
+}</pre>
+                    <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="fillStandardHours()">
+                        <i class="fas fa-magic"></i> Fill Standard Hours
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+// Form validation and enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    // Bootstrap form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+    
+    // Auto-generate office code from office name
+    const officeNameInput = document.getElementById('{{ form.office_name.id_for_label }}');
+    const officeCodeInput = document.getElementById('{{ form.office_code.id_for_label }}');
+    
+    if (officeNameInput && officeCodeInput) {
+        officeNameInput.addEventListener('blur', function() {
+            if (!officeCodeInput.value && this.value) {
+                // Generate code from first letters of words
+                const words = this.value.trim().split(' ');
+                let code = '';
+                words.forEach(word => {
+                    if (word.length > 0) {
+                        code += word.charAt(0).toUpperCase();
+                    }
+                });
+                officeCodeInput.value = code.substring(0, 5); // Limit to 5 characters
+            }
+        });
+    }
+    
+    // Phone number formatting
+    const phoneInput = document.getElementById('{{ form.phone_number.id_for_label }}');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 10) {
+                if (value.length === 10) {
+                    value = `+1${value}`;
+                } else if (value.length === 11 && value.startsWith('1')) {
+                    value = `+${value}`;
+                }
+            }
+            e.target.value = value;
+        });
+    }
+    
+    // JSON validation for operating hours
+    const operatingHoursInput = document.getElementById('{{ form.operating_hours.id_for_label }}');
+    if (operatingHoursInput) {
+        operatingHoursInput.addEventListener('blur', function() {
+            if (this.value.trim()) {
+                try {
+                    JSON.parse(this.value);
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } catch (e) {
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                }
+            } else {
+                this.classList.remove('is-invalid', 'is-valid');
+            }
+        });
+    }
+});
+
+function fillStandardHours() {
+    const operatingHoursInput = document.getElementById('{{ form.operating_hours.id_for_label }}');
+    if (operatingHoursInput) {
+        const standardHours = {
+            "monday": "9:00-17:00",
+            "tuesday": "9:00-17:00",
+            "wednesday": "9:00-17:00",
+            "thursday": "9:00-17:00",
+            "friday": "9:00-17:00",
+            "saturday": "Closed",
+            "sunday": "Closed"
+        };
+        operatingHoursInput.value = JSON.stringify(standardHours, null, 2);
+        operatingHoursInput.classList.add('is-valid');
+    }
+}
+</script>
+
+<style>
+.required::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.office-type-guide .badge {
+    min-width: 80px;
+    text-align: center;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.form-control:invalid {
+    border-color: #dc3545;
+}
+
+.form-control:valid {
+    border-color: #28a745;
+}
+</style>
+{% endblock %}

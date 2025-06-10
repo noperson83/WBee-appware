@@ -1,0 +1,633 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}Company Overview{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item active">Company Overview</li>
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0"><i class="fas fa-chart-bar"></i> Company Overview</h1>
+                <p class="mb-0 mt-2">Comprehensive view of all companies, offices, and departments</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group" role="group">
+                    <a href="{% url 'company:list' %}" class="btn btn-outline-light">
+                        <i class="fas fa-building"></i> Companies
+                    </a>
+                    {% if user.is_staff %}
+                        <a href="{% url 'company:create' %}" class="btn btn-light">
+                            <i class="fas fa-plus"></i> Add Company
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics Summary -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="dashboard-metric blue">
+            <i class="fas fa-building metric-icon"></i>
+            <div class="metric-value">{{ total_companies }}</div>
+            <div class="metric-label">Total Companies</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="dashboard-metric green">
+            <i class="fas fa-map-marker-alt metric-icon"></i>
+            <div class="metric-value">{{ total_offices }}</div>
+            <div class="metric-label">Office Locations</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="dashboard-metric orange">
+            <i class="fas fa-sitemap metric-icon"></i>
+            <div class="metric-value">{{ total_departments }}</div>
+            <div class="metric-label">Departments</div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="dashboard-metric red">
+            <i class="fas fa-users metric-icon"></i>
+            <div class="metric-value">
+                {% for company in companies %}{{ company.total_employees|add:0 }}{% endfor %}
+            </div>
+            <div class="metric-label">Total Employees</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts and Analytics Row -->
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <div class="card company-card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-chart-area"></i> Company Growth Overview</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-light active" onclick="switchChart('revenue')">Revenue</button>
+                    <button type="button" class="btn btn-outline-light" onclick="switchChart('employees')">Employees</button>
+                    <button type="button" class="btn btn-outline-light" onclick="switchChart('offices')">Offices</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="overviewChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card company-card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie"></i> Company Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="distributionChart" width="200" height="200"></canvas>
+                </div>
+                <div class="mt-3">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="small text-muted">Active</div>
+                            <div class="h5 text-success">
+                                {% for company in companies %}{% if company.is_active %}{{ forloop.counter }}{% endif %}{% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="small text-muted">Inactive</div>
+                            <div class="h5 text-secondary">
+                                {% for company in companies %}{% if not company.is_active %}{{ forloop.counter }}{% endif %}{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Company Summary Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card company-card">
+            <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-table"></i> Company Summary</h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-light active" onclick="toggleTableView('summary')">Summary</button>
+                    <button type="button" class="btn btn-outline-light" onclick="toggleTableView('detailed')">Detailed</button>
+                    <button type="button" class="btn btn-outline-light" onclick="toggleTableView('financial')">Financial</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Summary View -->
+                <div id="summary-view">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Type</th>
+                                    <th>Offices</th>
+                                    <th>Departments</th>
+                                    <th>Employees</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for company in companies %}
+                                <tr class="{% if not company.is_active %}table-secondary{% endif %}">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if company.logo %}
+                                                <img src="{{ company.logo.url }}" alt="{{ company.company_name }}" 
+                                                     class="me-2" style="width: 32px; height: 32px; object-fit: contain;">
+                                            {% else %}
+                                                <i class="fas fa-building text-muted me-2"></i>
+                                            {% endif %}
+                                            <div>
+                                                <strong>
+                                                    <a href="{% url 'company:detail' company.pk %}" class="text-decoration-none">
+                                                        {{ company.company_name }}
+                                                    </a>
+                                                </strong>
+                                                {% if company.business_category %}
+                                                    <br><small class="text-muted">{{ company.business_category.name }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if company.business_type %}
+                                            <span class="badge bg-secondary">{{ company.get_business_type_display }}</span>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ company.office_count|default:0 }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">{{ company.department_count|default:0 }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">{{ company.total_employees }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if company.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if company.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'company:detail' company.pk %}" class="btn btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'company:dashboard' company.pk %}" class="btn btn-outline-info">
+                                                <i class="fas fa-chart-bar"></i>
+                                            </a>
+                                            {% if user.is_staff %}
+                                                <a href="{% url 'company:update' company.pk %}" class="btn btn-outline-warning">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <i class="fas fa-building fa-2x text-muted mb-2"></i>
+                                        <div class="text-muted">No companies found</div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Detailed View -->
+                <div id="detailed-view" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Contact</th>
+                                    <th>Location</th>
+                                    <th>Founded</th>
+                                    <th>Structure</th>
+                                    <th>Team Size</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for company in companies %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ company.company_name }}</strong>
+                                        {% if company.legal_name and company.legal_name != company.company_name %}
+                                            <br><small class="text-muted">{{ company.legal_name }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div>{{ company.primary_contact_name }}</div>
+                                        {% if company.primary_email %}
+                                            <small class="text-muted">{{ company.primary_email }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if company.primary_address %}
+                                            <div>{{ company.primary_address.city }}, {{ company.primary_address.state_province }}</div>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if company.founded_date %}
+                                            {{ company.founded_date|date:"Y" }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div>{{ company.office_count|default:0 }} offices</div>
+                                        <div>{{ company.department_count|default:0 }} departments</div>
+                                        {% if company.is_multi_location %}
+                                            <small class="text-info">Multi-location</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">{{ company.total_employees }} total</div>
+                                        {% if company.office_count > 1 %}
+                                            <small class="text-muted">
+                                                ~{% widthratio company.total_employees company.office_count 1 %} per office
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'company:detail' company.pk %}" class="btn btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if user.is_staff %}
+                                                <a href="{% url 'company:update' company.pk %}" class="btn btn-outline-warning">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Financial View -->
+                <div id="financial-view" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Current Year Revenue</th>
+                                    <th>Previous Year Revenue</th>
+                                    <th>Growth Rate</th>
+                                    <th>Revenue per Employee</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for company in companies %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ company.company_name }}</strong>
+                                        <br><small class="text-muted">{{ company.get_business_type_display|default:"—" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if company.current_year_revenue %}
+                                            <strong>${{ company.current_year_revenue|floatformat:0 }}</strong>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if company.previous_year_revenue %}
+                                            ${{ company.previous_year_revenue|floatformat:0 }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if company.revenue_growth %}
+                                            <span class="badge {% if company.revenue_growth > 0 %}bg-success{% elif company.revenue_growth < 0 %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                {% if company.revenue_growth > 0 %}+{% endif %}{{ company.revenue_growth|floatformat:1 }}%
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if company.current_year_revenue and company.total_employees > 0 %}
+                                            ${% widthratio company.current_year_revenue company.total_employees 1 %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if company.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if company.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav aria-label="Company overview pagination" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+        {% endif %}
+        
+        <li class="page-item active">
+            <span class="page-link">
+                {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+        </li>
+        
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+// Chart configurations
+let overviewChart, distributionChart;
+
+// Sample data - in real implementation, this would come from the backend
+const chartData = {
+    revenue: {
+        labels: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'],
+        datasets: [{
+            label: 'Total Revenue',
+            data: [850000, 920000, 1050000, 1200000, 980000],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            tension: 0.4
+        }]
+    },
+    employees: {
+        labels: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'],
+        datasets: [{
+            label: 'Total Employees',
+            data: [125, 142, 158, 165, 172],
+            borderColor: 'rgb(255, 99, 132)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.4
+        }]
+    },
+    offices: {
+        labels: ['Q1 2024', 'Q2 2024', 'Q3 2024', 'Q4 2024', 'Q1 2025'],
+        datasets: [{
+            label: 'Office Locations',
+            data: [3, 3, 4, 4, 5],
+            borderColor: 'rgb(54, 162, 235)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            tension: 0.4
+        }]
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Overview Chart
+    const overviewCtx = document.getElementById('overviewChart').getContext('2d');
+    overviewChart = new Chart(overviewCtx, {
+        type: 'line',
+        data: chartData.revenue,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + (value / 1000) + 'K';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Initialize Distribution Chart
+    const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+    distributionChart = new Chart(distributionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Active Companies', 'Inactive Companies'],
+            datasets: [{
+                data: [{{ companies|length }}, 0], // You'd calculate inactive here
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(108, 117, 125, 0.8)'
+                ],
+                borderWidth: 2,
+                borderColor: 'white'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+});
+
+function switchChart(type) {
+    // Update chart data
+    overviewChart.data = chartData[type];
+    overviewChart.update();
+    
+    // Update button states
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+}
+
+function toggleTableView(view) {
+    // Hide all views
+    document.getElementById('summary-view').style.display = 'none';
+    document.getElementById('detailed-view').style.display = 'none';
+    document.getElementById('financial-view').style.display = 'none';
+    
+    // Show selected view
+    document.getElementById(view + '-view').style.display = 'block';
+    
+    // Update button states
+    document.querySelectorAll('.card-header .btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+}
+
+// Add some interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate metrics on load
+    const metrics = document.querySelectorAll('.metric-value');
+    metrics.forEach((metric, index) => {
+        const finalValue = metric.textContent;
+        metric.textContent = '0';
+        
+        setTimeout(() => {
+            let current = 0;
+            const target = parseInt(finalValue);
+            const increment = target / 20;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    metric.textContent = finalValue;
+                    clearInterval(timer);
+                } else {
+                    metric.textContent = Math.floor(current);
+                }
+            }, 50);
+        }, index * 200);
+    });
+});
+</script>
+
+<style>
+.dashboard-metric {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-metric::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.1);
+    transform: skewY(-5deg);
+    transform-origin: top left;
+}
+
+.dashboard-metric.blue {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.dashboard-metric.green {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.dashboard-metric.orange {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.dashboard-metric.red {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+}
+
+.dashboard-metric .metric-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-metric .metric-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-metric .metric-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2rem;
+    opacity: 0.3;
+    z-index: 1;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+.table img {
+    border-radius: 4px;
+}
+
+.btn-group .btn.active {
+    background-color: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.3);
+}
+</style>
+{% endblock %}

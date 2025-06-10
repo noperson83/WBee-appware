@@ -1,0 +1,301 @@
+{% extends "company/base_company.html" %}
+{% load static %}
+
+{% block page_title %}Delete Company{% endblock %}
+
+{% block company_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+<li class="breadcrumb-item"><a href="{% url 'company:detail' object.pk %}">{{ object.company_name }}</a></li>
+<li class="breadcrumb-item active">Delete</li>
+{% endblock %}
+
+{% block company_content %}
+<div class="company-header" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Delete Company</h1>
+                <p class="mb-0 mt-2">This action cannot be undone</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'company:detail' object.pk %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left"></i> Back to Company
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user.is_superuser %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card company-card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-trash"></i> Confirm Deletion</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h5 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Warning!</h5>
+                    <p class="mb-0">You are about to permanently delete the company "<strong>{{ object.company_name }}</strong>" and all associated data. This action cannot be undone.</p>
+                </div>
+                
+                <!-- Company Information Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Company Details</h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Name:</dt>
+                            <dd class="col-sm-8">{{ object.company_name }}</dd>
+                            
+                            {% if object.legal_name %}
+                            <dt class="col-sm-4">Legal Name:</dt>
+                            <dd class="col-sm-8">{{ object.legal_name }}</dd>
+                            {% endif %}
+                            
+                            {% if object.business_type %}
+                            <dt class="col-sm-4">Type:</dt>
+                            <dd class="col-sm-8">{{ object.get_business_type_display }}</dd>
+                            {% endif %}
+                            
+                            {% if object.tax_id %}
+                            <dt class="col-sm-4">Tax ID:</dt>
+                            <dd class="col-sm-8">{{ object.tax_id }}</dd>
+                            {% endif %}
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Impact Assessment</h6>
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded">
+                                    <div class="h4 text-danger">{{ object.total_locations }}</div>
+                                    <small class="text-muted">Offices</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded">
+                                    <div class="h4 text-danger">{{ object.total_departments }}</div>
+                                    <small class="text-muted">Departments</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 bg-light rounded">
+                                    <div class="h4 text-danger">{{ object.total_employees }}</div>
+                                    <small class="text-muted">Employees</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- What will be deleted -->
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading"><i class="fas fa-info-circle"></i> The following data will be permanently deleted:</h6>
+                    <ul class="mb-0">
+                        <li>Company information and settings</li>
+                        <li>All office locations ({{ object.total_locations }})</li>
+                        <li>All departments ({{ object.total_departments }})</li>
+                        <li>All associated addresses and contacts</li>
+                        <li>Company logo and branding materials</li>
+                        <li>Financial records and revenue data</li>
+                        {% if object.has_subsidiaries %}
+                        <li class="text-danger"><strong>All subsidiary companies ({{ object.subsidiaries.count }})</strong></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <!-- Subsidiaries Warning -->
+                {% if object.has_subsidiaries %}
+                <div class="alert alert-danger">
+                    <h6 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Subsidiaries Impact</h6>
+                    <p>This company has <strong>{{ object.subsidiaries.count }} subsidiaries</strong> that will also be deleted:</p>
+                    <ul class="mb-0">
+                        {% for subsidiary in object.subsidiaries.all %}
+                        <li>{{ subsidiary.company_name }} ({{ subsidiary.total_employees }} employees)</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Employee Impact Warning -->
+                {% if object.total_employees > 0 %}
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading"><i class="fas fa-users"></i> Employee Records</h6>
+                    <p class="mb-0">This action will affect <strong>{{ object.total_employees }} employee records</strong>. Make sure to:</p>
+                    <ul class="mb-0">
+                        <li>Export employee data if needed</li>
+                        <li>Notify HR department</li>
+                        <li>Update payroll systems</li>
+                        <li>Archive important personnel files</li>
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <!-- Confirmation Form -->
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    
+                    <div class="form-group mb-3">
+                        <label for="confirm-name" class="form-label">
+                            <strong>Type the company name to confirm deletion:</strong>
+                        </label>
+                        <input type="text" id="confirm-name" class="form-control" 
+                               placeholder="Enter: {{ object.company_name }}" 
+                               autocomplete="off">
+                        <div class="form-text">You must type the exact company name to enable the delete button</div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="understand-consequences">
+                        <label class="form-check-label" for="understand-consequences">
+                            I understand that this action is permanent and cannot be undone
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="exported-data">
+                        <label class="form-check-label" for="exported-data">
+                            I have exported or backed up any important data
+                        </label>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'company:detail' object.pk %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" id="delete-button" class="btn btn-danger btn-lg" disabled>
+                            <i class="fas fa-trash"></i> Delete Company Permanently
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Alternative Actions -->
+        <div class="card company-card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Alternative Actions</h5>
+            </div>
+            <div class="card-body">
+                <p>Instead of deleting, you might consider:</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-grid">
+                            <a href="{% url 'company:update' object.pk %}" class="btn btn-outline-warning">
+                                <i class="fas fa-pause"></i> Deactivate Company
+                            </a>
+                        </div>
+                        <small class="text-muted d-block mt-1">Keep data but mark as inactive</small>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-outline-info" onclick="exportCompanyData()">
+                                <i class="fas fa-download"></i> Export Company Data
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-1">Download data before deletion</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card company-card">
+            <div class="card-body text-center">
+                <i class="fas fa-lock fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">Access Denied</h4>
+                <p class="text-muted">You don't have permission to delete companies. Only superusers can perform this action.</p>
+                <a href="{% url 'company:detail' object.pk %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back to Company
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmNameInput = document.getElementById('confirm-name');
+    const understandCheckbox = document.getElementById('understand-consequences');
+    const exportedCheckbox = document.getElementById('exported-data');
+    const deleteButton = document.getElementById('delete-button');
+    const expectedName = "{{ object.company_name }}";
+    
+    function checkFormValidity() {
+        const nameMatches = confirmNameInput.value.trim() === expectedName;
+        const understandChecked = understandCheckbox.checked;
+        const exportedChecked = exportedCheckbox.checked;
+        
+        if (nameMatches && understandChecked && exportedChecked) {
+            deleteButton.disabled = false;
+            deleteButton.classList.remove('btn-secondary');
+            deleteButton.classList.add('btn-danger');
+        } else {
+            deleteButton.disabled = true;
+            deleteButton.classList.remove('btn-danger');
+            deleteButton.classList.add('btn-secondary');
+        }
+        
+        // Visual feedback for name input
+        if (confirmNameInput.value.trim()) {
+            if (nameMatches) {
+                confirmNameInput.classList.remove('is-invalid');
+                confirmNameInput.classList.add('is-valid');
+            } else {
+                confirmNameInput.classList.remove('is-valid');
+                confirmNameInput.classList.add('is-invalid');
+            }
+        } else {
+            confirmNameInput.classList.remove('is-valid', 'is-invalid');
+        }
+    }
+    
+    confirmNameInput.addEventListener('input', checkFormValidity);
+    understandCheckbox.addEventListener('change', checkFormValidity);
+    exportedCheckbox.addEventListener('change', checkFormValidity);
+    
+    // Final confirmation before submit
+    if (deleteButton) {
+        deleteButton.closest('form').addEventListener('submit', function(e) {
+            if (!confirm('Are you absolutely sure you want to delete this company? This action cannot be undone!')) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+
+function exportCompanyData() {
+    // This would trigger a data export functionality
+    alert('Export functionality would be implemented here to download company data.');
+    // In a real implementation, this would make an AJAX call to export data
+}
+</script>
+
+<style>
+.is-valid {
+    border-color: #28a745 !important;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.alert ul {
+    padding-left: 1.5rem;
+}
+
+.company-card .card-header {
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+</style>
+{% endblock %}

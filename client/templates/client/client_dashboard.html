@@ -1,0 +1,257 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>Client Management Dashboard - {{ request.user.company.company_name|default:"WBEE" }}</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Client Dashboard</li>
+{% endblock %}
+
+{% block styler %}
+<link href="{% static 'home/css/asset-management.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-0">
+                        <i class="fas fa-users text-primary me-2"></i>Client Management
+                    </h1>
+                    <p class="text-muted mb-0">Manage clients, contacts, and business relationships</p>
+                </div>
+                <div>
+                    <a href="{% url 'client:create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add New Client
+                    </a>
+                    <a href="{% url 'client:list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-1"></i>View All Clients
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Clients
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.total_clients|default:0 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users stat-icon text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Clients
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.active_clients|default:0 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle stat-icon text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Prospects
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.prospect_clients|default:0 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-handshake stat-icon text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Inactive Clients
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.inactive_clients|default:0 }}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-pause-circle stat-icon text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{% url 'client:create' %}" class="btn btn-primary quick-action-btn">
+                            <i class="fas fa-plus me-1"></i>Add Client
+                        </a>
+                        <a href="{% url 'client:list' %}?status=prospect" class="btn btn-warning quick-action-btn">
+                            <i class="fas fa-search me-1"></i>View Prospects
+                        </a>
+                        <a href="{% url 'client:list' %}?status=active" class="btn btn-success quick-action-btn">
+                            <i class="fas fa-check me-1"></i>Active Clients
+                        </a>
+                        <a href="{% url 'client:list' %}" class="btn btn-info quick-action-btn">
+                            <i class="fas fa-search me-1"></i>Search Clients
+                        </a>
+                        <a href="{% url 'client:export-csv' %}" class="btn btn-secondary quick-action-btn">
+                            <i class="fas fa-download me-1"></i>Export Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <!-- Recent Clients -->
+        <div class="col-lg-6 mb-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                    <h6 class="m-0">
+                        <i class="fas fa-user-plus me-2"></i>Recent Clients
+                    </h6>
+                    <a href="{% url 'client:list' %}" class="btn btn-sm btn-outline-light">View All</a>
+                </div>
+                <div class="card-body">
+                    {% for client in recent_clients %}
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>
+                                    <a href="{% url 'client:detail' client.id %}" class="text-decoration-none">
+                                        {{ client.company_name }}
+                                    </a>
+                                </strong>
+                                <br>
+                                <small class="text-muted">
+                                    {% if client.primary_contact %}
+                                        {{ client.primary_contact.full_name }}
+                                    {% else %}
+                                        No primary contact
+                                    {% endif %}
+                                </small>
+                                <br>
+                                <span class="badge bg-{% if client.status == 'active' %}success{% elif client.status == 'prospect' %}warning{% else %}secondary{% endif %}">
+                                    {{ client.get_status_display }}
+                                </span>
+                            </div>
+                            <small class="text-muted">{{ client.created_at|date:"M d" }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No recent clients</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Clients by Revenue -->
+        <div class="col-lg-6 mb-4">
+            <div class="card dashboard-card h-100">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <h6 class="m-0">
+                        <i class="fas fa-dollar-sign me-2"></i>Top Clients by Revenue
+                    </h6>
+                    <a href="{% url 'client:list' %}" class="btn btn-sm btn-outline-light">View All</a>
+                </div>
+                <div class="card-body">
+                    {% for client in top_clients %}
+                    <div class="activity-item">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>
+                                    <a href="{% url 'client:detail' client.id %}" class="text-decoration-none">
+                                        {{ client.company_name }}
+                                    </a>
+                                </strong>
+                                <br>
+                                <small class="text-muted">
+                                    {% if client.business_type %}
+                                        {{ client.get_business_type_display }}
+                                    {% else %}
+                                        No business type specified
+                                    {% endif %}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <span class="asset-value">${{ client.total_revenue|floatformat:0|default:"0" }}</span>
+                                {% if client.ytd_revenue %}
+                                <br><small class="text-muted">YTD: ${{ client.ytd_revenue|floatformat:0 }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center">No revenue data available</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script>
+$(document).ready(function() {
+    // Auto-refresh dashboard data every 5 minutes
+    setInterval(function() {
+        // Refresh dashboard statistics
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(data => {
+                console.log('Dashboard refreshed');
+            });
+    }, 300000); // 5 minutes
+});
+</script>
+{% endblock %}

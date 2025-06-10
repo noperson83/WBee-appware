@@ -1,0 +1,283 @@
+{% extends "todo/base.html" %}
+
+{% block title %}<title>Task:{{ task.title }}</title>{% endblock %}
+
+{% block breadcrumb %} / <a href="{% url 'jobsite-list' %}">Job Site</a> / <a href="{% url 'project-list' %}">Project</a> / To Do List{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-sm-8">
+    <h3 class="card-title">{{ task.title }}</h3>
+    {% if task.note %}
+      <p class="card-text">{{ task.note|safe|urlize|linebreaks }}</p>
+    {% endif %}
+  </div>
+  <div class="col-sm-4">
+    <div class="mb-2">
+      <button
+        class="btn btn-sm btn-primary"
+        id="EditTaskButton"
+        type="button"
+        data-toggle="collapse"
+        data-target="#AddEditTask"
+      >
+          Edit Task
+      </button>
+      <form method="post" action="{% url "todo:task_toggle_done" task.id %}" role="form" style="display:inline;">
+        {% csrf_token %}
+        <div style="display:inline;">
+          <button class="btn btn-info btn-sm" type="submit" name="toggle_done">
+            {% if task.completed %} Mark Not Done {% else %} Mark Done {% endif %}
+          </button>
+        </div>
+      </form>
+      <form method="post" action="{% url "todo:delete_task" task.id %}" role="form" style="display:inline;">
+        {% csrf_token %}
+        <div style="display:inline;">
+          <button class="btn btn-danger btn-sm" type="submit" name="submit_delete">
+            Delete
+          </button>
+        </div>
+      </form>
+    </div>
+    <ul class="list-group">
+      <li class="list-group-item">
+        <strong>Assigned to:</strong>
+        {% if task.assigned_to %} {{ task.assigned_to.get_full_name }} {% else %} Anyone {% endif %}
+      </li>
+      <li class="list-group-item">
+        <strong>Reported by:</strong> {{ task.created_by.get_full_name }}
+      </li>
+      <li class="list-group-item">
+        <strong>Due date:</strong> {{ task.due_date }}
+      </li>
+      <li class="list-group-item">
+        <strong>Time:</strong> {{ task.allotted_time }} hours : {{ task.team_size }} pe{{ task.team_size|pluralize:"rson,ople" }} = {{ task.total_hours }} hour{{ task.total_hours|pluralize }} Total
+      </li>
+      {% if task.completed %}
+        <li class="list-group-item">
+          <strong>Completed on:</strong> {{ task.completed_date}}
+        </li>
+      {% else %}
+        <li class="list-group-item">
+          <strong>Completed:</strong> {{ task.completed|yesno:"Yes,No" }}
+        </li>
+      {% endif %}
+
+      <li class="list-group-item">
+        <strong>In list:</strong>
+        <a href="{% url 'todo:list_detail' task.task_list.id task.task_list.slug %}">
+          {{ task.task_list }}
+        </a>
+      </li>
+      <li class="list-group-item">
+        <strong>For Project:</strong>
+          <a href="{{ task.task_list.scope.project.get_absolute_url }}">{{ task.task_list.scope.project.job_num }} - {{ task.task_list.scope.project.job_name }} - {{ task.task_list.scope.project.jobsite }}</a>
+      </li>
+    </ul>
+  </div>
+</div>
+<div id="TaskEdit">
+  {# Task edit / new task form #}
+  {% include 'todo/include/task_edit.html' %}
+</div>
+<br>
+<div class="row">
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header"><b>Devices</b>
+        {% if request.user.staff %}
+          <a href="{% url 'create-project-device' proj=task.task_list.scope.project.job_num tas=task.id  %}"><div class="add_jobsite"> + add</div></a>
+        {% else %}
+        {% endif %}
+      </div>
+      {% if device_mate_list %}
+      <div class="card-body">
+        <table>
+          {% for device in device_mate_list %}
+          <tr width="100%">
+            <td width="60%"><a href="{% url 'project-device-detail' device.pk %}"> {{ device.device.general_disc }}</a></td>
+            <td>
+              {{ device.qty }}
+              {% if request.user.staff and request.user.admin %}
+              - <a href="{% url 'update-project-device' device.pk %}">edit</a> - ${{ device.total }} 
+              {% else %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      {% else %}
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header"><b>Wire</b>
+        {% if request.user.staff %}
+          <a href="{% url 'create-project-wire' proj=task.task_list.scope.project.job_num tas=task.id %}"><div class="add_jobsite"> + add</div></a>
+        {% else %}
+        {% endif %}
+      </div>
+      {% if wire_mate_list %}
+      <div class="card-body">
+        <table>
+          {% for wire in wire_mate_list %}
+          <tr>
+            <td width="200px"><a href="{% url 'project-wire-detail' wire.pk %}"> {{ wire.wire.general_disc }}</a></td>
+            <td>{{ wire.length }}
+              {% if request.user.staff and request.user.admin %}
+                - <a href="{% url 'update-project-wire' wire.pk %}">edit</a> - ${{ wire.total }} 
+              {% else %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      {% else %}
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header"><b>Hardware</b> - <a href="">details</a>
+        {% if request.user.staff %}
+          <a href="{% url 'create-project-hardware' proj=task.task_list.scope.project.job_num tas=task.id %}"><div class="add_jobsite"> + add</div></a>
+        {% else %}
+        {% endif %}
+      </div>
+      {% if hardware_mate_list %}
+      <div class="card-body">
+        <table>
+          {% for hardware in hardware_mate_list %}
+          <tr>
+            <td width="200px"><a href="{% url 'project-hardware-detail' hardware.pk %}"> {{ hardware.hardware.general_disc }}</a></td>
+            <td>{{ hardware.qty }}
+              {% if request.user.staff and request.user.admin %}
+                - <a href="{% url 'update-project-hardware' hardware.pk %}">edit</a> - ${{ hardware.total }} 
+              {% else %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      {% else %}
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header"><b>Software</b> - <a href="">details</a>
+        {% if request.user.staff %}
+          <a href="{% url 'create-project-software' proj=task.task_list.scope.project.job_num tas=task.id %}"><div class="add_jobsite"> + add</div></a>
+        {% else %}
+        {% endif %}
+      </div>
+      {% if software_mate_list %}
+      <div class="card-body">
+        <table>
+          {% for software in software_mate_list %}
+          <tr>
+            <td width="200px"><a href="{% url 'project-software-detail' software.pk %}"> {{ software.software.general_disc }}</a></td>
+            <td>{{ software.qty }}
+              {% if request.user.staff and request.user.admin %}
+                - <a href="{% url 'update-project-software' software.pk %}">edit</a> - ${{ software.total }} 
+              {% else %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      {% else %}
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header"><b>License</b> - <a href="">details</a>
+        {% if request.user.staff %}
+          <a href="{% url 'create-project-license' proj=task.task_list.scope.project.job_num tas=task.id %}"><div class="add_jobsite"> + add</div></a>
+        {% else %}
+        {% endif %}
+      </div>
+      {% if license_mate_list %}
+      <div class="card-body">
+        <table>
+          {% for license in license_mate_list %}
+          <tr>
+            <td width="200px"><a href="{% url 'project-license-detail' license.pk %}"> {{ license.license.general_disc }}</a></td>
+            <td>{{ license.qty }}
+              {% if request.user.staff and request.user.admin %}
+                - <a href="{% url 'update-project-license' license.pk %}">edit</a> - ${{ license.total }} 
+              {% else %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      {% else %}
+      {% endif %}
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header"><b>Travel</b>
+        {% if request.user.staff %}
+          <a href="{% url 'create-project-travel' proj=task.task_list.scope.project.job_num tas=task.id  %}"><div class="add_jobsite"> + add</div></a>
+        {% else %}
+        {% endif %}
+      </div>
+      {% if travel_mate_list %}
+      <div class="card-body">
+        <table>
+          {% for travel in travel_mate_list %}
+          <tr width="100%">
+            <td width="70%"><a href="{% url 'project-travel-detail' travel.pk %}"> {{ travel.travel_name }}</a></td>
+            <td>
+              {{ travel.qty }}
+              {% if request.user.staff and request.user.admin %}
+                - <a href="{% url 'update-project-travel' travel.pk %}">edit</a> - ${{ travel.total }} 
+              {% else %}
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      {% else %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+<h5>Add comment</h5>
+<form action="" method="post">
+  {% csrf_token %}
+  <div class="form-group">
+    <textarea class="form-control" name="comment-body" rows="3"></textarea>
+  </div>
+  <input class="btn btn-sm btn-primary" type="submit" name="add_comment" value="Add Comment">
+</form>
+
+<div class="task_comments mt-4">
+  {% if comment_list %}
+    <h5>Comments on this task</h5>
+    {% for comment in comment_list %}
+      <p>
+        <strong>{{ comment.author.first_name }}
+          {{ comment.author.last_name }},
+          {{ comment.date|date:"F d Y P" }}
+        </strong>
+      </p>
+      {{ comment.body|safe|urlize|linebreaks }}
+    {% endfor %}
+  {% else %}
+      <h5>No comments (yet).</h5>
+  {% endif %}
+</div>
+
+{% endblock %}

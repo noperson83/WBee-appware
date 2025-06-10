@@ -1,0 +1,631 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{{ client_detail.company_name }} - Client Details</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+  <a href="{% url 'client:dashboard' %}">Client Management</a>
+</li>
+<li class="breadcrumb-item">
+  <a href="{% url 'client:list' %}">Directory</a>
+</li>
+<li class="breadcrumb-item active">{{ client_detail.company_name }}</li>
+{% endblock %}
+
+{% block styler %}
+<style>
+  .client-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12px 12px 0 0;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .client-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transform: translate(30px, -30px);
+  }
+
+  .client-logo-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 3px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+  }
+
+  .client-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  }
+
+  .client-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  }
+
+  .section-header {
+    background: linear-gradient(90deg, #f8f9fa, #e9ecef);
+    padding: 1rem 1.5rem;
+    margin: -1.25rem -1.25rem 1.25rem -1.25rem;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .contact-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-left: 4px solid #007bff;
+  }
+
+  .contact-card.primary {
+    border-left-color: #28a745;
+    background: #f1f8e9;
+  }
+
+  .address-card {
+    background: #fff5f5;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-left: 4px solid #e83e8c;
+  }
+
+  .address-card.primary {
+    border-left-color: #6f42c1;
+    background: #f8f5ff;
+  }
+
+  .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+  }
+
+  .status-active {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    color: white;
+  }
+
+  .status-prospect {
+    background: linear-gradient(45deg, #ffc107, #fd7e14);
+    color: white;
+  }
+
+  .status-inactive {
+    background: #6c757d;
+    color: white;
+  }
+
+  .status-former {
+    background: #dc3545;
+    color: white;
+  }
+
+  .revenue-highlight {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .action-buttons .btn {
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .action-buttons .btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .info-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f3f4;
+  }
+
+  .info-item:last-child {
+    border-bottom: none;
+  }
+
+  .info-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .info-value {
+    margin-top: 0.25rem;
+    color: #212529;
+  }
+
+  .jobsite-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+  }
+
+  .jobsite-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-left: 2rem;
+    padding-bottom: 1rem;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0.5rem;
+    top: 0.5rem;
+    width: 8px;
+    height: 8px;
+    background: #007bff;
+    border-radius: 50%;
+  }
+
+  .timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    top: 1rem;
+    width: 1px;
+    height: calc(100% - 0.5rem);
+    background: #e9ecef;
+  }
+
+  .timeline-item:last-child::after {
+    display: none;
+  }
+
+  .metric-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+  }
+
+  .metric-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .metric-label {
+    color: #6c757d;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <!-- Client Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card client-card">
+        <div class="client-header">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              {% if client_detail.logo %}
+                <img src="{{ client_detail.logo.url }}" alt="{{ client_detail.company_name }}" class="client-logo-large">
+              {% else %}
+                <div class="client-logo-large d-flex align-items-center justify-content-center">
+                  <i class="fas fa-building" style="font-size: 2rem;"></i>
+                </div>
+              {% endif %}
+            </div>
+            <div class="col">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h1 class="h2 mb-2">{{ client_detail.company_name }}</h1>
+                  {% if client_detail.company_url %}
+                    <p class="mb-2">
+                      <i class="fas fa-globe me-2"></i>
+                      <a href="{{ client_detail.company_url }}" target="_blank" class="text-white text-decoration-none">
+                        {{ client_detail.company_url }}
+                      </a>
+                    </p>
+                  {% endif %}
+                  <div class="d-flex align-items-center gap-3">
+                    <span class="status-badge status-{{ client_detail.status }}">
+                      {{ client_detail.get_status_display }}
+                    </span>
+                    {% if client_detail.business_type %}
+                      <span class="badge badge-light">
+                        {{ client_detail.get_business_type_display }}
+                      </span>
+                    {% endif %}
+                  </div>
+                </div>
+                {% if request.user.is_staff %}
+                <div class="action-buttons">
+                  <a href="{% url 'client:update' client_detail.id %}" class="btn btn-light">
+                    <i class="fas fa-edit me-1"></i>Edit Client
+                  </a>
+                  <a href="{% url 'client:financial-dashboard' client_detail.id %}" class="btn btn-success">
+                    <i class="fas fa-chart-line me-1"></i>Financial Dashboard
+                  </a>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Financial Summary -->
+  {% if client_detail.ytd_revenue or client_detail.total_revenue %}
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="revenue-highlight">
+        <div class="row">
+          <div class="col-6">
+            <h3 class="mb-1">${{ client_detail.total_revenue|floatformat:0|default:"0" }}</h3>
+            <small>Total Revenue</small>
+          </div>
+          <div class="col-6">
+            <h3 class="mb-1">${{ client_detail.ytd_revenue|floatformat:0|default:"0" }}</h3>
+            <small>YTD Revenue</small>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="row">
+        <div class="col-6">
+          <div class="metric-card">
+            <div class="metric-value text-primary">{{ client_job_list|length }}</div>
+            <div class="metric-label">Job Sites</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="metric-card">
+            <div class="metric-value text-info">{{ client_detail.contacts.count }}</div>
+            <div class="metric-label">Contacts</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+      <!-- Primary Information -->
+      <div class="card client-card mb-4">
+        <div class="card-body">
+          <div class="section-header">
+            <h5 class="mb-0">
+              <i class="fas fa-info-circle me-2"></i>Primary Information
+            </h5>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <!-- Primary Contact -->
+              <div class="info-item">
+                <div class="info-label">Primary Contact</div>
+                <div class="info-value">
+                  {% if client_detail.primary_contact %}
+                    <div class="d-flex align-items-center">
+                      <i class="fas fa-user text-primary me-2"></i>
+                      <div>
+                        <strong>{{ client_detail.primary_contact.full_name }}</strong>
+                        {% if client_detail.primary_contact.title %}
+                          <br><small class="text-muted">{{ client_detail.primary_contact.title }}</small>
+                        {% endif %}
+                      </div>
+                    </div>
+                    {% if client_detail.primary_contact.email %}
+                      <div class="mt-2">
+                        <i class="fas fa-envelope text-muted me-2"></i>
+                        <a href="mailto:{{ client_detail.primary_contact.email }}">
+                          {{ client_detail.primary_contact.email }}
+                        </a>
+                      </div>
+                    {% endif %}
+                    {% if client_detail.primary_contact.phone %}
+                      <div class="mt-1">
+                        <i class="fas fa-phone text-muted me-2"></i>
+                        <a href="tel:{{ client_detail.primary_contact.phone }}">
+                          {{ client_detail.primary_contact.phone }}
+                        </a>
+                      </div>
+                    {% endif %}
+                  {% else %}
+                    <em class="text-muted">No primary contact on file</em>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Business Details -->
+              {% if client_detail.tax_id %}
+              <div class="info-item">
+                <div class="info-label">Tax ID / EIN</div>
+                <div class="info-value">{{ client_detail.tax_id }}</div>
+              </div>
+              {% endif %}
+
+              {% if client_detail.payment_terms %}
+              <div class="info-item">
+                <div class="info-label">Payment Terms</div>
+                <div class="info-value">{{ client_detail.get_payment_terms_display }}</div>
+              </div>
+              {% endif %}
+            </div>
+
+            <div class="col-md-6">
+              <!-- Primary Address -->
+              <div class="info-item">
+                <div class="info-label">Primary Address</div>
+                <div class="info-value">
+                  {% if client_detail.primary_address %}
+                    <div class="d-flex align-items-start">
+                      <i class="fas fa-map-marker-alt text-primary me-2 mt-1"></i>
+                      <div>
+                        {% if client_detail.primary_address.attention_line %}
+                          {{ client_detail.primary_address.attention_line }}<br>
+                        {% endif %}
+                        {{ client_detail.primary_address.line1 }}
+                        {% if client_detail.primary_address.line2 %}
+                          <br>{{ client_detail.primary_address.line2 }}
+                        {% endif %}
+                        <br>{{ client_detail.primary_address.city }}, {{ client_detail.primary_address.state_province }} {{ client_detail.primary_address.postal_code }}
+                      </div>
+                    </div>
+                  {% else %}
+                    <em class="text-muted">No address on file</em>
+                  {% endif %}
+                </div>
+              </div>
+
+              <!-- Important Dates -->
+              <div class="info-item">
+                <div class="info-label">Key Dates</div>
+                <div class="info-value">
+                  <div class="timeline-item">
+                    <strong>First Contact:</strong> {{ client_detail.date_of_contact|default:"Not recorded" }}
+                  </div>
+                  <div class="timeline-item">
+                    <strong>First Contract:</strong> {{ client_detail.date_of_contract|default:"Not recorded" }}
+                  </div>
+                  <div class="timeline-item">
+                    <strong>Client Since:</strong> {{ client_detail.created_at|date:"M d, Y" }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      {% if client_detail.summary %}
+      <div class="card client-card mb-4">
+        <div class="card-body">
+          <div class="section-header">
+            <h5 class="mb-0">
+              <i class="fas fa-file-alt me-2"></i>Client Summary
+            </h5>
+          </div>
+          <p class="mb-0">{{ client_detail.summary }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Job Sites -->
+      <div class="card client-card">
+        <div class="card-body">
+          <div class="section-header">
+            <h5 class="mb-0">
+              <i class="fas fa-building me-2"></i>Job Sites
+              {% if request.user.is_staff %}
+                <a href="#" class="btn btn-sm btn-primary float-end">
+                  <i class="fas fa-plus me-1"></i>Add Job Site
+                </a>
+              {% endif %}
+            </h5>
+          </div>
+          
+          {% if client_job_list %}
+            {% for jobsite in client_job_list %}
+            <div class="jobsite-item">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <h6 class="mb-1">
+                    <a href="{{ jobsite.get_absolute_url }}" class="text-decoration-none">
+                      {{ jobsite.job_title }}
+                    </a>
+                  </h6>
+                  {% if jobsite.address %}
+                    <small class="text-muted">
+                      <i class="fas fa-map-marker-alt me-1"></i>
+                      {{ jobsite.address }}
+                    </small>
+                  {% endif %}
+                </div>
+                <div class="text-end">
+                  {% if jobsite.signed_contract %}
+                    <span class="badge badge-success">
+                      <i class="fas fa-check me-1"></i>Signed
+                    </span>
+                  {% endif %}
+                  {% if jobsite.status %}
+                    <span class="badge badge-info">{{ jobsite.get_status_display }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-center py-4">
+              <i class="fas fa-building text-muted" style="font-size: 3rem;"></i>
+              <h6 class="text-muted mt-3">No job sites yet</h6>
+              <p class="text-muted">Create the first job site for this client.</p>
+              {% if request.user.is_staff %}
+                <a href="#" class="btn btn-primary">
+                  <i class="fas fa-plus me-1"></i>Add First Job Site
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Additional Contacts -->
+      {% if client_detail.contacts.all %}
+      <div class="card client-card mb-4">
+        <div class="card-body">
+          <div class="section-header">
+            <h5 class="mb-0">
+              <i class="fas fa-users me-2"></i>All Contacts
+            </h5>
+          </div>
+          
+          {% for contact in client_detail.contacts.all %}
+          <div class="contact-card {% if contact.is_primary %}primary{% endif %}">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <strong>{{ contact.full_name }}</strong>
+                {% if contact.is_primary %}
+                  <span class="badge badge-success badge-sm ms-2">Primary</span>
+                {% endif %}
+                <br>
+                <small class="text-muted">{{ contact.get_contact_type_display }}</small>
+                {% if contact.title %}
+                  <br><em class="small">{{ contact.title }}</em>
+                {% endif %}
+              </div>
+            </div>
+            {% if contact.email or contact.phone %}
+            <div class="mt-2">
+              {% if contact.email %}
+                <div class="small">
+                  <i class="fas fa-envelope me-1"></i>
+                  <a href="mailto:{{ contact.email }}">{{ contact.email }}</a>
+                </div>
+              {% endif %}
+              {% if contact.phone %}
+                <div class="small">
+                  <i class="fas fa-phone me-1"></i>
+                  <a href="tel:{{ contact.phone }}">{{ contact.phone }}</a>
+                </div>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Additional Addresses -->
+      {% if client_detail.addresses.all %}
+      <div class="card client-card mb-4">
+        <div class="card-body">
+          <div class="section-header">
+            <h5 class="mb-0">
+              <i class="fas fa-map-marked-alt me-2"></i>All Addresses
+            </h5>
+          </div>
+          
+          {% for address in client_detail.addresses.all %}
+          <div class="address-card {% if address.is_primary %}primary{% endif %}">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <strong>{{ address.get_label_display }}</strong>
+              {% if address.is_primary %}
+                <span class="badge badge-success badge-sm">Primary</span>
+              {% endif %}
+            </div>
+            <div class="small">
+              {% if address.attention_line %}
+                {{ address.attention_line }}<br>
+              {% endif %}
+              {{ address.line1 }}
+              {% if address.line2 %}
+                <br>{{ address.line2 }}
+              {% endif %}
+              <br>{{ address.city }}, {{ address.state_province }} {{ address.postal_code }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Quick Actions -->
+      {% if request.user.is_staff %}
+      <div class="card client-card">
+        <div class="card-body">
+          <div class="section-header">
+            <h5 class="mb-0">
+              <i class="fas fa-bolt me-2"></i>Quick Actions
+            </h5>
+          </div>
+          
+          <div class="d-grid gap-2">
+            <a href="{% url 'client:update' client_detail.id %}" class="btn btn-outline-primary">
+              <i class="fas fa-edit me-2"></i>Edit Client Info
+            </a>
+            <a href="{% url 'client:financial-dashboard' client_detail.id %}" class="btn btn-outline-success">
+              <i class="fas fa-chart-line me-2"></i>Financial Dashboard
+            </a>
+            <a href="#" class="btn btn-outline-info">
+              <i class="fas fa-file-invoice me-2"></i>Create Invoice
+            </a>
+            <a href="#" class="btn btn-outline-warning">
+              <i class="fas fa-chart-bar me-2"></i>View Reports
+            </a>
+            {% if request.user.is_staff %}
+            <hr>
+            <a href="{% url 'client:delete' client_detail.id %}" class="btn btn-outline-danger">
+              <i class="fas fa-trash me-2"></i>Delete Client
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends "home/base.html" %}
+{% load i18n scheduletags %}
+
+{% block title %}<title>Day event details</title>{% endblock %}
+
+{% block breadcrumb %} / <a href="{% url 'schedule' %}">Schedule</a> / Day event detail{% endblock %}
+
+{% block content %}
+
+    {% if request.user.staff %}
+<div class="row">
+  <div class="col-lg-2">
+      <a href="{% url 'delete_event' event.id %}"> <i class="fa fa-trash"></i> delete </a> -
+      <a href="{% url 'edit_event' event.calendar.slug event.id  %}"><i class="fa fa-pencil"></i> edit</a>
+  </div>
+</div>
+    {% endif %}
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header">
+        <h2>
+          <a style="color:black;font-weight:bold;" href="{{ event.get_absolute_url }}">
+              <i class="fa fa-fw fa-calendar"></i> {{event.start|date:"N dS"}}</a> : 
+          {{event.title}}
+        </h2>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-lg-6">
+            <h4>
+              <a href="{{ event.project.get_absolute_url }}">{{ event.project.job_name }} : {{ event.project.job_num }}</a>
+            </h4>
+            <p class="
+              {% if event.project.job_status == 'p' %}statusProspect
+              {% elif event.project.job_status == 'q' %}statusQuoted
+              {% elif event.project.job_status == 'o' %}statusInstalling
+              {% elif event.project.job_status == 'c' %}statusComplete
+              {% elif event.project.job_status == 's' %}statusService
+              {% elif event.project.job_status == 't' %}statusTm
+              {% elif event.project.job_status == 'm' %}statusPaid
+              {% elif event.project.job_status == 'i' %}statusInvoiced
+              {% else %}statusLost
+              {% endif %}">Status: {{ event.project.get_job_status_display }}</p>
+            
+            <strong><a href="{{ event.project.jobsite.get_absolute_url }}">{{ event.project.jobsite }}</a></strong> - 
+                (<a href="{{ event.project.jobsite.job_client.get_absolute_url }}">{{ event.project.jobsite.job_client }}</a>)
+            <br> 
+            <a href="{{ event.project.jobsite.google_maps_link }}">
+              <h6>
+                {{ event.project.jobsite.street_address }}<br>
+                {{ event.project.jobsite.city }}, {{ event.project.jobsite.state }} {{ event.project.jobsite.zipcode }}
+              </h6>
+            </a>
+            {% if event.project.due_date %}
+              {% if event.project.job_status != 'c' %}
+                <strong>Due date:</strong> {{event.project.due_date}}
+              {% endif %}
+            {% endif %}
+          </div>
+          <div class="col-lg-6">
+            <table align="center" class="table table-hover">
+            {% if event.start_time %}
+              <tr>
+                <td><i class="fa fa-clock-o"></i> {% trans "Office" %}</td>
+                <td><b>{{ event.start_time|date:"P" }}</b></td>
+              </tr>
+            {% endif %}
+            {% if event.dist_time %}
+              <tr>
+                <td><i class="fa fa-clock-o"></i> {{ event.distributor }}</td>
+                <td><b>{{ event.dist_time|date:"P" }}</b></td>
+              </tr>
+            {% endif %}
+              <tr>
+                <td><i class="fa fa-clock-o"></i> {% trans "Start" %}</td>
+                <td><b>{% blocktrans with event.start|date:"P" as start_date %}{{ start_date }}{% endblocktrans %}</b></td>
+              </tr>
+              <tr>
+                <td><i class="fa fa-clock-o"></i> {% trans "End" %}</td>
+                <td><b>{% blocktrans with event.end|date:"P" as end_date %}{{ end_date }}{% endblocktrans %}</b></td>
+              </tr>{% if event.rule %}
+              <tr>
+                <td>{% trans "Reoccurs" %}</td>
+                <td>{{ event.rule.name }} {% trans "until" %} {% blocktrans with event.end_recurring_period|date:_("DATETIME_FORMAT") as end_recurring_date %}{{ end_recurring_date }}{% endblocktrans %}</td>
+              </tr>{% endif %}
+            </table>
+            {% if event.description %}
+              <h3>{% trans "Description:" %}</h3>
+              <p>{{event.description}}</p>
+            {% endif %}
+            {% if event.text %}
+              <h3>{% trans "Contractor notes:" %}</h3>
+              <p>{{event.text}}</p>
+            {% endif %}
+            {% if event.equip %}
+              <h3>{% trans "Equipment:" %}</h3>
+              <p>{{event.equip}}</p>
+            {% endif %}
+            {% if event.details %}
+              <h3>{% trans "Project Details" %}</h3>
+              <p>{{event.details}}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header"><b>Scheduled onsite</b></div>
+        <div class="card-body">
+          <ul>
+            {% for workers in event.workers.all %}
+              <li>
+                <a style="color:black;font-weight:bold;" href="{{ workers.get_absolute_url }}">
+                {{ workers.first_name }} {{ workers.last_name }} :</a> 
+                <a style="color:black;font-weight:bold;" href="tel:{{ workers.phone_number }}">
+                  {{ workers.phone_number }}</a></li>
+            {% if not forloop.last %} {% endif %}
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    <div class="col-lg-6">
+      <a class="btn btn-primary gradient" href="{% url "day_calendar" event.calendar.slug %}{% querystring_for_date event.start 3 %}">
+        {% trans "Day" %}
+      </a>
+      <a class="btn btn-primary gradient" href="{% url "month_calendar" event.calendar.slug %}{% querystring_for_date event.start 2 %}">
+        {% trans "Month" %}
+      </a>
+      <a class="btn btn-primary gradient" href="{% url "year_calendar" event.calendar.slug %}{% querystring_for_date event.start 1 %}">
+        {% trans "Year" %}
+      </a>
+    </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

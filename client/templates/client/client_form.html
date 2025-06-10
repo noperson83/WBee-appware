@@ -1,0 +1,937 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+<title>{% if client %}Update {{ client.company_name }}{% else %}Create New Client{% endif %} - WBEE</title>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+  <a href="{% url 'client:dashboard' %}">Client Management</a>
+</li>
+<li class="breadcrumb-item">
+  <a href="{% url 'client:list' %}">Directory</a>
+</li>
+<li class="breadcrumb-item active">
+  {% if client %}Update {{ client.company_name }}{% else %}Create Client{% endif %}
+</li>
+{% endblock %}
+
+{% block styler %}
+<style>
+  .form-container {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+  }
+
+  .form-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.95);
+  }
+
+  .form-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .form-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transform: rotate(45deg);
+  }
+
+  .form-section {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border-left: 4px solid #007bff;
+  }
+
+  .form-section h5 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .form-section h5 i {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    font-size: 14px;
+  }
+
+  .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
+  }
+
+  .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .required-field::after {
+    content: ' *';
+    color: #dc3545;
+    font-weight: bold;
+  }
+
+  .form-help {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+  }
+
+  .submit-section {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    margin-top: 2rem;
+  }
+
+  .btn-submit {
+    background: white;
+    color: #28a745;
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    color: #1e7e34;
+  }
+
+  .sidebar-card {
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    color: #8b4513;
+  }
+
+  .sidebar-card .card-header {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .tips-card {
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    margin-bottom: 1.5rem;
+  }
+
+  .tips-card .card-header {
+    background: rgba(255,255,255,0.3);
+    border: none;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .image-upload-zone {
+    border: 2px dashed #007bff;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    background: #f8f9ff;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .image-upload-zone:hover {
+    background: #e7f3ff;
+    border-color: #0056b3;
+  }
+
+  .image-upload-zone.dragover {
+    background: #cce7ff;
+    border-color: #004085;
+  }
+
+  .progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  .progress-step {
+    display: flex;
+    align-items: center;
+    color: #6c757d;
+    font-weight: 500;
+  }
+
+  .progress-step.active {
+    color: #007bff;
+  }
+
+  .progress-step.completed {
+    color: #28a745;
+  }
+
+  .progress-step i {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+  }
+
+  .progress-step.active i {
+    background: #007bff;
+    color: white;
+  }
+
+  .progress-step.completed i {
+    background: #28a745;
+    color: white;
+  }
+
+  .validation-error {
+    border-color: #dc3545 !important;
+    background: #fff5f5;
+  }
+
+  .error-message {
+    color: #dc3545;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .error-message i {
+    margin-right: 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .form-container {
+      padding: 1rem 0;
+    }
+    
+    .form-header {
+      padding: 1.5rem;
+    }
+    
+    .form-section {
+      padding: 1rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+  <div class="container">
+    {% if request.user.is_staff %}
+    
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+      <div class="progress-step active">
+        <i class="fas fa-building"></i>
+        <span>Company Info</span>
+      </div>
+      <div class="progress-step">
+        <i class="fas fa-user"></i>
+        <span>Contact Details</span>
+      </div>
+      <div class="progress-step">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>Address</span>
+      </div>
+      <div class="progress-step">
+        <i class="fas fa-check"></i>
+        <span>Complete</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="card form-card">
+          <div class="form-header">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <h2 class="mb-1">
+                  {% if client %}
+                    <i class="fas fa-edit me-2"></i>Update Client
+                  {% else %}
+                    <i class="fas fa-plus me-2"></i>Create New Client
+                  {% endif %}
+                </h2>
+                <p class="mb-0 opacity-75">
+                  {% if client %}
+                    Modify {{ client.company_name }}'s information
+                  {% else %}
+                    Add a new client to your system
+                  {% endif %}
+                </p>
+              </div>
+              {% if client and request.user.is_staff %}
+                <a href="{% url 'client:delete' client.id %}" class="btn btn-outline-light">
+                  <i class="fas fa-trash me-1"></i>Delete
+                </a>
+              {% endif %}
+            </div>
+          </div>
+
+          <form method="post" enctype="multipart/form-data" id="clientForm" novalidate>
+            {% csrf_token %}
+            <div class="card-body p-4">
+              
+              <!-- Company Information Section -->
+              <div class="form-section" id="companySection">
+                <h5>
+                  <i class="fas fa-building"></i>
+                  Company Information
+                </h5>
+                
+                <div class="row">
+                  <div class="col-md-8">
+                    <div class="mb-3">
+                      <label for="id_company_name" class="form-label required-field">Company Name</label>
+                      <input type="text" class="form-control" id="id_company_name" name="company_name" 
+                             placeholder="Enter company name" required
+                             value="{% if client %}{{ client.company_name }}{% endif %}">
+                      <div class="form-help">The official company name as it appears on documents</div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label for="id_status" class="form-label">Status</label>
+                      <select class="form-control" id="id_status" name="status">
+                        <option value="prospect" {% if not client or client.status == 'prospect' %}selected{% endif %}>Prospect</option>
+                        <option value="active" {% if client and client.status == 'active' %}selected{% endif %}>Active Client</option>
+                        <option value="inactive" {% if client and client.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                        <option value="former" {% if client and client.status == 'former' %}selected{% endif %}>Former Client</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_company_url" class="form-label">Company Website</label>
+                      <input type="url" class="form-control" id="id_company_url" name="company_url" 
+                             placeholder="https://example.com"
+                             value="{% if client %}{{ client.company_url }}{% endif %}">
+                      <div class="form-help">Include https:// at the beginning</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_business_type" class="form-label">Business Type</label>
+                      <select class="form-control" id="id_business_type" name="business_type">
+                        <option value="">Select business type</option>
+                        <option value="corporation" {% if client and client.business_type == 'corporation' %}selected{% endif %}>Corporation</option>
+                        <option value="llc" {% if client and client.business_type == 'llc' %}selected{% endif %}>LLC</option>
+                        <option value="partnership" {% if client and client.business_type == 'partnership' %}selected{% endif %}>Partnership</option>
+                        <option value="sole_prop" {% if client and client.business_type == 'sole_prop' %}selected{% endif %}>Sole Proprietorship</option>
+                        <option value="non_profit" {% if client and client.business_type == 'non_profit' %}selected{% endif %}>Non-Profit</option>
+                        <option value="government" {% if client and client.business_type == 'government' %}selected{% endif %}>Government</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_tax_id" class="form-label">Tax ID / EIN</label>
+                      <input type="text" class="form-control" id="id_tax_id" name="tax_id" 
+                             placeholder="XX-XXXXXXX" maxlength="20"
+                             value="{% if client %}{{ client.tax_id }}{% endif %}">
+                      <div class="form-help">Federal Tax ID or Employer Identification Number</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_logo" class="form-label">Company Logo</label>
+                      {% if client and client.logo %}
+                        <div class="mb-2">
+                          <img src="{{ client.logo.url }}" alt="Current logo" style="max-height: 60px;" class="img-thumbnail">
+                          <br><small class="text-muted">Current logo</small>
+                          <div class="form-check mt-1">
+                            <input type="checkbox" class="form-check-input" id="logo-clear" name="logo-clear">
+                            <label class="form-check-label" for="logo-clear">Remove current logo</label>
+                          </div>
+                        </div>
+                      {% endif %}
+                      <div class="image-upload-zone" onclick="document.getElementById('id_logo').click()">
+                        <i class="fas fa-cloud-upload-alt text-primary" style="font-size: 2rem;"></i>
+                        <p class="mb-0 mt-2">Click to upload or drag and drop</p>
+                        <small class="text-muted">PNG, JPG or SVG (max 5MB)</small>
+                      </div>
+                      <input type="file" class="d-none" id="id_logo" name="logo" accept="image/*">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Contact Information Section -->
+              <div class="form-section" id="contactSection">
+                <h5>
+                  <i class="fas fa-user"></i>
+                  Primary Contact Information
+                </h5>
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_contact_first_name" class="form-label">First Name</label>
+                      <input type="text" class="form-control" id="id_contact_first_name" name="contact_first_name" 
+                             placeholder="First name" maxlength="100"
+                             value="{% if primary_contact %}{{ primary_contact.first_name }}{% endif %}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_contact_last_name" class="form-label">Last Name</label>
+                      <input type="text" class="form-control" id="id_contact_last_name" name="contact_last_name" 
+                             placeholder="Last name" maxlength="100"
+                             value="{% if primary_contact %}{{ primary_contact.last_name }}{% endif %}">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_contact_title" class="form-label">Job Title</label>
+                      <input type="text" class="form-control" id="id_contact_title" name="contact_title" 
+                             placeholder="e.g., CEO, Manager, Owner"
+                             value="{% if primary_contact %}{{ primary_contact.title }}{% endif %}">
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_contact_type" class="form-label">Contact Type</label>
+                      <select class="form-control" id="id_contact_type" name="contact_type">
+                        <option value="primary" {% if not primary_contact or primary_contact.contact_type == 'primary' %}selected{% endif %}>Primary Contact</option>
+                        <option value="billing" {% if primary_contact and primary_contact.contact_type == 'billing' %}selected{% endif %}>Billing Contact</option>
+                        <option value="technical" {% if primary_contact and primary_contact.contact_type == 'technical' %}selected{% endif %}>Technical Contact</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_contact_email" class="form-label">Email Address</label>
+                      <input type="email" class="form-control" id="id_contact_email" name="contact_email" 
+                             placeholder="contact@company.com"
+                             value="{% if primary_contact %}{{ primary_contact.email }}{% endif %}">
+                      <div class="form-help">Primary email for communications</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_contact_phone" class="form-label">Phone Number</label>
+                      <input type="tel" class="form-control" id="id_contact_phone" name="contact_phone" 
+                             placeholder="(555) 123-4567"
+                             value="{% if primary_contact %}{{ primary_contact.phone }}{% endif %}">
+                      <div class="form-help">Include area code</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Address Information Section -->
+              <div class="form-section" id="addressSection">
+                <h5>
+                  <i class="fas fa-map-marker-alt"></i>
+                  Business Address
+                </h5>
+                
+                <div class="row">
+                  <div class="col-12">
+                    <div class="mb-3">
+                      <label for="id_billing_attention" class="form-label">Attention Line</label>
+                      <input type="text" class="form-control" id="id_billing_attention" name="billing_attention" 
+                             placeholder="Attn: John Doe (optional)"
+                             value="{% if billing_address %}{{ billing_address.attention_line }}{% endif %}">
+                      <div class="form-help">Optional attention line for mail delivery</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-8">
+                    <div class="mb-3">
+                      <label for="id_billing_address" class="form-label">Street Address</label>
+                      <input type="text" class="form-control" id="id_billing_address" name="billing_address" 
+                             placeholder="123 Main Street"
+                             value="{% if billing_address %}{{ billing_address.line1 }}{% endif %}">
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label for="id_billing_address2" class="form-label">Suite/Unit</label>
+                      <input type="text" class="form-control" id="id_billing_address2" name="billing_address2" 
+                             placeholder="Suite 100 (optional)"
+                             value="{% if billing_address %}{{ billing_address.line2 }}{% endif %}">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-5">
+                    <div class="mb-3">
+                      <label for="id_billing_city" class="form-label">City</label>
+                      <input type="text" class="form-control" id="id_billing_city" name="billing_city" 
+                             placeholder="City"
+                             value="{% if billing_address %}{{ billing_address.city }}{% endif %}">
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="mb-3">
+                      <label for="id_billing_state" class="form-label">State/Province</label>
+                      <input type="text" class="form-control" id="id_billing_state" name="billing_state" 
+                             placeholder="State or Province"
+                             value="{% if billing_address %}{{ billing_address.state_province }}{% endif %}">
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="mb-3">
+                      <label for="id_billing_zipcode" class="form-label">ZIP/Postal Code</label>
+                      <input type="text" class="form-control" id="id_billing_zipcode" name="billing_zipcode" 
+                             placeholder="12345"
+                             value="{% if billing_address %}{{ billing_address.postal_code }}{% endif %}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Business Terms Section -->
+              <div class="form-section" id="termsSection">
+                <h5>
+                  <i class="fas fa-handshake"></i>
+                  Business Terms & Dates
+                </h5>
+                
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_payment_terms" class="form-label">Payment Terms</label>
+                      <select class="form-control" id="id_payment_terms" name="payment_terms">
+                        <option value="net_30" {% if not client or client.payment_terms == 'net_30' %}selected{% endif %}>Net 30</option>
+                        <option value="net_15" {% if client and client.payment_terms == 'net_15' %}selected{% endif %}>Net 15</option>
+                        <option value="net_45" {% if client and client.payment_terms == 'net_45' %}selected{% endif %}>Net 45</option>
+                        <option value="net_60" {% if client and client.payment_terms == 'net_60' %}selected{% endif %}>Net 60</option>
+                        <option value="due_on_receipt" {% if client and client.payment_terms == 'due_on_receipt' %}selected{% endif %}>Due on Receipt</option>
+                        <option value="custom" {% if client and client.payment_terms == 'custom' %}selected{% endif %}>Custom Terms</option>
+                      </select>
+                      <div class="form-help">Default payment terms for invoices</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_credit_limit" class="form-label">Credit Limit</label>
+                      <input type="number" class="form-control" id="id_credit_limit" name="credit_limit" 
+                             placeholder="0.00" step="0.01" min="0"
+                             value="{% if client and client.credit_limit %}{{ client.credit_limit }}{% endif %}">
+                      <div class="form-help">Maximum outstanding balance allowed</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_date_of_contact" class="form-label">Date of First Contact</label>
+                      <input type="date" class="form-control" id="id_date_of_contact" name="date_of_contact"
+                             value="{% if client and client.date_of_contact %}{{ client.date_of_contact|date:'Y-m-d' }}{% endif %}">
+                      <div class="form-help">When you first made contact with this client</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="id_date_of_contract" class="form-label">Date of First Contract</label>
+                      <input type="date" class="form-control" id="id_date_of_contract" name="date_of_contract"
+                             value="{% if client and client.date_of_contract %}{{ client.date_of_contract|date:'Y-m-d' }}{% endif %}">
+                      <div class="form-help">When the first contract was signed</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Summary Section -->
+              <div class="form-section" id="summarySection">
+                <h5>
+                  <i class="fas fa-file-alt"></i>
+                  Client Summary & Notes
+                </h5>
+                
+                <div class="mb-3">
+                  <label for="id_summary" class="form-label">Client Summary</label>
+                  <textarea class="form-control" id="id_summary" name="summary" rows="4" 
+                            placeholder="Brief description of the client, their needs, and your relationship..."
+                            maxlength="2000">{% if client %}{{ client.summary }}{% endif %}</textarea>
+                  <div class="form-help">
+                    <span id="summaryCount">0</span>/2000 characters
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Section -->
+            <div class="submit-section">
+              <h4 class="mb-3">
+                {% if client %}Update Client Information{% else %}Create New Client{% endif %}
+              </h4>
+              <p class="mb-4">
+                {% if client %}
+                  Review your changes and click Update to save the modifications.
+                {% else %}
+                  Review all information and click Create Client to add them to your system.
+                {% endif %}
+              </p>
+              <button type="submit" class="btn btn-submit">
+                <i class="fas fa-{% if client %}save{% else %}plus{% endif %} me-2"></i>
+                {% if client %}Update Client{% else %}Create Client{% endif %}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4">
+        <!-- Tips Card -->
+        <div class="card tips-card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="fas fa-lightbulb me-2"></i>Tips for Success
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <strong>Required Information:</strong>
+              <p class="small mb-2">Only the company name is required, but adding contact information helps with communication.</p>
+            </div>
+            <div class="mb-3">
+              <strong>Status Guidelines:</strong>
+              <ul class="small mb-2">
+                <li><strong>Prospect:</strong> Potential clients you're pursuing</li>
+                <li><strong>Active:</strong> Current paying clients</li>
+                <li><strong>Inactive:</strong> Clients with paused services</li>
+                <li><strong>Former:</strong> Past clients no longer working with you</li>
+              </ul>
+            </div>
+            <div class="mb-0">
+              <strong>Best Practices:</strong>
+              <ul class="small mb-0">
+                <li>Upload a company logo for easy recognition</li>
+                <li>Set payment terms to match your agreements</li>
+                <li>Keep contact information current</li>
+                <li>Use the summary field for important notes</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- What's Next Card -->
+        <div class="card sidebar-card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="fas fa-arrow-right me-2"></i>What's Next?
+            </h6>
+          </div>
+          <div class="card-body">
+            <p class="mb-3">After {% if client %}updating{% else %}creating{% endif %} this client, you can:</p>
+            <ul class="mb-3">
+              <li>Add additional contacts and addresses</li>
+              <li>Create job sites for this client</li>
+              <li>Set up projects and track progress</li>
+              <li>Generate invoices and track payments</li>
+              <li>Access detailed financial reports</li>
+            </ul>
+            <div class="d-grid gap-2">
+              <a href="{% url 'client:list' %}" class="btn btn-outline-dark btn-sm">
+                <i class="fas fa-list me-1"></i>View All Clients
+              </a>
+              {% if client %}
+              <a href="{{ client.get_absolute_url }}" class="btn btn-outline-dark btn-sm">
+                <i class="fas fa-eye me-1"></i>View Client Details
+              </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        {% if client %}
+        <!-- Current Client Info -->
+        <div class="card sidebar-card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="fas fa-info-circle me-2"></i>Current Information
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="mb-2">
+              <strong>Created:</strong> {{ client.created_at|date:"M d, Y" }}
+            </div>
+            <div class="mb-2">
+              <strong>Last Updated:</strong> {{ client.updated_at|date:"M d, Y" }}
+            </div>
+            {% if client.total_revenue %}
+            <div class="mb-2">
+              <strong>Total Revenue:</strong> ${{ client.total_revenue|floatformat:2 }}
+            </div>
+            {% endif %}
+            <div class="mb-0">
+              <strong>Job Sites:</strong> {{ client.addresses.count|default:0 }}
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% else %}
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body text-center p-5">
+            <i class="fas fa-exclamation-triangle text-warning" style="font-size: 4rem;"></i>
+            <h4 class="mt-3">Access Denied</h4>
+            <p class="text-muted">You don't have permission to create or modify client information.</p>
+            <a href="{% url 'client:list' %}" class="btn btn-primary">
+              <i class="fas fa-arrow-left me-1"></i>Back to Client List
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripter %}
+<script>
+$(document).ready(function() {
+  // Character counter for summary
+  $('#id_summary').on('input', function() {
+    const length = $(this).val().length;
+    $('#summaryCount').text(length);
+    
+    if (length > 1800) {
+      $('#summaryCount').addClass('text-warning');
+    } else {
+      $('#summaryCount').removeClass('text-warning');
+    }
+  });
+
+  // Initial count
+  $('#id_summary').trigger('input');
+
+  // Progress indicator
+  const sections = ['#companySection', '#contactSection', '#addressSection', '#termsSection'];
+  const steps = $('.progress-step');
+  
+  function updateProgress() {
+    let currentStep = 0;
+    
+    // Check company section
+    if ($('#id_company_name').val().trim()) {
+      currentStep = Math.max(currentStep, 1);
+    }
+    
+    // Check contact section
+    if ($('#id_contact_email').val().trim() || $('#id_contact_phone').val().trim()) {
+      currentStep = Math.max(currentStep, 2);
+    }
+    
+    // Check address section
+    if ($('#id_billing_address').val().trim() && $('#id_billing_city').val().trim()) {
+      currentStep = Math.max(currentStep, 3);
+    }
+    
+    // Update visual indicators
+    steps.each(function(index) {
+      $(this).removeClass('active completed');
+      if (index < currentStep) {
+        $(this).addClass('completed');
+      } else if (index === currentStep) {
+        $(this).addClass('active');
+      }
+    });
+  }
+
+  // Update progress on field changes
+  $('input, select, textarea').on('change input', updateProgress);
+  updateProgress(); // Initial check
+
+  // Image upload handling
+  $('#id_logo').on('change', function() {
+    const file = this.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = `
+          <div class="image-preview mt-2">
+            <img src="${e.target.result}" style="max-height: 100px;" class="img-thumbnail">
+            <br><small class="text-success">New image selected</small>
+          </div>
+        `;
+        $('.image-upload-zone').after(preview);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Drag and drop for image upload
+  $('.image-upload-zone').on('dragover', function(e) {
+    e.preventDefault();
+    $(this).addClass('dragover');
+  });
+
+  $('.image-upload-zone').on('dragleave', function(e) {
+    e.preventDefault();
+    $(this).removeClass('dragover');
+  });
+
+  $('.image-upload-zone').on('drop', function(e) {
+    e.preventDefault();
+    $(this).removeClass('dragover');
+    
+    const files = e.originalEvent.dataTransfer.files;
+    if (files.length > 0) {
+      $('#id_logo')[0].files = files;
+      $('#id_logo').trigger('change');
+    }
+  });
+
+  // Form validation
+  $('#clientForm').on('submit', function(e) {
+    let isValid = true;
+    
+    // Clear previous errors
+    $('.validation-error').removeClass('validation-error');
+    $('.error-message').remove();
+    
+    // Validate required fields
+    const companyName = $('#id_company_name').val().trim();
+    if (!companyName) {
+      $('#id_company_name').addClass('validation-error');
+      $('#id_company_name').after('<div class="error-message"><i class="fas fa-exclamation-circle"></i>Company name is required</div>');
+      isValid = false;
+    }
+    
+    // Validate email format if provided
+    const email = $('#id_contact_email').val().trim();
+    if (email && !isValidEmail(email)) {
+      $('#id_contact_email').addClass('validation-error');
+      $('#id_contact_email').after('<div class="error-message"><i class="fas fa-exclamation-circle"></i>Please enter a valid email address</div>');
+      isValid = false;
+    }
+    
+    // Validate URL format if provided
+    const url = $('#id_company_url').val().trim();
+    if (url && !isValidUrl(url)) {
+      $('#id_company_url').addClass('validation-error');
+      $('#id_company_url').after('<div class="error-message"><i class="fas fa-exclamation-circle"></i>Please enter a valid URL (include https://)</div>');
+      isValid = false;
+    }
+    
+    if (!isValid) {
+      e.preventDefault();
+      // Scroll to first error
+      const firstError = $('.validation-error').first();
+      if (firstError.length) {
+        $('html, body').animate({
+          scrollTop: firstError.offset().top - 100
+        }, 500);
+      }
+    }
+  });
+
+  // Helper functions
+  function isValidEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }
+
+  function isValidUrl(url) {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Auto-format phone number
+  $('#id_contact_phone').on('input', function() {
+    let value = $(this).val().replace(/\D/g, '');
+    if (value.length >= 6) {
+      value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    } else if (value.length >= 3) {
+      value = value.replace(/(\d{3})(\d{3})/, '($1) $2');
+    }
+    $(this).val(value);
+  });
+
+  // Auto-format ZIP code
+  $('#id_billing_zipcode').on('input', function() {
+    let value = $(this).val().replace(/\D/g, '');
+    if (value.length > 5) {
+      value = value.replace(/(\d{5})(\d{4})/, '$1-$2');
+    }
+    $(this).val(value);
+  });
+});
+</script>
+{% endblock %}
