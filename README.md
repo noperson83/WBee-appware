@@ -1,86 +1,83 @@
-+# WBee Universal Company Manager
-+
-+This repository contains a collection of Django applications for managing many aspects of a company.  The project was built on **Django 5.2** and expects **Python 3.11** or later.
-+
-+## Prerequisites
-+
-+- Python 3.11+
-+- Django 5.2
-+- Additional packages listed in `wbee/settings/base.py` (e.g. `django-extensions`, `djangorestframework`, `django-filter`, `django-import-export`, `django-crispy-forms`, `crispy-bootstrap5`, `django-cors-headers`, `dj-database-url`, `python-decouple`, `Pillow`, `easy-thumbnails`, `django-mptt`, `bleach`, `pytest-django`).
-+- A database supported by Django (SQLite is fine for development).
-+
-+## Environment Setup
-+
-+```bash
-+# Clone the repository
-+$ git clone <repo-url>
-+$ cd WBee-appware
-+
-+# Create a virtual environment
-+$ python -m venv .venv
-+$ source .venv/bin/activate
-+
-+# Install dependencies
-+(venv)$ pip install Django==5.2 django-extensions easy-thumbnails django-mptt \
-+    django-cors-headers djangorestframework django-filter django-import-export \
-+    django-crispy-forms crispy-bootstrap5 dj-database-url python-decouple \
-+    Pillow bleach pytest-django
-+```
-+
-+Create a `.env` file (or set environment variables) for secrets and database configuration.  A minimal example:
-+
-+```env
-+SECRET_KEY=your-secret-key
-+DEBUG=True
-+DATABASE_URL=sqlite:///db.sqlite3
-+TIME_ZONE=America/Phoenix
-+```
-+
-+Apply migrations and create a superuser:
-+
-+```bash
-+(venv)$ python manage.py migrate
-+(venv)$ python manage.py createsuperuser
-+```
-+
-+## Running the Project
-+
-+Start the development server with:
-+
-+```bash
-+(venv)$ python manage.py runserver
-+```
-+
-+Visit `http://127.0.0.1:8000/` in your browser to access the application.
-+
-+## Running Tests
-+
-+Tests can be executed with Django's test runner.  The example below uses an in-memory SQLite database:
-+
-+```bash
-+(venv)$ DATABASE_URL=sqlite:///:memory: python manage.py test
-+```
-+
-+## Application Overview
-+
-+Major apps included in this project are:
-+
-+- **asset** – Manage company assets and categories.
-+- **client** – Customer records, addresses and contacts.
-+- **company** – Core company/organization information.
-+- **helpdesk** – Ticket tracking and knowledge base (disabled by default).
-+- **hr** – Human resources: workers and positions.
-+- **location** – Business locations and configurable choices.
-+- **material** – Inventory and materials management.
-+- **project** – Project and scope tracking.
-+- **receipts** – Receipt and expense uploads.
-+- **schedule** – Calendar and event scheduling.
-+- **timecard** – Worker time tracking.
-+- **todo** – Simple task lists with comments and notifications.
-+- **wip** – Prototype work‑in‑progress features.
-+
-+Each app lives in its own directory with `models`, `views`, templates and tests where applicable.
-+
- 
-EOF
-)
+# WBee Universal Company Manager
+
+This repository contains a collection of Django applications for managing many aspects of a company.  The project was built on **Django 5.2** and expects **Python 3.11** or later.
+
+## Prerequisites
+
+- Python 3.11+
+- Django 5.2
+- Additional packages listed in `wbee/settings/base.py` (e.g. `django-extensions`, `djangorestframework`, `django-filter`, `django-import-export`, `django-crispy-forms`, `crispy-bootstrap5`, `django-cors-headers`, `dj-database-url`, `python-decouple`, `Pillow`, `easy-thumbnails`, `django-mptt`, `bleach`, `pytest-django`).
+- A database supported by Django (SQLite is fine for development).
+
+## Environment Setup
+
+```bash
+# Clone the repository
+$ git clone <repo-url>
+$ cd WBee-appware
+
+# Create a virtual environment
+$ python -m venv .venv
+$ source .venv/bin/activate
+
+# Install dependencies
+(venv)$ pip install Django==5.2 django-extensions easy-thumbnails django-mptt \
+    django-cors-headers djangorestframework django-filter django-import-export \
+    django-crispy-forms crispy-bootstrap5 dj-database-url python-decouple \
+    Pillow bleach pytest-django
+```
+
+Create a `.env` file (or set environment variables) for secrets and database configuration.  A minimal example:
+
+```env
+SECRET_KEY=your-secret-key
+DEBUG=True
+DATABASE_URL=sqlite:///db.sqlite3
+TIME_ZONE=America/Phoenix
+```
+
+Apply migrations and create a superuser:
+
+```bash
+(venv)$ python manage.py migrate
+(venv)$ python manage.py createsuperuser
+```
+
+## Running the Project
+
+Start the development server with:
+
+```bash
+(venv)$ python manage.py runserver
+```
+
+Visit `http://127.0.0.1:8000/` in your browser to access the application.
+
+## Running Tests
+
+Tests can be executed with Django's test runner.  The example below uses an in-memory SQLite database:
+
+```bash
+(venv)$ DATABASE_URL=sqlite:///:memory: python manage.py test
+```
+
+## Application Overview
+
+Major apps included in this project are:
+
+- **asset** – Manage company assets and categories.
+- **client** – Customer records, addresses and contacts.
+- **company** – Core company/organization information.
+- **helpdesk** – Ticket tracking and knowledge base (disabled by default).
+- **hr** – Human resources: workers and positions.
+- **location** – Business locations and configurable choices.
+- **material** – Inventory and materials management.
+- **project** – Project and scope tracking.
+- **receipts** – Receipt and expense uploads.
+- **schedule** – Calendar and event scheduling.
+- **timecard** – Worker time tracking.
+- **todo** – Simple task lists with comments and notifications.
+- **wip** – Prototype work‑in‑progress features.
+
+Each app lives in its own directory with `models`, `views`, templates and tests where applicable.
+
