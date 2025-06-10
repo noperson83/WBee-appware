@@ -11,7 +11,10 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from hr.models import Worker
 from project.models import Project
 
-class TimesheetPeriod(models.Model):
+# Shared abstract models
+from client.models import TimeStampedModel
+
+class TimesheetPeriod(TimeStampedModel):
     """
     Represents a payroll period for grouping timecards
     """
@@ -37,8 +40,6 @@ class TimesheetPeriod(models.Model):
     due_date = models.DateField(null=True, blank=True, help_text='Timesheet submission deadline')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-start_date']
@@ -87,7 +88,7 @@ class TimeCardManager(models.Manager):
             date__lte=week_end
         )
 
-class TimeCard(models.Model):
+class TimeCard(TimeStampedModel):
     """
     Modernized timecard model with better validation and calculations
     """
@@ -202,10 +203,6 @@ class TimeCard(models.Model):
         blank=True,
         help_text='Photo from work site'
     )
-    
-    # System fields
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
     
     objects = TimeCardManager()
 
@@ -415,7 +412,7 @@ class TimeCardAttachment(models.Model):
     def __str__(self):
         return f"{self.timecard} - {self.description or 'Attachment'}"
 
-class TimesheetSummary(models.Model):
+class TimesheetSummary(TimeStampedModel):
     """
     Weekly/period summary for worker timesheets
     """
@@ -446,9 +443,6 @@ class TimesheetSummary(models.Model):
     is_complete = models.BooleanField(default=False)
     submitted_at = models.DateTimeField(null=True, blank=True)
     approved_at = models.DateTimeField(null=True, blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ['worker', 'period']
