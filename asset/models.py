@@ -4,8 +4,8 @@ from django.db import models
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
-from datetime import date, timedelta
-import uuid
+from datetime import date, timedelta␊
+from django.utils.translation import gettext_lazy as _
 
 # Import from your modernized apps
 from client.models import TimeStampedModel, UUIDModel
@@ -13,6 +13,33 @@ from location.models import BusinessCategory, ConfigurableChoice, get_dynamic_ch
 from company.models import Company, Office, Department
 from hr.models import Worker, JobPosition
 from project.models import Project
+
+
+class Condition(models.TextChoices):
+    """Normalized condition values for assets"""
+    EXCELLENT = "excellent", _("Excellent")
+    GOOD = "good", _("Good")
+    FAIR = "fair", _("Fair")
+    POOR = "poor", _("Poor")
+    NEEDS_REPAIR = "needs_repair", _("Needs Repair")
+    OUT_OF_SERVICE = "out_of_service", _("Out of Service")
+
+
+class MaintenanceType(models.TextChoices):
+    """Types of maintenance that can be performed"""
+    ROUTINE = "routine", _("Routine Maintenance")
+    REPAIR = "repair", _("Repair")
+    INSPECTION = "inspection", _("Inspection")
+    UPGRADE = "upgrade", _("Upgrade")
+    CALIBRATION = "calibration", _("Calibration")
+
+
+class DepreciationMethod(models.TextChoices):
+    """Methods for asset depreciation"""
+    STRAIGHT_LINE = "straight_line", _("Straight Line")
+    DECLINING_BALANCE = "declining_balance", _("Declining Balance")
+    SUM_OF_YEARS = "sum_of_years", _("Sum of Years Digits")
+    UNITS_OF_PRODUCTION = "units_of_production", _("Units of Production")
 
 class AssetCategory(TimeStampedModel):
     """Configurable asset categories for different business types"""
@@ -174,18 +201,10 @@ class Asset(UUIDModel, TimeStampedModel):
     )
     
     # Condition and maintenance
-    CONDITION_CHOICES = [
-        ('excellent', 'Excellent'),
-        ('good', 'Good'),
-        ('fair', 'Fair'),
-        ('poor', 'Poor'),
-        ('needs_repair', 'Needs Repair'),
-        ('out_of_service', 'Out of Service'),
-    ]
     condition = models.CharField(
         max_length=20,
-        choices=CONDITION_CHOICES,
-        default='good'
+        choices=Condition.choices,
+        default=Condition.GOOD,
     )
     
     # Maintenance tracking
@@ -356,18 +375,14 @@ class Asset(UUIDModel, TimeStampedModel):
         self.schedule_next_maintenance()
         self.save()
 
-class AssetMaintenanceRecord(TimeStampedModel):
+class AssetMaintenanceRecord(UUIDModel, TimeStampedModel):
     """Track maintenance history for assets"""
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='maintenance_records')
     
-    MAINTENANCE_TYPES = [
-        ('routine', 'Routine Maintenance'),
-        ('repair', 'Repair'),
-        ('inspection', 'Inspection'),
-        ('upgrade', 'Upgrade'),
-        ('calibration', 'Calibration'),
-    ]
-    maintenance_type = models.CharField(max_length=20, choices=MAINTENANCE_TYPES)
+    maintenance_type = models.CharField(
+        max_length=20,
+        choices=MaintenanceType.choices,
+    )
     
     description = models.TextField(help_text='Description of work performed')
     
@@ -439,23 +454,24 @@ class AssetAssignment(TimeStampedModel):
     is_active = models.BooleanField(default=True)
     
     class Meta:
-        ordering = ['-start_date']
+        ordering = ['-performed_date']
+        indexes = [
+            models.Index(fields=['asset', 'performed_date']),
+        ]
     
     def __str__(self):
         return f"{self.asset.asset_number} assigned on {self.start_date}"
 
-class AssetDepreciation(TimeStampedModel):
+class AssetAssignment(UUIDModel, TimeStampedModel):
     """Track depreciation schedules for assets"""
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='depreciation_records')
     
     # Depreciation method
-    DEPRECIATION_METHODS = [
-        ('straight_line', 'Straight Line'),
-        ('declining_balance', 'Declining Balance'),
-        ('sum_of_years', 'Sum of Years Digits'),
-        ('units_of_production', 'Units of Production'),
-    ]
-    method = models.CharField(max_length=20, choices=DEPRECIATION_METHODS, default='straight_line')
+    method = models.CharField(
+        max_length=20,
+        choices=DepreciationMethod.choices,
+        default=DepreciationMethod.STRAIGHT_LINE,
+    )
     
     # Financial details
     basis_value = models.DecimalField(max_digits=18, decimal_places=2)
@@ -472,6 +488,9 @@ class AssetDepreciation(TimeStampedModel):
     class Meta:
         ordering = ['asset', 'depreciation_year']
         unique_together = ['asset', 'depreciation_year']
+        indexes = [
+            models.Index(fields=['asset', 'depreciation_year']),
+        ]
     
     def __str__(self):
         return f"{self.asset.asset_number} - Year {self.depreciation_year}"
