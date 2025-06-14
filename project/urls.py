@@ -363,4 +363,3 @@ This structure provides:
 - API endpoints for modern frontend interactions
 - Backward compatibility with legacy URLs
 - Clear separation between user interface and API
-"""
