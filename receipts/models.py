@@ -5,8 +5,11 @@ from decimal import Decimal
 from hr.models import Worker
 from project.models import Project
 
+# Shared abstract base models
+from client.models import TimeStampedModel
 
-class PurchaseType(models.Model):
+
+class PurchaseType(TimeStampedModel):
     """
     Model representing different types of purchases that can be customized per company.
     """
@@ -28,8 +31,7 @@ class PurchaseType(models.Model):
         default=True,
         help_text='Whether this purchase type is currently available for selection'
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Timestamps provided by TimeStampedModel
 
     class Meta:
         ordering = ['name']
@@ -40,7 +42,7 @@ class PurchaseType(models.Model):
         return f"{self.name} ({self.code})"
 
 
-class Receipt(models.Model):
+class Receipt(TimeStampedModel):
     """
     Model representing a receipt for expense tracking.
     Updated for Django 5 with modern best practices.
@@ -66,28 +68,7 @@ class Receipt(models.Model):
     worker = models.ForeignKey(
         Worker,
         on_delete=models.SET_NULL,
-        null=True,
-        related_name='receipts',
-        help_text='Employee who made the purchase'
-    )
-    purchase_type = models.ForeignKey(
-        PurchaseType,
-        on_delete=models.PROTECT,  # Prevent deletion of types in use
-        related_name='receipts',
-        help_text='Type of purchase made'
-    )
-    
-    # Purchase details
-    description = models.TextField(
-        max_length=2000,  # Increased for more detailed descriptions
-        blank=True,
-        help_text='Detailed description of the purchase'
-    )
-    total_amount = models.DecimalField(
-        max_digits=10,  # Reduced from 18 for more reasonable amounts
-        decimal_places=2,
-        validators=[MinValueValidator(Decimal('0.01'))],
-        help_text='Total amount of the purchase'
+@@ -91,53 +93,51 @@ class Receipt(models.Model):
     )
     
     # Receipt image
@@ -113,9 +94,7 @@ class Receipt(models.Model):
         help_text='Date when reimbursement was processed'
     )
     
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Timestamps provided by TimeStampedModel
 
     class Meta:
         ordering = ['-date_of_purchase', '-created_at']
@@ -141,35 +120,3 @@ class Receipt(models.Model):
     @property
     def is_recent(self):
         """
-        Returns True if the receipt is from the last 30 days.
-        """
-        from django.utils import timezone
-        from datetime import timedelta
-        
-        return self.date_of_purchase >= (timezone.now().date() - timedelta(days=30))
-
-    def clean(self):
-        """
-        Custom validation for the model.
-        """
-        from django.core.exceptions import ValidationError
-        from django.utils import timezone
-        
-        # Ensure reimbursement date is not before purchase date
-        if self.reimbursement_date and self.reimbursement_date < self.date_of_purchase:
-            raise ValidationError({
-                'reimbursement_date': 'Reimbursement date cannot be before purchase date.'
-            })
-        
-        # Ensure purchase date is not in the future
-        if self.date_of_purchase > timezone.now().date():
-            raise ValidationError({
-                'date_of_purchase': 'Purchase date cannot be in the future.'
-            })
-
-    def save(self, *args, **kwargs):
-        """
-        Override save to perform custom validation.
-        """
-        self.full_clean()
-        super().save(*args, **kwargs)
