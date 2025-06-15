@@ -454,15 +454,15 @@ class AssetAssignment(TimeStampedModel):
     is_active = models.BooleanField(default=True)
     
     class Meta:
-        ordering = ['-performed_date']
+        ordering = ['-start_date']
         indexes = [
-            models.Index(fields=['asset', 'performed_date']),
+            models.Index(fields=['asset', 'start_date']),
         ]
     
     def __str__(self):
         return f"{self.asset.asset_number} assigned on {self.start_date}"
 
-class AssetAssignment(UUIDModel, TimeStampedModel):
+class AssetDepreciation(UUIDModel, TimeStampedModel):
     """Track depreciation schedules for assets"""
     asset = models.ForeignKey(Asset, on_delete=models.CASCADE, related_name='depreciation_records')
     
@@ -625,3 +625,4 @@ def setup_asset_choices():
             )
 
     print("Default asset choices created successfully!")
+

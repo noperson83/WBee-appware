@@ -661,7 +661,7 @@ class ClearanceAdmin(admin.ModelAdmin):
             url = reverse('admin:hr_jobposition_changelist') + f'?required_clearances__id__exact={obj.id}'
             return format_html('<a href="{}">{} positions</a>', url, count)
         return "0 positions"
-    positions_requiring.short_description = 'Required By'
+    positions_requiring.short_description = "Required By"
 
 # Certification Admin - FIXED
 @admin.register(Certification)
@@ -692,4 +692,4 @@ class CertificateAdmin(admin.ModelAdmin):
             url = reverse('admin:hr_jobposition_changelist') + f'?required_certifications__id__exact={obj.id}'
             return format_html('<a href="{}">{} positions</a>', url, count)
         return "0 positions"
-    positions_requiring.short_description = 'Required By'
+    positions_requiring.short_description = "Required By"
