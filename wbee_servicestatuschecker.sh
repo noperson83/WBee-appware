@@ -79,10 +79,17 @@ done
 echo ""
 echo "🌐 Listening Ports:"
 echo "------------------"
-echo "Port 80 (HTTP): $(sudo netstat -tlnp | grep ':80 ' | wc -l) connections"
-echo "Port 443 (HTTPS): $(sudo netstat -tlnp | grep ':443 ' | wc -l) connections"
-echo "Port 5432 (PostgreSQL): $(sudo netstat -tlnp | grep ':5432 ' | wc -l) connections"
-echo "Port 6379 (Redis): $(sudo netstat -tlnp | grep ':6379 ' | wc -l) connections"
+if command -v ss >/dev/null 2>&1; then
+    echo "Port 80 (HTTP): $(sudo ss -tulpn | grep ':80 ' | wc -l) connections"
+    echo "Port 443 (HTTPS): $(sudo ss -tulpn | grep ':443 ' | wc -l) connections"
+    echo "Port 5432 (PostgreSQL): $(sudo ss -tulpn | grep ':5432 ' | wc -l) connections"
+    echo "Port 6379 (Redis): $(sudo ss -tulpn | grep ':6379 ' | wc -l) connections"
+else
+    echo "Port 80 (HTTP): $(sudo netstat -tlnp | grep ':80 ' | wc -l) connections"
+    echo "Port 443 (HTTPS): $(sudo netstat -tlnp | grep ':443 ' | wc -l) connections"
+    echo "Port 5432 (PostgreSQL): $(sudo netstat -tlnp | grep ':5432 ' | wc -l) connections"
+    echo "Port 6379 (Redis): $(sudo netstat -tlnp | grep ':6379 ' | wc -l) connections"
+fi
 
 # Check if Worker Bee processes are running
 echo ""
