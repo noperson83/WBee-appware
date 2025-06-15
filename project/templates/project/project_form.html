@@ -1,0 +1,33 @@
+{% extends "home/base.html" %}
+{% block title %}<title>{% if form.instance.pk %}Edit Project{% else %}New Project{% endif %}</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project:dashboard' %}">Projects</a></li>
+<li class="breadcrumb-item"><a href="{% url 'project:project-list' %}">List</a></li>
+<li class="breadcrumb-item active">{% if form.instance.pk %}Edit{% else %}Create{% endif %}</li>
+{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+          {% if form.instance.pk %}
+            <i class="fas fa-edit"></i> Edit Project
+          {% else %}
+            <i class="fas fa-plus"></i> Create Project
+          {% endif %}
+        </h6>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

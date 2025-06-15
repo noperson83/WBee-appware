@@ -1,0 +1,27 @@
+{% extends "home/base.html" %}
+{% block title %}<title>{{ project.name }}</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project:dashboard' %}">Projects</a></li>
+<li class="breadcrumb-item"><a href="{% url 'project:project-list' %}">List</a></li>
+<li class="breadcrumb-item active">{{ project.name }}</li>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">{{ project.name }}</h1>
+  <a href="{% url 'project:project-edit' project.job_number %}" class="btn btn-sm btn-outline-primary">
+    <i class="fas fa-edit"></i> Edit
+  </a>
+</div>
+<div class="card mb-3">
+  <div class="card-body">
+    <dl class="row mb-0">
+      <dt class="col-sm-3">Job Number</dt>
+      <dd class="col-sm-9">{{ project.job_number }}</dd>
+      <dt class="col-sm-3">Status</dt>
+      <dd class="col-sm-9">{{ project.get_status_display|default:project.status }}</dd>
+      <dt class="col-sm-3">Description</dt>
+      <dd class="col-sm-9">{{ project.description|linebreaksbr }}</dd>
+    </dl>
+  </div>
+</div>
+{% endblock %}
