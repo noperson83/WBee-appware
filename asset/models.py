@@ -587,5 +587,22 @@ def setup_asset_choices():
         ('field', 'Field Location'),
     ]
     
-    # Create configurable choices
-    # This would integrate with your ConfigurableChoice system
+    # Create configurable choices using the ConfigurableChoice model
+    choices_to_create = [
+        ('asset_status', asset_statuses),
+        ('asset_location', asset_locations),
+    ]
+
+    for choice_type, values in choices_to_create:
+        for index, (value, display) in enumerate(values):
+            ConfigurableChoice.objects.get_or_create(
+                choice_type=choice_type,
+                value=value,
+                defaults={
+                    'display_name': display,
+                    'sort_order': index * 10,
+                    'applicable_to_all': True,
+                }
+            )
+
+    print("Default asset choices created successfully!")
