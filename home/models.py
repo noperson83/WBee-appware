@@ -8,12 +8,14 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
-import uuid
+
+# Shared abstract models for consistency
+from client.models import TimeStampedModel, UUIDModel
 
 User = get_user_model()
 
 
-class UserPreference(models.Model):
+class UserPreference(TimeStampedModel):
     """Simple user preferences for dashboard customization."""
     
     THEME_CHOICES = [
@@ -37,9 +39,7 @@ class UserPreference(models.Model):
     timezone = models.CharField(max_length=50, default='America/Phoenix')
     date_format = models.CharField(max_length=20, default='%Y-%m-%d')
     
-    # Metadata
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Metadata handled by TimeStampedModel
     
     class Meta:
         verbose_name = 'User Preference'
@@ -49,7 +49,7 @@ class UserPreference(models.Model):
         return f"{self.user.first_name}'s Preferences"
 
 
-class Announcement(models.Model):
+class Announcement(UUIDModel, TimeStampedModel):
     """Simple company announcements."""
     
     TYPE_CHOICES = [
@@ -65,7 +65,6 @@ class Announcement(models.Model):
         ('high', 'High'),
     ]
     
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=200)
     content = models.TextField()
     announcement_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='general')
@@ -81,9 +80,7 @@ class Announcement(models.Model):
     show_on_dashboard = models.BooleanField(default=True)
     require_acknowledgment = models.BooleanField(default=False)
     
-    # Metadata
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Metadata handled by TimeStampedModel
     
     class Meta:
         ordering = ['-priority', '-publish_date']
@@ -127,10 +124,8 @@ class AnnouncementAcknowledgment(models.Model):
         return f"{self.user.first_name} acknowledged {self.announcement.title}"
 
 
-class QuickAction(models.Model):
+class QuickAction(UUIDModel, TimeStampedModel):
     """Quick action buttons for dashboard."""
-    
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=100)
     description = models.CharField(max_length=200, blank=True)
     url = models.CharField(max_length=500,blank=True,null=True)
@@ -142,9 +137,7 @@ class QuickAction(models.Model):
     # Permissions (simple approach)
     required_permission = models.CharField(max_length=100, blank=True)
     
-    # Metadata
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Metadata handled by TimeStampedModel
     
     class Meta:
         ordering = ['sort_order', 'title']
@@ -155,10 +148,9 @@ class QuickAction(models.Model):
         return self.title
 
 
-class DashboardMetric(models.Model):
+class DashboardMetric(UUIDModel, TimeStampedModel):
     """Simple metrics for dashboard display."""
     
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     value = models.DecimalField(max_digits=15, decimal_places=2, default=0)

@@ -17,6 +17,9 @@ from hr.models import Worker
 from project.models import Project
 from material.models import Supplier
 
+# Shared abstract base models
+from client.models import TimeStampedModel
+
 # Import your existing CalendarManager and EventRelationManager
 # (keeping the existing manager code as it's well-designed)
 
@@ -58,7 +61,7 @@ class CalendarManager(models.Manager):
             calendarrelation__object_id=obj.id
         )
 
-class Calendar(models.Model):
+class Calendar(TimeStampedModel):
     """
     Modernized calendar for grouping events with enhanced features
     """
@@ -149,9 +152,7 @@ class Calendar(models.Model):
         help_text='Auto-accept events from trusted sources'
     )
     
-    # System fields
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # System fields provided by TimeStampedModel
     
     objects = CalendarManager()
 
@@ -205,7 +206,7 @@ class CalendarRelationManager(models.Manager):
             inheritable=inheritable
         )
 
-class CalendarRelation(models.Model):
+class CalendarRelation(TimeStampedModel):
     """
     Modernized calendar relations with enhanced permissions
     """
@@ -242,7 +243,7 @@ class CalendarRelation(models.Model):
         help_text='Send notifications when calendar changes'
     )
     
-    created_at = models.DateTimeField(auto_now_add=True)
+    # Timestamp handled by TimeStampedModel
     
     objects = CalendarRelationManager()
 
@@ -281,7 +282,7 @@ class EventManager(models.Manager):
             models.Q(creator=worker)
         ).distinct()
 
-class Event(models.Model):
+class Event(TimeStampedModel):
     """
     Modernized event model with enhanced features
     """
@@ -517,8 +518,7 @@ class Event(models.Model):
         verbose_name=_("creator"),
         related_name='created_events'
     )
-    created_at = models.DateTimeField(_("created on"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("updated on"), auto_now=True)
+    # Timestamps provided by TimeStampedModel
     
     # Integration fields
     external_id = models.CharField(
@@ -702,7 +702,7 @@ class EventRelationManager(models.Manager):
             content_object=content_object
         )
 
-class EventRelation(models.Model):
+class EventRelation(TimeStampedModel):
     """
     Enhanced event relations with additional metadata
     """
@@ -754,9 +754,7 @@ class EventRelation(models.Model):
         help_text='Send notifications to this participant'
     )
     
-    # System fields
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # System fields handled by TimeStampedModel
     
     objects = EventRelationManager()
 
@@ -771,7 +769,7 @@ class EventRelation(models.Model):
     def __str__(self):
         return f'{self.event.title}({self.distinction})-{self.content_object}'
 
-class Occurrence(models.Model):
+class Occurrence(TimeStampedModel):
     """
     Modernized occurrence model for recurring events
     """
@@ -796,9 +794,7 @@ class Occurrence(models.Model):
         help_text='Override status for this specific occurrence'
     )
     
-    # System fields
-    created_at = models.DateTimeField(_("created on"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("updated on"), auto_now=True)
+    # System fields handled by TimeStampedModel
 
     class Meta:
         verbose_name = _("occurrence")

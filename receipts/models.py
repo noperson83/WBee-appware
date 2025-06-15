@@ -5,8 +5,11 @@ from decimal import Decimal
 from hr.models import Worker
 from project.models import Project
 
+# Shared abstract base models
+from client.models import TimeStampedModel
 
-class PurchaseType(models.Model):
+
+class PurchaseType(TimeStampedModel):
     """
     Model representing different types of purchases that can be customized per company.
     """
@@ -28,8 +31,7 @@ class PurchaseType(models.Model):
         default=True,
         help_text='Whether this purchase type is currently available for selection'
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Timestamps provided by TimeStampedModel
 
     class Meta:
         ordering = ['name']
@@ -40,7 +42,7 @@ class PurchaseType(models.Model):
         return f"{self.name} ({self.code})"
 
 
-class Receipt(models.Model):
+class Receipt(TimeStampedModel):
     """
     Model representing a receipt for expense tracking.
     Updated for Django 5 with modern best practices.
@@ -113,9 +115,7 @@ class Receipt(models.Model):
         help_text='Date when reimbursement was processed'
     )
     
-    # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Timestamps provided by TimeStampedModel
 
     class Meta:
         ordering = ['-date_of_purchase', '-created_at']

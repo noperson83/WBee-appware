@@ -11,6 +11,9 @@ from django_extensions.db.fields import AutoSlugField
 from decimal import Decimal
 from datetime import date, datetime, timedelta
 
+# Shared abstract base models
+from client.models import TimeStampedModel
+
 from hr.models import JobPosition, Worker
 from project.models import ScopeOfWork, Project
 
@@ -30,7 +33,7 @@ class TaskListManager(models.Manager):
             is_active=True
         ).distinct()
 
-class TaskList(models.Model):
+class TaskList(TimeStampedModel):
     """
     Modernized task list with enhanced categorization and workflow
     """
@@ -166,9 +169,7 @@ class TaskList(models.Model):
         help_text='Current owner/manager of this task list'
     )
 
-    # System fields
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # System fields provided by TimeStampedModel
 
     objects = TaskListManager()
 
@@ -310,7 +311,7 @@ class TaskManager(models.Manager):
         """Get tasks for a specific group"""
         return self.filter(task_list__group=group)
 
-class Task(models.Model):
+class Task(TimeStampedModel):
     """
     Modernized task model with enhanced tracking and workflow
     """
@@ -492,8 +493,7 @@ class Task(models.Model):
         help_text='Actual hours spent on this task'
     )
 
-    # System fields
-    updated_at = models.DateTimeField(auto_now=True)
+    # System fields provided by TimeStampedModel
 
     objects = TaskManager()
 
@@ -664,7 +664,7 @@ class Task(models.Model):
         
         return new_task
 
-class Comment(models.Model):
+class Comment(TimeStampedModel):
     """
     Enhanced comment model with better tracking and features
     """
@@ -704,7 +704,6 @@ class Comment(models.Model):
         default=timezone.now,
         help_text='When this comment was posted'
     )
-    updated_at = models.DateTimeField(auto_now=True)
     
     # Features
     is_private = models.BooleanField(
@@ -774,7 +773,7 @@ class TaskAttachment(models.Model):
     def __str__(self):
         return f"{self.task.title} - {self.description or 'Attachment'}"
 
-class TaskTemplate(models.Model):
+class TaskTemplate(TimeStampedModel):
     """
     Reusable task templates for common workflows
     """
@@ -799,7 +798,6 @@ class TaskTemplate(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE
     )
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
