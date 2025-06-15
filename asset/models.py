@@ -4,7 +4,7 @@ from django.db import models
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
-from datetime import date, timedelta␊
+from datetime import date, timedelta
 from django.utils.translation import gettext_lazy as _
 
 # Import from your modernized apps
