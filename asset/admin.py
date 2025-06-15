@@ -702,4 +702,5 @@ class AssetDepreciationAdmin(admin.ModelAdmin):
     def remaining_value(self, obj):
         remaining = obj.basis_value - obj.accumulated_depreciation
         return f"${remaining:,.2f}"
-    remaining_value.short_description = 'Remaining Value'
+    remaining_value.short_description = "Remaining Value"
+
