@@ -1,0 +1,26 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}
+    <title>{% block page_title %}Project{% endblock %} - WBEE Manager</title>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <nav class="col-md-2 mb-3">
+        <ul class="nav flex-column small">
+            <li class="nav-item"><a class="nav-link" href="{% url 'project:dashboard' %}"><i class="fas fa-chart-line me-1"></i>Dashboard</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'project:project-list' %}"><i class="fas fa-list me-1"></i>All Projects</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'project:project-active' %}"><i class="fas fa-list-check me-1"></i>Active</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'project:project-complete' %}"><i class="fas fa-check me-1"></i>Complete</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'project:project-overdue' %}"><i class="fas fa-exclamation-triangle me-1"></i>Overdue</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'project:my-assignments' %}"><i class="fas fa-user-check me-1"></i>My Assignments</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'project:reports' %}"><i class="fas fa-file-alt me-1"></i>Reports</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'project:settings' %}"><i class="fas fa-cog me-1"></i>Settings</a></li>
+        </ul>
+    </nav>
+    <div class="col-md-10">
+        {% block project_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}
