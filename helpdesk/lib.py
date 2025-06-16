@@ -27,7 +27,7 @@ except ImportError:
 from django.conf import settings
 from django.db.models import Q
 import six
-from django.utils.encoding import smart_text
+from django.utils.encoding import smart_str
 from django.utils.safestring import mark_safe
 
 from helpdesk.models import Attachment, EmailTemplate
@@ -305,7 +305,7 @@ def text_is_spam(text, request):
             'comment_author': '',
         }
 
-        return ak.comment_check(smart_text(text), data=ak_data)
+        return ak.comment_check(smart_str(text), data=ak_data)
 
     return False
 
@@ -316,7 +316,7 @@ def process_attachments(followup, attached_files):
 
     for attached in attached_files:
         if attached.size:
-            filename = smart_text(attached.name)
+            filename = smart_str(attached.name)
             att = Attachment(
                 followup=followup,
                 file=attached,
