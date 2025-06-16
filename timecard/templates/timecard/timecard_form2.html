@@ -1,0 +1,70 @@
+{% extends "home/base.html" %}
+
+{% block title %}<title>Create Time Card</title>{% endblock %}
+{% block breadcrumb %} / <a href="{% url 'timecard' %}">Time card</a>{% endblock %}
+
+{% block content %}
+{% if request.user.staff %}
+  <div style="font-weight:bold;">
+  Employee : {{ request.user }} {{ form.non_field_errors }} {{ form.management_form }}
+    <form style="background-color:rgb(217, 237, 248);"  class="table-responsive form-control" method="post">{% csrf_token %}
+    <table class="table table-bordered" width="100%" cellspacing="0">
+        <thead>
+        <tr class="tabelheader">
+            <th style="font-weight: inherit;">Date </th>
+            <th style="font-weight: inherit;">Worker </th>
+            <th style="font-weight: inherit;">Project </th>
+            <th style="font-weight: inherit;">Start </th>
+            <th style="font-weight: inherit;">Stop </th>
+            <th style="font-weight: inherit;">Start </th>
+            <th style="font-weight: inherit;">Stop </th>
+            <th style="font-weight: inherit;">Add </th>
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <th style="font-weight: inherit;"> </th>
+            <th style="font-weight: inherit;"> </th>
+            <th style="font-weight: inherit;"> </th>
+            <th style="font-weight: inherit;"> </th>
+            <th style="font-weight: inherit;"> </th>
+            <th style="font-weight: inherit;"> </th>
+            <th style="font-weight: inherit;"> </th>
+            <th style="font-weight: inherit;"> </th>
+        </tr>
+        </tfoot>
+        <tbody> 
+            <tr class="{% cycle 'odd' 'even' %}">
+                <td style="font-weight:bold;">
+                    <input class="form-control" style="width:174px;" type="date" name="date" required="" id="id_date" > {{ form.date.errors }}</td>
+                <td style="font-weight:bold;">
+                    {{ request.user }} </td>
+                <td style="font-weight:bold;">
+                <select class="form-control" name="project" required="" id="id_project">
+                    {% for project in form.project %}
+                        {{ project }}
+                    {% endfor %}
+                </select>{{ form.project.errors }} </td>
+                <td style="font-weight:bold;">
+                    <input class="form-control" type="time" name="site_time" required="" id="id_site_time" step="900" value="08:00:00"> {{ form.site_time.errors }} </td>
+                <td style="font-weight:bold;">
+                    <input class="form-control" type="time" name="site_end_time" id="id_site_end_time" step="900" value="12:00:00"> {{ form.site_end_time.errors }} </td>
+                <td style="font-weight:bold;">
+                    <input class="form-control" type="time" name="site_time_after" id="id_site_time_after" step="900" value="12:30:00"> {{ form.site_time_after.errors }} </td>
+                <td style="font-weight:bold;">
+                    <input class="form-control" type="time" name="site_end_time_after" required="" id="id_site_end_time_after" step="900" value="16:30:00"> {{ form.site_end_time_after.errors }}</a> </td>
+                <td style="font-weight:bold;">
+                    <button type="submit" class="btn btn-success">+</button> </td>
+            </tr>
+        </tbody>
+    </table>
+    </form>
+</div>
+{% else %}
+Your not allowed to view this page..
+{% endif %}
+
+{% endblock %} 
+
+{% block scripter %}  
+{% endblock %} 

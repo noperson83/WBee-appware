@@ -1,0 +1,59 @@
+{% extends "home/base.html" %}
+
+{% block title %}<title>Time card</title>{% endblock %}
+{% block breadcrumb %} / <a href="{% url 'timecard' %}">Time card</a>
+  {% if request.user.staff %} / <a href="{% url 'create-timecard' %}">add a new day</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+{% if request.user.staff %}
+<div class="col-lg-6">
+  <div class="card mb-3">
+    <div class="card-header" style="background-color:rgb(0, 119, 255);">
+      <h3>Update Time Card
+       {% if request.user.admin %}<div class="add_jobsite"><a href="{% url 'delete-timecard' timecard.id %}"> delete </a></div>{% endif %}
+      </h3>      
+    </div>
+    <form class="form-control" method="post">{% csrf_token %}
+      <div class="form-row">
+        <div class="col" style="margin-top: 10px;">
+          <label for="id_date">&nbsp; Date:</label> {{ form.date.errors }}
+          <input class="form-control" style="width:174px;" type="date" name="date" required="" id="id_date" value="{{ timecard.date|date:'Y-m-d' }}"> {{ form.date.errors }}
+        </div>
+        <div class="col" style="margin-top: 10px;">
+          {{ request.user }}
+        </div>
+      </div>  
+      <div class="form-row" style="margin-top: 10px;">
+        <select class="form-control" name="project" required="" id="id_project">
+            {% for project in form.project %}
+                {{ project }}
+            {% endfor %}
+        </select>{{ form.project.errors }}
+      </div>
+      <div class="form-row">
+        <div class="col" style="margin-top: 10px;">
+          <label for="id_site_time">&nbsp; Start time:</label> {{ form.site_time.errors }}
+          <input class="form-control" type="time" name="site_time" required="" id="id_site_time" step="900" value="{{ timecard.site_time|date:'H:i' }}"> 
+        </div>
+        <div class="col" style="margin-top: 10px;">
+          <label for="id_site_end_time">&nbsp; Lunch time:</label> {{ form.site_end_time.errors }} 
+          <input class="form-control" type="time" name="site_end_time" id="id_site_end_time" step="900" value="{{ timecard.site_end_time|date:'H:i' }}"> 
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="col" style="margin-top: 10px;">
+          <label for="id_site_time_after">&nbsp; Back from lunch:</label> {{ form.site_time_after.errors }}
+          <input class="form-control" type="time" name="site_time_after" id="id_site_time_after" step="900" value="{{ timecard.site_time_after|date:'H:i' }}">
+        </div>
+        <div class="col" style="margin-top: 10px;">
+          <label for="id_site_end_time_after">&nbsp; End time:</label> {{ form.site_end_time_after.errors }}
+          <input class="form-control" type="time" name="site_end_time_after" required="" id="id_site_end_time_after" step="900" value="{{ timecard.site_end_time_after|date:'H:i' }}">
+        </div>
+      </div>
+      <input style="margin-top: 10px;margin-bottom: 10px;" class="btn btn-primary btn-block" type="submit" value="Update" />
+    </form>
+  </div>
+</div>
+{% endif %} 
+{% endblock %} 

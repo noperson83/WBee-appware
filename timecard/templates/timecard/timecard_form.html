@@ -1,0 +1,58 @@
+{% extends "home/base.html" %}
+
+{% block title %}<title>Create Time Card</title>{% endblock %}
+{% block breadcrumb %} / <a href="{% url 'timecard' %}">Time card</a>{% endblock %}
+
+{% block content %}{% if request.user.staff %}
+<div class="col-lg-6">
+  <div class="card mb-3">
+    <div class="card-header" style="background-color:rgb(0, 119, 255);">
+      <h3>Update Time Card
+      </h3>      
+    </div>
+    <form class="form-control" method="post">{% csrf_token %}
+      <div class="form-row">
+        <div class="col" style="margin-top: 10px;">
+          <label for="id_date">&nbsp; Date:</label> {{ form.date.errors }}
+          <input class="form-control" style="width:174px;" type="date" name="date" required="" id="id_date" > {{ form.date.errors }}
+        </div>
+        <div class="col" style="margin-top: 10px;">
+          {{ request.user }}
+        </div>
+      </div>  
+      <div class="form-row" style="margin-top: 10px;">
+        <select class="form-control" name="project" required="" id="id_project">
+            {% for project in form.project %}
+                {{ project }}
+            {% endfor %}
+        </select>{{ form.project.errors }}
+      </div>
+      <div class="form-row">
+        <div class="col" style="margin-top: 10px;">
+          <label for="id_site_time">&nbsp; Start time:</label> {{ form.site_time.errors }}
+          <input class="form-control" type="time" name="site_time" required="" id="id_site_time" step="900" value="07:00:00"> 
+        </div>
+        <div class="col" style="margin-top: 10px;">
+          <label for="id_site_end_time">&nbsp; Lunch time:</label> {{ form.site_end_time.errors }} 
+          <input class="form-control" type="time" name="site_end_time" id="id_site_end_time" step="900" value="11:00:00"> 
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="col" style="margin-top: 10px;">
+          <label for="id_site_time_after">&nbsp; Back from lunch:</label> {{ form.site_time_after.errors }}
+          <input class="form-control" type="time" name="site_time_after" id="id_site_time_after" step="900" value="12:00:00">
+        </div>
+        <div class="col" style="margin-top: 10px;">
+          <label for="id_site_end_time_after">&nbsp; End time:</label> {{ form.site_end_time_after.errors }}
+          <input class="form-control" type="time" name="site_end_time_after" required="" id="id_site_end_time_after" step="900" value="16:00:00">
+        </div>
+      </div>
+      <input style="margin-top: 10px;margin-bottom: 10px;" class="btn btn-primary btn-block" type="submit" value="Update" />
+    </form>
+  </div>
+</div>
+{% endif %} 
+{% endblock %} 
+
+{% block scripter %}  
+{% endblock %} 

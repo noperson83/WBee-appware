@@ -1,0 +1,25 @@
+{% extends "home/base.html" %}
+
+{% block title %}<title>Delete time card</title>{% endblock %}
+{% block breadcrumb %} / <a href="{% url 'timecard' %}">Time card</a> / Time card / TODAY IS {{ tadai }}
+  {% if request.user.staff %} / <a href="{% url 'create-timecard' %}">add a new day</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if request.user.admin %}
+<div class="col-lg-4">
+  <div class="card mb-3">
+    <div class="card-header" style="background-color:rgb(0, 119, 255);">
+      <h3>Delete Time Card info</h3> 
+    </div>
+    <form class="form-control" method="post">{% csrf_token %}
+      <p>Are you sure you want to delete "{{ object }}"?</p>
+      <input style="margin-bottom: 10px;" class="btn btn-primary btn-block" type="submit" value="Confirm">
+  </form>
+  </div>
+</div>
+{% else %}
+Your not allowed to view this page..
+{% endif %} 
+{% endblock %} 

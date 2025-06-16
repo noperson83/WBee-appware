@@ -1,0 +1,82 @@
+{% extends "home/base.html" %}
+
+{% block title %}<title>Time card</title>{% endblock %}
+{% block breadcrumb %} / <a href="{% url 'timecard' %}">Time card</a>
+  {% if request.user.staff %} / <a href="{% url 'create-timecard' %}">add a new day</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{% if previous_week %}
+  {% with prev_week=previous_week|date:"W" %}
+    <a href="{% url 'timecard_archive_week' previous_week.year prev_week %}">
+      See Previous Week</a> |
+  {% endwith %}
+{% endif %}
+<a href="{% url 'timecard' %}">
+      This Week</a>
+{% if previous_week and next_week %} | {% endif %}
+{% if next_week %}
+  {% with next_week=next_week|date:"W" %}
+    <a href="{% url 'timecard_archive_week' previous_week.year next_week %}">
+      See Next Week</a>
+  {% endwith %}
+{% endif %}
+
+<div >
+  <div style="font-weight:bold;" class="table-responsive">        
+  <table class="table table-bordered" width="100%" cellspacing="0">
+    <thead>
+      <tr class="tabelheader">
+        <th style="font-weight: inherit;">Date </th>
+        <th style="font-weight: inherit;">Description </th>
+        <th style="font-weight: inherit;">Customer </th>
+        <th style="font-weight: inherit;">Start </th>
+        <th style="font-weight: inherit;">Stop </th>
+        <th style="font-weight: inherit;">Start </th>
+        <th style="font-weight: inherit;">Stop </th>
+        <th style="font-weight: inherit;">Reg </th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr>
+        <th style="font-weight: inherit;"> </th>
+        <th style="font-weight: inherit;"> </th>
+        <th style="font-weight: inherit;"> </th>
+        <th style="font-weight: inherit;"> </th>
+        <th style="font-weight: inherit;">OT: </th>
+        <th style="font-weight: inherit;">{{over_time|floatformat}} hours </th>
+        <th style="font-weight: inherit;">Week Total </th>
+        <th style="font-weight: inherit;">{{overall_hours|floatformat}} hours </th>
+      </tr>
+    </tfoot>
+    <tbody> 
+      {% if object_list %}
+        {% for timecard in object_list %}
+          <tr class="{% cycle 'odd' 'even' %}">
+            <td style="min-width:64px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{% url 'update-timecard' timecard.id %}">{{ timecard.date|date:"m/d"}}</a> </td>
+            <td style="min-width:80px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="#">{{ timecard.project }}</a> </td>
+            <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="#">{{ timecard.project.jobsite.job_client }}</a> </td>
+            <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="#">{{ timecard.site_time }}</a> </td>
+            <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="#">{{ timecard.site_end_time }}</a> </td>
+            <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="#">{{ timecard.site_time_after }}</a> </td>
+            <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="#">{{ timecard.site_end_time_after }}</a> </td>
+            <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="#">{{ timecard.day_total }}</a> </td>
+          </tr>
+        {%  endfor %}
+      {% else %}
+          <tr>
+            <td>fill </td>
+            <td>out </td>
+            <td>your </td>
+            <td>time card </td>
+            <td>... </td>
+            <td>... </td>
+            <td>... </td>
+            <td>... </td>
+          </tr>
+      {% endif %} 
+    </tbody>
+  </table>
+</div>
+{% endblock %} 
