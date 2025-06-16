@@ -193,7 +193,7 @@ class Client(UUIDModel, TimeStampedModel):
     
     def __str__(self):
         return self.company_name
-    
+
     def get_absolute_url(self):
         return reverse('client:detail', kwargs={'pk': self.pk})
     
