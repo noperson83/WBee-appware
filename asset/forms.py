@@ -13,7 +13,13 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Row, Column, Submit, HTML
 from crispy_forms.bootstrap import FormActions
 
-from .models import Asset, AssetCategory, AssetMaintenanceRecord, AssetAssignment
+from .models import (
+    Asset,
+    AssetCategory,
+    AssetMaintenanceRecord,
+    AssetAssignment,
+    Condition,
+)
 from hr.models import Worker
 from project.models import Project
 from company.models import Office, Department
@@ -271,7 +277,7 @@ class AssetBulkUpdateForm(forms.Form):
     )
     
     condition = forms.ChoiceField(
-        choices=[('', 'No Change')] + Asset.CONDITION_CHOICES,
+        choices=[('', 'No Change')] + list(Condition.choices),
         required=False,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
@@ -440,7 +446,7 @@ class AssetFilterForm(forms.Form):
     )
     
     condition = forms.ChoiceField(
-        choices=[('', 'All Conditions')] + Asset.CONDITION_CHOICES,
+        choices=[('', 'All Conditions')] + list(Condition.choices),
         required=False,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
