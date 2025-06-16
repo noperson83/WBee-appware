@@ -20,13 +20,13 @@ urlpatterns = [
     # path('helpdesk/', include('helpdesk.urls')),
     path("company/", include("company.urls")),
     path("location/", include("location.urls")),
-    # path('project/', include('project.urls')),
-    # path('material/', include('material.urls')),
-    # path('receipts/', include('receipts.urls')),
+    path('project/', include('project.urls')),
+    path('material/', include('material.urls')),
+    path('receipts/', include('receipts.urls')),
     path("schedule/", include("schedule.urls")),
     path('timecard/', include('timecard.urls')),
-    # path('todo/', include('todo.urls', namespace="todo")),
-    # path('wip/', include('wip.urls')),
+    path('todo/', include('todo.urls', namespace="todo")),
+    path('wip/', include('wip.urls')),
 ]
 
 # Add Django site authentication urls (for login, logout, password management)
