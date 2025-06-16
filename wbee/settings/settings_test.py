@@ -22,11 +22,14 @@ INSTALLED_APPS = [
     'client.apps.ClientConfig',
     'company.apps.CompanyConfig',
     'location.apps.LocationConfig',
+    'asset.apps.AssetConfig',
     'hr.apps.HrConfig',
     'project.apps.ProjectConfig',
     'material.apps.MaterialConfig',
     'todo',
 ]
+
+ROOT_URLCONF = 'todo.tests.test_urls'
 
 # Enable helpdesk only when its migrations are available
 # INSTALLED_APPS.append('helpdesk.apps.HelpdeskConfig')

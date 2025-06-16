@@ -15,6 +15,7 @@ def todo_setup(django_user_model):
         password="password",
         first_name="User",
         last_name="One",
+        employee_id="E001",
     )
     u1.groups.add(g1)
     tlist1 = TaskList.objects.create(
@@ -25,7 +26,15 @@ def todo_setup(django_user_model):
         status="on_hold",
     )
     Task.objects.create(created_by=u1, title="Task 1", task_list=tlist1, priority=1)
-    Task.objects.create(created_by=u1, title="Task 2", task_list=tlist1, priority=2, completed=True)
+    Task.objects.create(
+        created_by=u1,
+        title="Task 2",
+        task_list=tlist1,
+        priority=2,
+        completed=True,
+        completion_percentage=100,
+        status="completed",
+    )
     Task.objects.create(created_by=u1, title="Task 3", task_list=tlist1, priority=3)
 
     g2 = Group.objects.create(name="Workgroup Two")
@@ -34,6 +43,7 @@ def todo_setup(django_user_model):
         password="password",
         first_name="User",
         last_name="Two",
+        employee_id="E002",
     )
     u2.groups.add(g2)
     tlist2 = TaskList.objects.create(
@@ -44,7 +54,15 @@ def todo_setup(django_user_model):
         status="on_hold",
     )
     Task.objects.create(created_by=u2, title="Task 1", task_list=tlist2, priority=1)
-    Task.objects.create(created_by=u2, title="Task 2", task_list=tlist2, priority=2, completed=True)
+    Task.objects.create(
+        created_by=u2,
+        title="Task 2",
+        task_list=tlist2,
+        priority=2,
+        completed=True,
+        completion_percentage=100,
+        status="completed",
+    )
     Task.objects.create(created_by=u2, title="Task 3", task_list=tlist2, priority=3)
 
 
@@ -56,6 +74,7 @@ def admin_user(django_user_model):
         password="password",
         first_name="Admin",
         last_name="User",
+        employee_id="ADMIN",
     )
 
 
