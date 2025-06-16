@@ -24,7 +24,7 @@ $ source .venv/bin/activate
 (venv)$ pip install Django==5.2 django-extensions easy-thumbnails django-mptt \
     django-cors-headers djangorestframework django-filter django-import-export \
     django-crispy-forms crispy-bootstrap5 dj-database-url python-decouple \
-    Pillow bleach pytest-django
+    Pillow bleach pytest-django icalendar
 ```
 
 Create a `.env` file (or set environment variables) for secrets and database configuration.  A minimal example:
@@ -52,6 +52,18 @@ Start the development server with:
 ```
 
 Visit `http://127.0.0.1:8000/` in your browser to access the application.
+
+### Calendar Feeds
+
+The schedule app exposes iCalendar (ICS) feeds for each calendar.  These feeds
+allow integration with external calendaring clients such as Google Calendar or
+Outlook.  Access a feed at:
+
+```
+/schedule/<calendar_id>/ical/
+```
+
+where `calendar_id` is the numeric ID of the calendar you want to subscribe to.
 
 ## Running Tests
 
