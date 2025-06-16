@@ -180,13 +180,13 @@ def process_queue(q, logger):
             logger.info("Processing message %s" % msgNum)
 
             if six.PY2:
-                full_message = encoding.force_text("\n".join(server.retr(msgNum)[1]), errors='replace')
+                full_message = encoding.force_str("\n".join(server.retr(msgNum)[1]), errors='replace')
             else:
                 raw_content = server.retr(msgNum)[1]
                 if type(raw_content[0]) is bytes:
                     full_message = "\n".join([elm.decode('utf-8') for elm in raw_content])
                 else:
-                    full_message = encoding.force_text("\n".join(raw_content), errors='replace')
+                    full_message = encoding.force_str("\n".join(raw_content), errors='replace')
             ticket = ticket_from_message(message=full_message, queue=q, logger=logger)
 
             if ticket:
@@ -238,7 +238,7 @@ def process_queue(q, logger):
             for num in msgnums:
                 logger.info("Processing message %s" % num)
                 status, data = server.fetch(num, '(RFC822)')
-                full_message = encoding.force_text(data[0][1], errors='replace')
+                full_message = encoding.force_str(data[0][1], errors='replace')
                 try:
                     ticket = ticket_from_message(message=full_message, queue=q, logger=logger)
                 except TypeError:
@@ -262,7 +262,7 @@ def process_queue(q, logger):
         for i, m in enumerate(mail, 1):
             logger.info("Processing message %d" % i)
             with open(m, 'r') as f:
-                full_message = encoding.force_text(f.read(), errors='replace')
+                full_message = encoding.force_str(f.read(), errors='replace')
                 ticket = ticket_from_message(message=full_message, queue=q, logger=logger)
             if ticket:
                 logger.info("Successfully processed message %d, ticket/comment created." % i)
