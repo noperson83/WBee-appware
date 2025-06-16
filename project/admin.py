@@ -448,7 +448,6 @@ class ProjectAdmin(admin.ModelAdmin):
             costs = obj.calculate_material_costs()
             html = "<table style='font-size: 12px;'>"
             html += f"<tr><td><strong>Devices:</strong></td><td>${costs['device_cost']:,.2f}</td></tr>"
-            html += f"<tr><td><strong>Wire:</strong></td><td>${costs['wire_cost']:,.2f}</td></tr>"
             html += f"<tr><td><strong>Hardware:</strong></td><td>${costs['hardware_cost']:,.2f}</td></tr>"
             html += f"<tr><td><strong>Software:</strong></td><td>${costs['software_cost']:,.2f}</td></tr>"
             html += f"<tr><td><strong>Licenses:</strong></td><td>${costs['license_cost']:,.2f}</td></tr>"
