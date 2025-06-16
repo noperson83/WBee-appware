@@ -6,19 +6,25 @@ from project.models import Project, ScopeOfWork
 
 
 class AddTaskListForm(ModelForm):
-    """The picklist showing allowable groups to which a new list can be added
-    determines which groups the user belongs to. This queries the form object
-    to derive that list."""
-    
-    def __init__(self, user, proj, *args, **kwargs):
-        super(AddTaskListForm, self).__init__(*args, **kwargs)
+    """Form for creating a new :class:`TaskList`.
+
+    ``proj`` is optional to better support generic list creation. When a
+    project is supplied the scope field queryset is limited accordingly.
+    """
+
+    def __init__(self, user, proj=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fields["group"].queryset = Group.objects.filter(worker=user)
         self.fields["group"].widget.attrs = {
             "id": "id_group",
             "class": "custom-select mb-3",
             "name": "group",
         }
-        self.fields["scope"].queryset = ScopeOfWork.objects.all().filter(project__job_num=proj)
+
+        if proj:
+            self.fields["scope"].queryset = ScopeOfWork.objects.filter(project__job_num=proj)
+        else:
+            self.fields["scope"].queryset = ScopeOfWork.objects.all()
         self.fields["scope"].widget.attrs = {
             "id": "id_scope",
             "class": "custom-select mb-3",

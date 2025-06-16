@@ -11,7 +11,6 @@ from todo.forms import AddEditTaskForm
 from todo.models import Comment, Task
 from todo.utils import send_email_to_thread_participants, toggle_task_completed, staff_check
 
-from project.models import Device, Wire, Hardware, Software, License
 
 @login_required
 @user_passes_test(staff_check)
@@ -22,11 +21,6 @@ def task_detail(request, task_id: int) -> HttpResponse:
     task = get_object_or_404(Task, pk=task_id)
     comment_list = Comment.objects.filter(task=task_id)
     
-    device_mate_list = Device.objects.filter(task=task_id)
-    wire_mate_list = Wire.objects.filter(task=task_id)
-    hardware_mate_list = Hardware.objects.filter(task=task_id)
-    software_mate_list = Software.objects.filter(task=task_id)
-    license_mate_list = License.objects.filter(task=task_id)
 
     # Ensure user has permission to view task. Admins can view all tasks.
     # Get the group this task belongs to, and check whether current user is a member of that group.
@@ -79,14 +73,11 @@ def task_detail(request, task_id: int) -> HttpResponse:
     else:
         thedate = datetime.datetime.now()
 
-    context = {'task': task, 
-            'comment_list': comment_list, 
-            'form': form, 
-            'thedate': thedate, 
-            'device_mate_list':device_mate_list,
-            'wire_mate_list':wire_mate_list,
-            'hardware_mate_list':hardware_mate_list,
-            'software_mate_list':software_mate_list,
-            'license_mate_list':license_mate_list}
+    context = {
+        'task': task,
+        'comment_list': comment_list,
+        'form': form,
+        'thedate': thedate,
+    }
 
     return render(request, "todo/task_detail.html", context)

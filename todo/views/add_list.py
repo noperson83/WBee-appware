@@ -11,8 +11,11 @@ from todo.utils import staff_check
 
 @login_required
 @user_passes_test(staff_check)
-def add_list(request, proj, scop) -> HttpResponse:
-    """Allow users to add a new todo list to the group they're in.
+def add_list(request, proj=None, scop=None) -> HttpResponse:
+    """Allow staff users to create a new :class:`TaskList`.
+
+    ``proj`` and ``scop`` are optional to make the view usable from the tests
+    where no specific project context is supplied.
     """
     # Only staffers can add lists, regardless of TODO_STAFF_USER setting.
     if not request.user.is_staff:
@@ -26,7 +29,9 @@ def add_list(request, proj, scop) -> HttpResponse:
                 newlist.slug = slugify(newlist.name)
                 newlist.save()
                 messages.success(request, "A new list has been added.")
-                return HttpResponseRedirect('/project/scope/detail/'+str(scop))
+                if scop:
+                    return HttpResponseRedirect("/project/scope/detail/" + str(scop))
+                return redirect("todo:lists")
 
             except IntegrityError:
                 messages.warning(
@@ -35,13 +40,13 @@ def add_list(request, proj, scop) -> HttpResponse:
                     "Most likely a list with the same name in the same group already exists.",
                 )
     else:
+        initial = {}
         if request.user.groups.all().count() == 1:
-            # FIXME: Assuming first of user's groups here; better to prompt for group
-            form = AddTaskListForm(request.user, proj, initial={"group": request.user.groups.all()[0], "scope":scop})
-        else:
-            form = AddTaskListForm(request.user, proj, initial={"scope":scop})
+            initial["group"] = request.user.groups.all()[0]
+        if scop:
+            initial["scope"] = scop
+        form = AddTaskListForm(request.user, proj, initial=initial)
 
-    context = {"form": form,
-               "proj":proj}
+    context = {"form": form, "proj": proj}
 
     return render(request, "todo/add_list.html", context)

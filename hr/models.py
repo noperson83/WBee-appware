@@ -378,6 +378,20 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
     is_staff = models.BooleanField(default=False, help_text='Staff user (can access admin)')
     is_admin = models.BooleanField(default=False, help_text='Admin user')
     is_superuser = models.BooleanField(default=False, help_text='Superuser')
+
+    # Group and permission relationships for compatibility with Django's auth system
+    groups = models.ManyToManyField(
+        Group,
+        blank=True,
+        related_name="worker_set",
+        help_text="Groups this worker belongs to",
+    )
+    user_permissions = models.ManyToManyField(
+        Permission,
+        blank=True,
+        related_name="worker_set",
+        help_text="Specific permissions for this worker",
+    )
     
     # Role-based permissions (customizable per business)
     roles = models.JSONField(default=list, blank=True, help_text='Business-specific roles')
