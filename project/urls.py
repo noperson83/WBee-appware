@@ -71,12 +71,6 @@ urlpatterns = [
     path('devices/<int:pk>/edit/', views.ProjectDeviceUpdateView.as_view(), name='device-edit'),
     path('devices/<int:pk>/delete/', views.ProjectDeviceDeleteView.as_view(), name='device-delete'),
     
-    # Wire Management
-    path('projects/<str:job_number>/wire/', views.ProjectWireListView.as_view(), name='wire-list'),
-    path('projects/<str:job_number>/wire/create/', views.ProjectWireCreateView.as_view(), name='wire-create'),
-    path('wire/<int:pk>/', views.ProjectWireDetailView.as_view(), name='wire-detail'),
-    path('wire/<int:pk>/edit/', views.ProjectWireUpdateView.as_view(), name='wire-edit'),
-    path('wire/<int:pk>/delete/', views.ProjectWireDeleteView.as_view(), name='wire-delete'),
     
     # Hardware Management
     path('projects/<str:job_number>/hardware/', views.ProjectHardwareListView.as_view(), name='hardware-list'),
@@ -257,13 +251,6 @@ material_patterns = [
         path('<int:pk>/edit/', views.ProjectDeviceUpdateView.as_view(), name='device-edit'),
         path('<int:pk>/delete/', views.ProjectDeviceDeleteView.as_view(), name='device-delete'),
     ])),
-    path('wire/', include([
-        path('', views.ProjectWireListView.as_view(), name='wire-list'),
-        path('create/', views.ProjectWireCreateView.as_view(), name='wire-create'),
-        path('<int:pk>/', views.ProjectWireDetailView.as_view(), name='wire-detail'),
-        path('<int:pk>/edit/', views.ProjectWireUpdateView.as_view(), name='wire-edit'),
-        path('<int:pk>/delete/', views.ProjectWireDeleteView.as_view(), name='wire-delete'),
-    ])),
     # ... other material types
 ]
 
@@ -290,7 +277,7 @@ class ProjectURLConfig:
     @staticmethod
     def get_material_urls():
         """Get all material management URLs"""
-        material_types = ['device', 'wire', 'hardware', 'software', 'license', 'travel']
+        material_types = ['device', 'hardware', 'software', 'license', 'travel']
         return [url for url in urlpatterns if any(mat_type in str(url.pattern) for mat_type in material_types)]
 
 # ============================================
@@ -336,7 +323,7 @@ Project URL Structure Documentation:
    - /projects/projects/{job_number}/edit/ - Edit project
 
 3. Material Management:
-   Each material type (devices, wire, hardware, software, licenses, travel) follows the pattern:
+   Each material type (devices, hardware, software, licenses, travel) follows the pattern:
    - /projects/projects/{job_number}/{material_type}/ - List items
    - /projects/projects/{job_number}/{material_type}/create/ - Add new item
    - /projects/{material_type}/{pk}/ - Item detail/edit/delete

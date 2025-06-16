@@ -42,7 +42,7 @@ from .models import (
     ProjectChange, ProjectMilestone
 )
 from .forms import (
-    ProjectForm, ScopeOfWorkForm, DeviceForm, WireForm, 
+    ProjectForm, ScopeOfWorkForm, DeviceForm,
     HardwareForm, SoftwareForm, LicenseForm, TravelForm
 )
 from .serializers import ProjectSerializer, ScopeOfWorkSerializer
@@ -1153,7 +1153,6 @@ class ProjectMaterialsView(ProjectAccessMixin, DetailView):
         # Get all material types
         context.update({
             'devices': project.device_items.all(),
-            'wire_items': getattr(project, 'wire_items', []),
             'hardware_items': getattr(project, 'hardware_items', []),
             'software_items': getattr(project, 'software_items', []),
             'license_items': getattr(project, 'license_items', []),
@@ -1170,7 +1169,6 @@ class ProjectMaterialsView(ProjectAccessMixin, DetailView):
             return {
                 'total_items': (
                     project.device_items.count() +
-                    getattr(project, 'wire_items', []).count() if hasattr(getattr(project, 'wire_items', []), 'count') else 0 +
                     getattr(project, 'hardware_items', []).count() if hasattr(getattr(project, 'hardware_items', []), 'count') else 0 +
                     getattr(project, 'software_items', []).count() if hasattr(getattr(project, 'software_items', []), 'count') else 0 +
                     getattr(project, 'license_items', []).count() if hasattr(getattr(project, 'license_items', []), 'count') else 0 +

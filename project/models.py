@@ -382,20 +382,18 @@ class Project(UUIDModel, TimeStampedModel):
     def calculate_material_costs(self):
         """Calculate total material costs"""
         device_cost = sum(item.total for item in self.device_items.all())
-        wire_cost = sum(item.total for item in self.wire_items.all())
         hardware_cost = sum(item.total for item in self.hardware_items.all())
         software_cost = sum(item.total for item in self.software_items.all())
         license_cost = sum(item.total for item in self.license_items.all())
         travel_cost = sum(item.total for item in self.travel_items.all())
-        
+
         return {
             'device_cost': device_cost,
-            'wire_cost': wire_cost,
             'hardware_cost': hardware_cost,
             'software_cost': software_cost,
             'license_cost': license_cost,
             'travel_cost': travel_cost,
-            'total_cost': device_cost + wire_cost + hardware_cost + software_cost + license_cost + travel_cost
+            'total_cost': device_cost + hardware_cost + software_cost + license_cost + travel_cost
         }
     
     # Project status management
@@ -519,7 +517,7 @@ class ProjectDevice(TimeStampedModel):
             models.Index(fields=['delivered_date']),
         ]
 
-# Similar enhanced models for Wire, Hardware, Software, License, Travel
+# Similar enhanced models for Hardware, Software, License, and Travel
 # (Following the same pattern as ProjectDevice)
 
 # Project change tracking
