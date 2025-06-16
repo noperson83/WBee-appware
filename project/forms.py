@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 
-from .models import Project, ScopeOfWork, ProjectDevice
+from .models import Project, ScopeOfWork, ProjectMaterial
 
 
 class ProjectForm(ModelForm):
@@ -20,14 +20,41 @@ class ScopeOfWorkForm(ModelForm):
         fields = "__all__"
 
 
-class DeviceForm(ModelForm):
-    """Form for project device items. Optionally limits the project queryset."""
+class MaterialForm(ModelForm):
+    """Generic form for project material items."""
 
-    def __init__(self, proj=None, *args, **kwargs):
+    def __init__(self, proj=None, material_type=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if proj:
             self.fields["project"].queryset = Project.objects.filter(job_number=proj)
+        if material_type:
+            self.fields["material_type"].initial = material_type
 
     class Meta:
-        model = ProjectDevice
+        model = ProjectMaterial
         fields = "__all__"
+
+
+class DeviceForm(MaterialForm):
+    def __init__(self, proj=None, *args, **kwargs):
+        super().__init__(proj=proj, material_type="device", *args, **kwargs)
+
+
+class HardwareForm(MaterialForm):
+    def __init__(self, proj=None, *args, **kwargs):
+        super().__init__(proj=proj, material_type="hardware", *args, **kwargs)
+
+
+class SoftwareForm(MaterialForm):
+    def __init__(self, proj=None, *args, **kwargs):
+        super().__init__(proj=proj, material_type="software", *args, **kwargs)
+
+
+class LicenseForm(MaterialForm):
+    def __init__(self, proj=None, *args, **kwargs):
+        super().__init__(proj=proj, material_type="license", *args, **kwargs)
+
+
+class TravelForm(MaterialForm):
+    def __init__(self, proj=None, *args, **kwargs):
+        super().__init__(proj=proj, material_type="travel", *args, **kwargs)

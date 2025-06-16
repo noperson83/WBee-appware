@@ -377,15 +377,36 @@ class Project(UUIDModel, TimeStampedModel):
         if total > 0:
             return (self.completed_tasks / total) * 100
         return 0
-    
+
+    # Unified material access
+    @property
+    def device_items(self):
+        return self.material_items.filter(material_type='device')
+
+    @property
+    def hardware_items(self):
+        return self.material_items.filter(material_type='hardware')
+
+    @property
+    def software_items(self):
+        return self.material_items.filter(material_type='software')
+
+    @property
+    def license_items(self):
+        return self.material_items.filter(material_type='license')
+
+    @property
+    def travel_items(self):
+        return self.material_items.filter(material_type='travel')
+
     # Material cost calculations
     def calculate_material_costs(self):
         """Calculate total material costs"""
-        device_cost = sum(item.total for item in self.device_items.all())
-        hardware_cost = sum(item.total for item in self.hardware_items.all())
-        software_cost = sum(item.total for item in self.software_items.all())
-        license_cost = sum(item.total for item in self.license_items.all())
-        travel_cost = sum(item.total for item in self.travel_items.all())
+        device_cost = sum(item.total for item in self.device_items)
+        hardware_cost = sum(item.total for item in self.hardware_items)
+        software_cost = sum(item.total for item in self.software_items)
+        license_cost = sum(item.total for item in self.license_items)
+        travel_cost = sum(item.total for item in self.travel_items)
 
         return {
             'device_cost': device_cost,
@@ -483,42 +504,48 @@ class ScopeOfWork(TimeStampedModel):
         return None
 
 # Enhanced material models (keeping your existing structure but with improvements)
-class ProjectDevice(TimeStampedModel):
-    """Enhanced device tracking"""
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='device_items')
-    task = models.ForeignKey("todo.Task", on_delete=models.SET_NULL, null=True, blank=True, related_name='devices')
+class ProjectMaterial(TimeStampedModel):
+    """Universal material item linked to a project."""
+
+    MATERIAL_TYPES = [
+        ('device', 'Device'),
+        ('hardware', 'Hardware'),
+        ('software', 'Software'),
+        ('license', 'License'),
+        ('travel', 'Travel'),
+    ]
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='material_items')
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
+    task = models.ForeignKey("todo.Task", on_delete=models.SET_NULL, null=True, blank=True, related_name='materials')
     scope_item = models.ForeignKey(ScopeOfWork, on_delete=models.SET_NULL, null=True, blank=True)
-    device = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True)
-    
-    # Enhanced tracking
+
+    material_type = models.CharField(max_length=20, choices=MATERIAL_TYPES, default='device')
+
     quantity = models.PositiveIntegerField(default=1)
     unit_cost = models.DecimalField(max_digits=18, decimal_places=2, default=0)
-    
-    # Installation tracking
+
     delivered_date = models.DateField(null=True, blank=True)
     installed_date = models.DateField(null=True, blank=True)
     tested_date = models.DateField(null=True, blank=True)
-    
-    # Status tracking
+
     status = models.CharField(max_length=20, default='quoted')
-    
-    # Location tracking
     installation_location = models.CharField(max_length=200, blank=True)
     serial_numbers = models.JSONField(default=list, blank=True)
-    
+
     @property
     def total(self):
         return self.quantity * self.unit_cost
-    
+
     class Meta:
-        ordering = ['project', 'task']
+        ordering = ['project', 'material_type']
         indexes = [
-            models.Index(fields=['project', 'status']),
+            models.Index(fields=['project', 'material_type']),
+            models.Index(fields=['status']),
             models.Index(fields=['delivered_date']),
         ]
 
-# Similar enhanced models for Hardware, Software, License, and Travel
-# (Following the same pattern as ProjectDevice)
+# Project change tracking
 
 # Project change tracking
 class ProjectChange(TimeStampedModel):
