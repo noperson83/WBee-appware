@@ -112,7 +112,7 @@ class Supplier(UUIDModel, TimeStampedModel):
         return self.company_name
     
     def get_absolute_url(self):
-        return reverse('supplier-detail', args=[str(self.id)])
+        return reverse('material:supplier-detail', args=[str(self.id)])
     
     @property
     def primary_address(self):
@@ -396,7 +396,7 @@ class Product(UUIDModel, TimeStampedModel):
         return f"{self.sku} - {self.name}"
     
     def get_absolute_url(self):
-        return reverse('product-detail', args=[str(self.id)])
+        return reverse('material:product-detail', args=[str(self.id)])
     
     # Dynamic choice methods
     def get_available_product_types(self):

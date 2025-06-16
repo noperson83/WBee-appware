@@ -1,0 +1,22 @@
+{% extends "home/base.html" %}
+{% block title %}<title>Transaction</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'material:transaction-list' %}">Inventory Transactions</a></li>
+<li class="breadcrumb-item active">Detail</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">Transaction Detail</h6>
+    <div>
+      <a href="{% url 'material:transaction-update' transaction.pk %}" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+      <a href="{% url 'material:transaction-delete' transaction.pk %}" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+    </div>
+  </div>
+  <div class="card-body">
+    <p><strong>Product:</strong> {{ transaction.product }}</p>
+    <p><strong>Type:</strong> {{ transaction.get_transaction_type_display|default:transaction.transaction_type }}</p>
+    <p><strong>Quantity:</strong> {{ transaction.quantity }}</p>
+  </div>
+</div>
+{% endblock %}

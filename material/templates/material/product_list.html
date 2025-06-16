@@ -1,0 +1,35 @@
+{% extends "home/base.html" %}
+{% block title %}<title>Products</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Products</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">Products</h6>
+    <a href="{% url 'material:product-create' %}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus"></i> Add Product
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+        <tr>
+          <td><a href="{% url 'material:product-detail' product.pk %}">{{ product.sku }}</a></td>
+          <td>{{ product.name }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2" class="text-center">No products found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

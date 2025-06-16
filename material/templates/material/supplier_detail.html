@@ -1,0 +1,23 @@
+{% extends "home/base.html" %}
+{% block title %}<title>{{ supplier.company_name }}</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'material:supplier-list' %}">Suppliers</a></li>
+<li class="breadcrumb-item active">{{ supplier.company_name }}</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">{{ supplier.company_name }}</h6>
+    <div>
+      <a href="{% url 'material:supplier-update' supplier.pk %}" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+      <a href="{% url 'material:supplier-delete' supplier.pk %}" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+    </div>
+  </div>
+  <div class="card-body">
+    <p><strong>Type:</strong> {{ supplier.get_supplier_type_display|default:supplier.supplier_type }}</p>
+    <p><strong>Email:</strong> {{ supplier.primary_email }}</p>
+    <p><strong>Phone:</strong> {{ supplier.primary_phone }}</p>
+    <p><strong>Website:</strong> <a href="{{ supplier.website }}">{{ supplier.website }}</a></p>
+  </div>
+</div>
+{% endblock %}
