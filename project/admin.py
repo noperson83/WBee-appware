@@ -9,7 +9,7 @@ from django.utils import timezone
 from decimal import Decimal
 
 from .models import (
-    ProjectTemplate, Project, ScopeOfWork, ProjectDevice, ProjectChange, 
+    ProjectTemplate, Project, ScopeOfWork, ProjectMaterial, ProjectChange,
     ProjectMilestone
 )
 
@@ -24,12 +24,12 @@ class ScopeOfWorkInline(admin.TabularInline):
     )
     readonly_fields = ('created_at', 'updated_at')
 
-class ProjectDeviceInline(admin.TabularInline):
-    """Inline admin for project devices"""
-    model = ProjectDevice
+class ProjectMaterialInline(admin.TabularInline):
+    """Inline admin for project materials"""
+    model = ProjectMaterial
     extra = 0
     fields = (
-        'device', 'task', 'quantity', 'unit_cost', 
+        'product', 'material_type', 'task', 'quantity', 'unit_cost',
         'status', 'delivered_date', 'installed_date'
     )
     readonly_fields = ('total_cost_display', 'created_at')
@@ -271,7 +271,7 @@ class ProjectAdmin(admin.ModelAdmin):
         })
     )
 
-    inlines = [ScopeOfWorkInline, ProjectDeviceInline, ProjectChangeInline, ProjectMilestoneInline]
+    inlines = [ScopeOfWorkInline, ProjectMaterialInline, ProjectChangeInline, ProjectMilestoneInline]
 
     actions = [
         'mark_complete', 

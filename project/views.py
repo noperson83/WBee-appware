@@ -38,7 +38,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import (
-    Project, ProjectTemplate, ScopeOfWork, ProjectDevice, 
+    Project, ProjectTemplate, ScopeOfWork, ProjectMaterial,
     ProjectChange, ProjectMilestone
 )
 from .forms import (
@@ -1107,6 +1107,7 @@ class ScopeOfWorkCreateView(ProjectAccessMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.project = self.project
+        form.instance.material_type = 'device'
         return super().form_valid(form)
     
     def get_success_url(self):
@@ -1152,11 +1153,11 @@ class ProjectMaterialsView(ProjectAccessMixin, DetailView):
         
         # Get all material types
         context.update({
-            'devices': project.device_items.all(),
-            'hardware_items': getattr(project, 'hardware_items', []),
-            'software_items': getattr(project, 'software_items', []),
-            'license_items': getattr(project, 'license_items', []),
-            'travel_items': getattr(project, 'travel_items', []),
+            'devices': project.device_items,
+            'hardware_items': project.hardware_items,
+            'software_items': project.software_items,
+            'license_items': project.license_items,
+            'travel_items': project.travel_items,
             'material_summary': self._get_material_summary(project)
         })
         
@@ -1169,10 +1170,10 @@ class ProjectMaterialsView(ProjectAccessMixin, DetailView):
             return {
                 'total_items': (
                     project.device_items.count() +
-                    getattr(project, 'hardware_items', []).count() if hasattr(getattr(project, 'hardware_items', []), 'count') else 0 +
-                    getattr(project, 'software_items', []).count() if hasattr(getattr(project, 'software_items', []), 'count') else 0 +
-                    getattr(project, 'license_items', []).count() if hasattr(getattr(project, 'license_items', []), 'count') else 0 +
-                    getattr(project, 'travel_items', []).count() if hasattr(getattr(project, 'travel_items', []), 'count') else 0
+                    project.hardware_items.count() +
+                    project.software_items.count() +
+                    project.license_items.count() +
+                    project.travel_items.count()
                 ),
                 'total_cost': costs.get('total_cost', 0),
                 'cost_breakdown': costs
@@ -1183,13 +1184,13 @@ class ProjectMaterialsView(ProjectAccessMixin, DetailView):
 # Device Management Views
 class ProjectDeviceListView(ProjectAccessMixin, ListView):
     """List project devices"""
-    model = ProjectDevice
+    model = ProjectMaterial
     template_name = 'project/device_list.html'
     context_object_name = 'devices'
     
     def get_queryset(self):
         self.project = get_object_or_404(Project, job_number=self.kwargs['job_number'])
-        return self.project.device_items.select_related('device', 'task').all()
+        return self.project.device_items.select_related('product', 'task')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1198,7 +1199,7 @@ class ProjectDeviceListView(ProjectAccessMixin, ListView):
 
 class ProjectDeviceCreateView(ProjectAccessMixin, CreateView):
     """Add device to project"""
-    model = ProjectDevice
+    model = ProjectMaterial
     form_class = DeviceForm
     template_name = 'project/device_form.html'
     
@@ -1213,6 +1214,7 @@ class ProjectDeviceCreateView(ProjectAccessMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.project = self.project
+        form.instance.material_type = 'device'
         return super().form_valid(form)
     
     def get_success_url(self):
@@ -1220,13 +1222,13 @@ class ProjectDeviceCreateView(ProjectAccessMixin, CreateView):
 
 class ProjectDeviceDetailView(DetailView):
     """Device detail view"""
-    model = ProjectDevice
+    model = ProjectMaterial
     template_name = 'project/device_detail.html'
     context_object_name = 'device_item'
 
 class ProjectDeviceUpdateView(UpdateView):
     """Update project device"""
-    model = ProjectDevice
+    model = ProjectMaterial
     form_class = DeviceForm
     template_name = 'project/device_form.html'
     
@@ -1240,11 +1242,280 @@ class ProjectDeviceUpdateView(UpdateView):
 
 class ProjectDeviceDeleteView(DeleteView):
     """Delete project device"""
-    model = ProjectDevice
+    model = ProjectMaterial
     template_name = 'project/device_confirm_delete.html'
     
     def get_success_url(self):
         return reverse('project:device-list', kwargs={'job_number': self.object.project.job_number})
+
+# Additional material views for hardware, software, licenses, and travel
+
+class ProjectHardwareListView(ProjectAccessMixin, ListView):
+    """List project hardware"""
+    model = ProjectMaterial
+    template_name = 'project/device_list.html'
+    context_object_name = 'hardware_items'
+
+    def get_queryset(self):
+        self.project = get_object_or_404(Project, job_number=self.kwargs['job_number'])
+        return self.project.hardware_items.select_related('product', 'task')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        return context
+
+class ProjectHardwareCreateView(ProjectAccessMixin, CreateView):
+    """Add hardware to project"""
+    model = ProjectMaterial
+    form_class = HardwareForm
+    template_name = 'project/device_form.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.project = get_object_or_404(Project, job_number=kwargs['job_number'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['proj'] = self.project.job_number
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.project = self.project
+        form.instance.material_type = 'hardware'
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('project:hardware-list', kwargs={'job_number': self.project.job_number})
+
+class ProjectHardwareDetailView(DetailView):
+    """Hardware detail view"""
+    model = ProjectMaterial
+    template_name = 'project/device_detail.html'
+    context_object_name = 'hardware_item'
+
+class ProjectHardwareUpdateView(UpdateView):
+    """Update project hardware"""
+    model = ProjectMaterial
+    form_class = HardwareForm
+    template_name = 'project/device_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['proj'] = self.object.project.job_number
+        return kwargs
+
+    def get_success_url(self):
+        return reverse('project:hardware-list', kwargs={'job_number': self.object.project.job_number})
+
+class ProjectHardwareDeleteView(DeleteView):
+    """Delete project hardware"""
+    model = ProjectMaterial
+    template_name = 'project/device_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse('project:hardware-list', kwargs={'job_number': self.object.project.job_number})
+
+
+class ProjectSoftwareListView(ProjectAccessMixin, ListView):
+    """List project software"""
+    model = ProjectMaterial
+    template_name = 'project/device_list.html'
+    context_object_name = 'software_items'
+
+    def get_queryset(self):
+        self.project = get_object_or_404(Project, job_number=self.kwargs['job_number'])
+        return self.project.software_items.select_related('product', 'task')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        return context
+
+class ProjectSoftwareCreateView(ProjectAccessMixin, CreateView):
+    """Add software to project"""
+    model = ProjectMaterial
+    form_class = SoftwareForm
+    template_name = 'project/device_form.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.project = get_object_or_404(Project, job_number=kwargs['job_number'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['proj'] = self.project.job_number
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.project = self.project
+        form.instance.material_type = 'software'
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('project:software-list', kwargs={'job_number': self.project.job_number})
+
+class ProjectSoftwareDetailView(DetailView):
+    """Software detail view"""
+    model = ProjectMaterial
+    template_name = 'project/device_detail.html'
+    context_object_name = 'software_item'
+
+class ProjectSoftwareUpdateView(UpdateView):
+    """Update project software"""
+    model = ProjectMaterial
+    form_class = SoftwareForm
+    template_name = 'project/device_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['proj'] = self.object.project.job_number
+        return kwargs
+
+    def get_success_url(self):
+        return reverse('project:software-list', kwargs={'job_number': self.object.project.job_number})
+
+class ProjectSoftwareDeleteView(DeleteView):
+    """Delete project software"""
+    model = ProjectMaterial
+    template_name = 'project/device_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse('project:software-list', kwargs={'job_number': self.object.project.job_number})
+
+
+class ProjectLicenseListView(ProjectAccessMixin, ListView):
+    """List project licenses"""
+    model = ProjectMaterial
+    template_name = 'project/device_list.html'
+    context_object_name = 'license_items'
+
+    def get_queryset(self):
+        self.project = get_object_or_404(Project, job_number=self.kwargs['job_number'])
+        return self.project.license_items.select_related('product', 'task')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        return context
+
+class ProjectLicenseCreateView(ProjectAccessMixin, CreateView):
+    """Add license to project"""
+    model = ProjectMaterial
+    form_class = LicenseForm
+    template_name = 'project/device_form.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.project = get_object_or_404(Project, job_number=kwargs['job_number'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['proj'] = self.project.job_number
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.project = self.project
+        form.instance.material_type = 'license'
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('project:license-list', kwargs={'job_number': self.project.job_number})
+
+class ProjectLicenseDetailView(DetailView):
+    """License detail view"""
+    model = ProjectMaterial
+    template_name = 'project/device_detail.html'
+    context_object_name = 'license_item'
+
+class ProjectLicenseUpdateView(UpdateView):
+    """Update project license"""
+    model = ProjectMaterial
+    form_class = LicenseForm
+    template_name = 'project/device_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['proj'] = self.object.project.job_number
+        return kwargs
+
+    def get_success_url(self):
+        return reverse('project:license-list', kwargs={'job_number': self.object.project.job_number})
+
+class ProjectLicenseDeleteView(DeleteView):
+    """Delete project license"""
+    model = ProjectMaterial
+    template_name = 'project/device_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse('project:license-list', kwargs={'job_number': self.object.project.job_number})
+
+
+class ProjectTravelListView(ProjectAccessMixin, ListView):
+    """List project travel items"""
+    model = ProjectMaterial
+    template_name = 'project/device_list.html'
+    context_object_name = 'travel_items'
+
+    def get_queryset(self):
+        self.project = get_object_or_404(Project, job_number=self.kwargs['job_number'])
+        return self.project.travel_items.select_related('product', 'task')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        return context
+
+class ProjectTravelCreateView(ProjectAccessMixin, CreateView):
+    """Add travel item to project"""
+    model = ProjectMaterial
+    form_class = TravelForm
+    template_name = 'project/device_form.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.project = get_object_or_404(Project, job_number=kwargs['job_number'])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['proj'] = self.project.job_number
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.project = self.project
+        form.instance.material_type = 'travel'
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('project:travel-list', kwargs={'job_number': self.project.job_number})
+
+class ProjectTravelDetailView(DetailView):
+    """Travel item detail view"""
+    model = ProjectMaterial
+    template_name = 'project/device_detail.html'
+    context_object_name = 'travel_item'
+
+class ProjectTravelUpdateView(UpdateView):
+    """Update travel item"""
+    model = ProjectMaterial
+    form_class = TravelForm
+    template_name = 'project/device_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['proj'] = self.object.project.job_number
+        return kwargs
+
+    def get_success_url(self):
+        return reverse('project:travel-list', kwargs={'job_number': self.object.project.job_number})
+
+class ProjectTravelDeleteView(DeleteView):
+    """Delete travel item"""
+    model = ProjectMaterial
+    template_name = 'project/device_confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse('project:travel-list', kwargs={'job_number': self.object.project.job_number})
 
 # ============================================
 # Project Changes and Milestones
