@@ -8,7 +8,9 @@ DATABASES = {
     }
 }
 
-# Limit installed apps to the bare minimum required for the todo tests
+# Keep the test environment lightweight by only installing apps required by the
+# todo application and its dependencies. Additional apps can be added here if
+# tests begin to require them.
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -16,12 +18,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'client.apps.ClientConfig',
+    'company.apps.CompanyConfig',
+    'location.apps.LocationConfig',
     'hr.apps.HrConfig',
     'project.apps.ProjectConfig',
+    'material.apps.MaterialConfig',
     'todo',
 ]
 
-# Helpdesk tests require additional setup and slow down the suite. They are
-# disabled for the lightweight todo test environment.
+# Enable helpdesk only when its migrations are available
 # INSTALLED_APPS.append('helpdesk.apps.HelpdeskConfig')
