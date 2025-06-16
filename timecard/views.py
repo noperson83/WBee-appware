@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import generic
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 import datetime
 from datetime import datetime as dtime, date, time, timedelta
@@ -8,7 +9,7 @@ from django.views.generic.dates import WeekArchiveView
 from django.contrib.auth.decorators import login_required
 
 from .models import TimeCard
-from .forms import TimeCardForm, TimeCardFormSet
+from .forms import TimeCardForm
 
 from schedule.models import Event
 
@@ -18,6 +19,7 @@ class TimeCardWeekArchiveView(WeekArchiveView):
     week_format = "%U"
     allow_future = True
 
+@login_required
 def index(request):
     template_name = 'timecard.html'
     tadai = datetime.datetime.now()
@@ -66,25 +68,39 @@ def index(request):
             },
     )
 
-class TimeCardCreate(CreateView):
+class TimeCardCreate(LoginRequiredMixin, CreateView):
+    """Create view using the modern TimeCardForm."""
     model = TimeCard
-    fields = ['date', 'project', 'site_time', 'site_end_time', 'site_time_after', 'site_end_time_after']
-    formset = TimeCardFormSet()
+    form_class = TimeCardForm
+
     def form_valid(self, form):
         form.instance.worker = self.request.user
         return super().form_valid(form)
 
-    success_url = reverse_lazy('timecard') 
+    success_url = reverse_lazy('timecard:list')
 
-class TimeCardUpdate(UpdateView):
+class TimeCardUpdate(LoginRequiredMixin, UpdateView):
     model = TimeCard
-    fields = ['date', 'project', 'site_time', 'site_end_time', 'site_time_after', 'site_end_time_after']
+    form_class = TimeCardForm
     template_name_suffix = '_update_form'
-    success_url = reverse_lazy('timecard') 
+    success_url = reverse_lazy('timecard:list')
 
-class TimeCardDelete(DeleteView):
+class TimeCardDelete(LoginRequiredMixin, DeleteView):
     model = TimeCard
-    success_url = reverse_lazy('timecard')   
+    success_url = reverse_lazy('timecard:list')
+
+
+class TimeCardListView(LoginRequiredMixin, generic.ListView):
+    """List view showing recent timecards for the logged-in user."""
+    model = TimeCard
+    template_name = 'timecard/timecard_list.html'
+    paginate_by = 50
+
+    def get_queryset(self):
+        return (
+            TimeCard.objects.filter(worker=self.request.user)
+            .order_by('-date', '-start_time')
+        )
 
 def TimeCardCreater(request):
     template_name = 'scheduling_timecard.html'

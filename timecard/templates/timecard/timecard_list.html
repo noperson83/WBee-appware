@@ -1,0 +1,52 @@
+{% extends "home/base.html" %}
+
+{% block title %}<title>My Timecards</title>{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">My Timecards</h5>
+    <a href="{% url 'timecard:create' %}" class="btn btn-sm btn-primary">Add Entry</a>
+  </div>
+  <div class="card-body">
+    <table id="timecardTable" class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Project</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Hours</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tc in object_list %}
+        <tr>
+          <td>{{ tc.date }}</td>
+          <td>{{ tc.project }}</td>
+          <td>{{ tc.start_time }}</td>
+          <td>{{ tc.end_time }}</td>
+          <td>{{ tc.total_hours }}</td>
+          <td>{{ tc.get_status_display }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script>
+$(function(){
+  $('#timecardTable').DataTable();
+});
+</script>
+{% endblock %}
