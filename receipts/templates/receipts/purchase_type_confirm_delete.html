@@ -1,0 +1,24 @@
+{% extends "home/base.html" %}
+
+{% block title %}<title>Delete Purchase Type</title>{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'receipts:purchase-type-list' %}">Purchase Types</a></li>
+<li class="breadcrumb-item active">Delete</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">Confirm Delete</div>
+        <div class="card-body">
+            <p>Are you sure you want to delete <strong>{{ object.name }}</strong>?</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Confirm</button>
+                <a href="{% url 'receipts:purchase-type-detail' object.pk %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

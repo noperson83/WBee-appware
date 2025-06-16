@@ -1,0 +1,43 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}<title>Purchase Types</title>{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'receipts:list' %}">Receipts</a></li>
+<li class="breadcrumb-item active">Purchase Types</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Purchase Types</h1>
+        <a href="{% url 'receipts:purchase-type-create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Type
+        </a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Description</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pt in purchase_types %}
+            <tr>
+                <td><a href="{% url 'receipts:purchase-type-detail' pt.pk %}">{{ pt.name }}</a></td>
+                <td>{{ pt.code }}</td>
+                <td>{{ pt.description }}</td>
+                <td>{{ pt.is_active }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center">No purchase types found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
