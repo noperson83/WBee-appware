@@ -1,0 +1,20 @@
+{% extends "home/base.html" %}
+{% block title %}<title>{{ manufacturer.name }}</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'material:manufacturer-list' %}">Manufacturers</a></li>
+<li class="breadcrumb-item active">{{ manufacturer.name }}</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">{{ manufacturer.name }}</h6>
+    <div>
+      <a href="{% url 'material:manufacturer-update' manufacturer.pk %}" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+      <a href="{% url 'material:manufacturer-delete' manufacturer.pk %}" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+    </div>
+  </div>
+  <div class="card-body">
+    <p>{{ manufacturer.description }}</p>
+  </div>
+</div>
+{% endblock %}

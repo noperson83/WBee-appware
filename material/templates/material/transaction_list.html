@@ -1,0 +1,37 @@
+{% extends "home/base.html" %}
+{% block title %}<title>Inventory Transactions</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Inventory Transactions</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">Transactions</h6>
+    <a href="{% url 'material:transaction-create' %}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus"></i> Add Transaction
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Product</th>
+          <th>Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for transaction in transactions %}
+        <tr>
+          <td><a href="{% url 'material:transaction-detail' transaction.pk %}">{{ transaction.created_at|date:"SHORT_DATE_FORMAT" }}</a></td>
+          <td>{{ transaction.product }}</td>
+          <td>{{ transaction.get_transaction_type_display|default:transaction.transaction_type }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="text-center">No transactions found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

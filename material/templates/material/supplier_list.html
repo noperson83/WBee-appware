@@ -1,0 +1,35 @@
+{% extends "home/base.html" %}
+{% block title %}<title>Suppliers</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Suppliers</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">Suppliers</h6>
+    <a href="{% url 'material:supplier-create' %}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus"></i> Add Supplier
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for supplier in suppliers %}
+        <tr>
+          <td><a href="{{ supplier.get_absolute_url }}">{{ supplier.company_name }}</a></td>
+          <td>{{ supplier.get_supplier_type_display|default:supplier.supplier_type }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2" class="text-center">No suppliers found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

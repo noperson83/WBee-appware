@@ -1,0 +1,33 @@
+{% extends "home/base.html" %}
+{% block title %}<title>Product Categories</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Product Categories</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">Categories</h6>
+    <a href="{% url 'material:category-create' %}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus"></i> Add Category
+    </a>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for category in categories %}
+        <tr>
+          <td><a href="{% url 'material:category-detail' category.pk %}">{{ category.name }}</a></td>
+        </tr>
+        {% empty %}
+        <tr><td class="text-center">No categories found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
