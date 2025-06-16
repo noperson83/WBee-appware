@@ -21,12 +21,7 @@ $ python -m venv .venv
 $ source .venv/bin/activate
 
 # Install dependencies
-(venv)$ pip install Django==5.2 django-extensions easy-thumbnails django-mptt \
-    django-cors-headers djangorestframework django-filter django-import-export \
-    django-crispy-forms crispy-bootstrap5 dj-database-url python-decouple \
-    Pillow bleach pytest-django icalendar django-grappelli django-filer \
-    whitenoise redis qrcode pytz psycopg2-binary sentry-sdk \
-    django-storages[boto3] django-debug-toolbar
+(venv)$ pip install -r requirements.txt
 ```
 
 Create a `.env` file (or set environment variables) for secrets and database configuration.  A minimal example:
