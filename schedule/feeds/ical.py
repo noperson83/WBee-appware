@@ -1,14 +1,14 @@
-#import icalendar
+import icalendar
 from django.http import HttpResponse
 
 EVENT_ITEMS = (
-    ('uid', 'uid'),
-    ('dtstart', 'start'),
-    ('dtend', 'end'),
-    ('summary', 'summary'),
-    ('location', 'location'),
-    ('last_modified', 'last_modified'),
-    ('created', 'created'),
+    ("uid", "uid"),
+    ("dtstart", "start"),
+    ("dtend", "end"),
+    ("summary", "summary"),
+    ("location", "location"),
+    ("last_modified", "last_modified"),
+    ("created", "created"),
 )
 
 
@@ -19,21 +19,21 @@ class ICalendarFeed(object):
         self.kwargs = kwargs
 
         cal = icalendar.Calendar()
-        cal.add('prodid', '-// django-scheduler //')
-        cal.add('version', '2.0')
+        cal.add("prodid", "-// django-scheduler //")
+        cal.add("version", "2.0")
 
         for item in list(self.items()):
             event = icalendar.Event()
 
             for vkey, key in EVENT_ITEMS:
-                value = getattr(self, 'item_' + key)(item)
+                value = getattr(self, "item_" + key)(item)
                 if value:
                     event.add(vkey, value)
 
             cal.add_component(event)
 
         response = HttpResponse(cal.to_ical())
-        response['Content-Type'] = 'text/calendar'
+        response["Content-Type"] = "text/calendar"
 
         return response
 
