@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin, UserPassesTestMixin
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
@@ -48,6 +48,7 @@ from .forms import (
 from .serializers import ProjectSerializer, ScopeOfWorkSerializer
 
 from .utils import generate_job_number, calculate_project_metrics
+from .permissions import ProjectAccessMixin, ProjectPermissionMixin
 
 User = get_user_model()
 
@@ -55,46 +56,6 @@ User = get_user_model()
 # Base Mixins and Utilities
 # ============================================
 
-class ProjectAccessMixin(UserPassesTestMixin):
-    """Enhanced access control for project management"""
-    
-    def test_func(self):
-        if not hasattr(self, 'get_object'):
-            return self.request.user.is_authenticated
-            
-        try:
-            project = self.get_object()
-            user = self.request.user
-            
-            # Superuser always has access
-            if user.is_superuser:
-                return True
-                
-            # Business category based access
-            if hasattr(user, 'business_category') and project.business_category:
-                if user.business_category != project.business_category:
-                    return False
-            
-            # Role-based access control
-            if user.role == 'admin':
-                return True
-            elif user.role == 'project_manager':
-                return (project.project_manager == user or 
-                       project.estimator == user or
-                       user in project.team_leads.all())
-            elif user.role == 'supervisor':
-                return (project.supervisor == user or 
-                       user in project.team_leads.all() or
-                       user in project.team_members.all())
-            elif user.role == 'worker':
-                return user in project.team_members.all()
-            elif user.role == 'client':
-                return hasattr(user, 'client') and project.location.client == user.client
-                
-            return False
-            
-        except (AttributeError, TypeError):
-            return self.request.user.is_authenticated
 
 class AjaxResponseMixin:
     """Mixin to handle AJAX requests consistently"""
@@ -467,6 +428,9 @@ class ProjectDetailView(ProjectAccessMixin, DetailView):
             'days_until_due': project.days_until_due,
             'is_overdue': project.is_overdue,
         }
+
+        # Consolidated metrics using utility function
+        context['metrics'] = calculate_project_metrics(project)
         
         # Material costs
         try:
@@ -567,7 +531,7 @@ class ProjectDetailView(ProjectAccessMixin, DetailView):
         
         return sorted(activities, key=lambda x: x['date'], reverse=True)[:10]
 
-class ProjectCreateView(LoginRequiredMixin, PermissionRequiredMixin, AjaxResponseMixin, CreateView):
+class ProjectCreateView(LoginRequiredMixin, ProjectPermissionMixin, AjaxResponseMixin, CreateView):
     """Create new project with business logic validation"""
     model = Project
     form_class = ProjectForm
@@ -642,13 +606,14 @@ class ProjectCreateView(LoginRequiredMixin, PermissionRequiredMixin, AjaxRespons
     def get_success_url(self):
         return reverse('project:project-detail', kwargs={'job_number': self.object.job_number})
 
-class ProjectUpdateView(ProjectAccessMixin, AjaxResponseMixin, UpdateView):
+class ProjectUpdateView(ProjectAccessMixin, ProjectPermissionMixin, AjaxResponseMixin, UpdateView):
     """Update project with change tracking"""
     model = Project
     form_class = ProjectForm
     template_name = 'project/project_form.html'
     slug_field = 'job_number'
     slug_url_kwarg = 'job_number'
+    permission_required = 'project.change_project'
     
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -718,13 +683,14 @@ class ProjectUpdateView(ProjectAccessMixin, AjaxResponseMixin, UpdateView):
     def get_success_url(self):
         return reverse('project:project-detail', kwargs={'job_number': self.object.job_number})
 
-class ProjectDeleteView(ProjectAccessMixin, DeleteView):
+class ProjectDeleteView(ProjectAccessMixin, ProjectPermissionMixin, DeleteView):
     """Delete project with proper authorization"""
     model = Project
     template_name = 'project/project_confirm_delete.html'
     slug_field = 'job_number'
     slug_url_kwarg = 'job_number'
     success_url = reverse_lazy('project:project-list')
+    permission_required = 'project.delete_project'
     
     def test_func(self):
         """Enhanced permission check for deletion"""
@@ -1829,6 +1795,31 @@ def calculate_costs_api(request, job_number):
             'success': False,
             'error': str(e)
         }, status=500)
+
+# ============================================
+# DRF API Views utilizing serializers
+# ============================================
+
+class ProjectListAPIView(ProjectPermissionMixin, generics.ListAPIView):
+    """List projects using the DRF serializer"""
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    permission_required = 'project.view_project'
+
+
+class ProjectDetailAPIView(ProjectAccessMixin, ProjectPermissionMixin, generics.RetrieveAPIView):
+    """Retrieve a single project using the serializer"""
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+    lookup_field = 'job_number'
+    permission_required = 'project.view_project'
+
+
+class ScopeOfWorkListAPIView(ProjectPermissionMixin, generics.ListAPIView):
+    """List scope of work items"""
+    queryset = ScopeOfWork.objects.all()
+    serializer_class = ScopeOfWorkSerializer
+    permission_required = 'project.view_scopeofwork'
 
 # ============================================
 # Report and Analytics Views

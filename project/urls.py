@@ -184,6 +184,11 @@ urlpatterns = [
         # File Uploads
         path('projects/<str:job_number>/upload-image/', views.ProjectImageUploadAPIView.as_view(), name='api-upload-image'),
         path('projects/<str:job_number>/upload-document/', views.ProjectDocumentUploadAPIView.as_view(), name='api-upload-document'),
+
+        # Serializer-based endpoints
+        path('projects/', views.ProjectListAPIView.as_view(), name='api-project-list'),
+        path('projects/<str:job_number>/', views.ProjectDetailAPIView.as_view(), name='api-project-detail'),
+        path('scope/', views.ScopeOfWorkListAPIView.as_view(), name='api-scope-list'),
     ])),
     
     # ============================================
