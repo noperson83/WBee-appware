@@ -46,7 +46,7 @@ from .forms import (
     HardwareForm, SoftwareForm, LicenseForm, TravelForm
 )
 from .serializers import ProjectSerializer, ScopeOfWorkSerializer
-from .permissions import ProjectAccessMixin, ProjectPermissionMixin
+
 from .utils import generate_job_number, calculate_project_metrics
 
 User = get_user_model()
