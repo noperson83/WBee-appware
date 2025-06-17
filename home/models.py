@@ -159,6 +159,7 @@ class DashboardMetric(UUIDModel, TimeStampedModel):
     icon = models.CharField(max_length=50, default='fas fa-chart-line')
     is_active = models.BooleanField(default=True)
     last_updated = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(default=timezone.now)
     
     class Meta:
         ordering = ['name']
