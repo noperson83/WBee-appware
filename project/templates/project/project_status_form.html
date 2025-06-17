@@ -1,0 +1,27 @@
+{% extends "home/base.html" %}
+{% block title %}<title>Update Status - {{ project.name }}</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project:dashboard' %}">Projects</a></li>
+<li class="breadcrumb-item"><a href="{% url 'project:project-detail' project.job_number %}">{{ project.name }}</a></li>
+<li class="breadcrumb-item active">Status</li>
+{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card shadow">
+      <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-sync"></i> Update Status</h6>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
