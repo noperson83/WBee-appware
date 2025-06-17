@@ -28,9 +28,10 @@ from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.views.generic import (
-    ListView, DetailView, CreateView, UpdateView, 
+    ListView, DetailView, CreateView, UpdateView,
     DeleteView, TemplateView, FormView
 )
+from django.forms.models import model_to_dict
 
 from rest_framework import generics, viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
@@ -738,6 +739,51 @@ class ProjectDeleteView(ProjectAccessMixin, ProjectPermissionMixin, DeleteView):
         
         messages.success(request, f'Project "{project_name}" deleted successfully.')
         return response
+
+class ProjectDuplicateView(ProjectAccessMixin, ProjectPermissionMixin, CreateView):
+    """Duplicate an existing project."""
+    model = Project
+    form_class = ProjectForm
+    template_name = 'project/project_form.html'
+    slug_field = 'job_number'
+    slug_url_kwarg = 'job_number'
+    permission_required = 'project.add_project'
+
+    def get_initial(self):
+        original = get_object_or_404(Project, job_number=self.kwargs['job_number'])
+        initial = model_to_dict(
+            original,
+            exclude=[
+                'id', 'pk', 'job_number', 'revision', 'created_at', 'updated_at'
+            ],
+        )
+        initial['name'] = f"Copy of {original.name}"
+        initial['job_number'] = generate_job_number(original.business_category)
+        return initial
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+
+        if not form.instance.job_number:
+            form.instance.job_number = generate_job_number(
+                form.instance.location.business_category if form.instance.location else None
+            )
+
+        response = super().form_valid(form)
+
+        original = get_object_or_404(Project, job_number=self.kwargs['job_number'])
+        self.object.team_leads.set(original.team_leads.all())
+        self.object.team_members.set(original.team_members.all())
+
+        messages.success(
+            self.request,
+            f'Project "{self.object.name}" duplicated successfully.'
+        )
+
+        return response
+
+    def get_success_url(self):
+        return reverse('project:project-detail', kwargs={'job_number': self.object.job_number})
 
 # ============================================
 # Specialized Project Views
