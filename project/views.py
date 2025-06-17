@@ -1203,6 +1203,34 @@ class ProjectFinancialView(ProjectAccessMixin, DetailView):
         return analysis
 
 # ============================================
+# Financial Utility Views
+# ============================================
+
+class CalculateMaterialCostsView(ProjectAccessMixin, View):
+    """Return material cost calculations for a project as JSON."""
+
+    def get(self, request, job_number):
+        project = get_object_or_404(Project, job_number=job_number)
+        costs = project.calculate_material_costs()
+        return JsonResponse({'success': True, 'costs': costs})
+
+
+class ProjectInvoiceView(ProjectAccessMixin, View):
+    """Placeholder view for project invoices."""
+
+    def get(self, request, job_number):
+        project = get_object_or_404(Project, job_number=job_number)
+        return HttpResponse(f"Invoice page for {project.job_number}")
+
+
+class ProjectPaymentView(ProjectAccessMixin, View):
+    """Placeholder view for project payments."""
+
+    def get(self, request, job_number):
+        project = get_object_or_404(Project, job_number=job_number)
+        return HttpResponse(f"Payment page for {project.job_number}")
+
+# ============================================
 # Scope of Work Views
 # ============================================
 
@@ -1960,6 +1988,19 @@ def calculate_costs_api(request, job_number):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+class CalculateCostsAPIView(ProjectAccessMixin, viewsets.ViewSet):
+    """Class-based API view for calculating material costs."""
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, job_number=None):
+        project = get_object_or_404(Project, job_number=job_number)
+        try:
+            costs = project.calculate_material_costs()
+            return Response({'success': True, 'costs': costs})
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)}, status=500)
 
 # ============================================
 # DRF API Views utilizing serializers
