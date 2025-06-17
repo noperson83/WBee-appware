@@ -1054,6 +1054,47 @@ class ProjectTimelineView(ProjectAccessMixin, DetailView):
         context['timeline_events'] = timeline_events
         return context
 
+class ProjectActivityView(ProjectAccessMixin, DetailView):
+    """Full activity log for a project"""
+    model = Project
+    template_name = 'project/project_activity.html'
+    slug_field = 'job_number'
+    slug_url_kwarg = 'job_number'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['activities'] = self._get_activity(self.object)
+        return context
+
+    def _get_activity(self, project):
+        activities = []
+
+        # All changes
+        for change in project.changes.order_by('-created_at'):
+            activities.append({
+                'type': 'change',
+                'title': f'{change.change_type.title()} Request',
+                'description': change.description,
+                'date': change.created_at,
+                'user': change.requested_by,
+                'status': 'approved' if change.is_approved else 'pending',
+            })
+
+        # Completed milestones
+        for milestone in project.milestones.filter(
+            is_complete=True,
+            actual_date__isnull=False
+        ).order_by('-actual_date'):
+            activities.append({
+                'type': 'milestone',
+                'title': f'Milestone: {milestone.name}',
+                'description': 'Completed',
+                'date': milestone.actual_date,
+                'status': 'completed',
+            })
+
+        return sorted(activities, key=lambda x: x['date'], reverse=True)
+
 class ProjectFinancialView(ProjectAccessMixin, DetailView):
     """Project financial details and analysis"""
     model = Project
