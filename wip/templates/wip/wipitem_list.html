@@ -1,0 +1,40 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}<title>Work In Progress</title>{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">WIP</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <h1 class="h3 mb-4">Work In Progress</h1>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Project</th>
+        <th>Assigned To</th>
+        <th>Status</th>
+        <th class="text-end">Progress</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td>{{ item.description }}</td>
+        <td>{{ item.project }}</td>
+        <td>{{ item.assigned_to }}</td>
+        <td>{{ item.get_status_display }}</td>
+        <td class="text-end">{{ item.progress_percent }}%</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5">No work-in-progress items.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
