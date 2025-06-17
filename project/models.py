@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from decimal import Decimal
 import uuid
-from datetime import date
+from datetime import date, timedelta
 
 # Import from your modernized apps
 from client.models import TimeStampedModel, UUIDModel
