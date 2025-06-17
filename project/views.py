@@ -1991,11 +1991,12 @@ def calculate_costs_api(request, job_number):
         }, status=500)
 
 
-class CalculateCostsAPIView(ProjectAccessMixin, viewsets.ViewSet):
-    """Class-based API view for calculating material costs."""
+class CalculateCostsAPIView(ProjectAccessMixin, APIView):
+    """API view for calculating material costs."""
+
     permission_classes = [IsAuthenticated]
 
-    def create(self, request, job_number=None):
+    def post(self, request, job_number=None):
         project = get_object_or_404(Project, job_number=job_number)
         try:
             costs = project.calculate_material_costs()
