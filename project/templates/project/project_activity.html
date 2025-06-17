@@ -1,0 +1,25 @@
+{% extends "home/base.html" %}
+{% block title %}<title>{{ project.name }} Activity</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project:dashboard' %}">Projects</a></li>
+<li class="breadcrumb-item"><a href="{% url 'project:project-detail' project.job_number %}">{{ project.name }}</a></li>
+<li class="breadcrumb-item active">Activity</li>
+{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">{{ project.name }} Activity</h1>
+<div class="card">
+  <div class="card-body p-0">
+    <ul class="list-group list-group-flush">
+      {% for act in activities %}
+      <li class="list-group-item">
+        <small class="text-muted">{{ act.date|date:"Y-m-d" }}</small>
+        <strong class="ms-2">{{ act.title }}</strong>
+        {% if act.description %}<div>{{ act.description }}</div>{% endif %}
+      </li>
+      {% empty %}
+      <li class="list-group-item">No activity found.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
