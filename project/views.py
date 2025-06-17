@@ -44,7 +44,8 @@ from .models import (
 )
 from .forms import (
     ProjectForm, ScopeOfWorkForm, DeviceForm,
-    HardwareForm, SoftwareForm, LicenseForm, TravelForm
+    HardwareForm, SoftwareForm, LicenseForm, TravelForm,
+    ProjectStatusForm,
 )
 from .serializers import ProjectSerializer, ScopeOfWorkSerializer
 
@@ -784,6 +785,83 @@ class ProjectDuplicateView(ProjectAccessMixin, ProjectPermissionMixin, CreateVie
 
     def get_success_url(self):
         return reverse('project:project-detail', kwargs={'job_number': self.object.job_number})
+
+
+class ProjectStatusUpdateView(ProjectAccessMixin, View):
+    """Update a project's status."""
+
+    def dispatch(self, request, *args, **kwargs):
+        self.project = get_object_or_404(Project, job_number=kwargs["job_number"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        form = ProjectStatusForm(instance=self.project)
+        return render(request, "project/project_status_form.html", {"form": form, "project": self.project})
+
+    def post(self, request, *args, **kwargs):
+        form = ProjectStatusForm(request.POST, instance=self.project)
+        if form.is_valid():
+            old_status = self.project.status
+            self.project = form.save(commit=False)
+            if self.project.status == "complete" and not self.project.completed_date:
+                self.project.completed_date = date.today()
+                self.project.percent_complete = 100
+            elif self.project.status != "complete" and old_status == "complete":
+                self.project.completed_date = None
+            self.project.save()
+            messages.success(request, "Project status updated successfully.")
+            return redirect("project:project-detail", job_number=self.project.job_number)
+        return render(request, "project/project_status_form.html", {"form": form, "project": self.project})
+
+
+class ProjectMarkCompleteView(ProjectAccessMixin, View):
+    """Convenience view to mark a project as complete."""
+
+    def post(self, request, job_number):
+        project = get_object_or_404(Project, job_number=job_number)
+        if not request.user.has_perm("project.change_project"):
+            raise PermissionDenied
+        old_status = project.status
+        project.status = "complete"
+        if not project.completed_date:
+            project.completed_date = date.today()
+        project.percent_complete = 100
+        project.save()
+        ProjectChange.objects.create(
+            project=project,
+            change_type="status",
+            description=f"Status changed from {old_status} to complete",
+            requested_by=request.user.username,
+            is_approved=True,
+            approved_by=request.user.username,
+            approved_date=timezone.now().date(),
+        )
+        messages.success(request, f'Project "{project.name}" marked as complete.')
+        return redirect("project:project-detail", job_number=project.job_number)
+
+
+class ProjectReopenView(ProjectAccessMixin, View):
+    """Reopen a completed project."""
+
+    def post(self, request, job_number):
+        project = get_object_or_404(Project, job_number=job_number)
+        if not request.user.has_perm("project.change_project"):
+            raise PermissionDenied
+        old_status = project.status
+        project.status = "active"
+        project.completed_date = None
+        project.save()
+        ProjectChange.objects.create(
+            project=project,
+            change_type="status",
+            description=f"Status changed from {old_status} to active",
+            requested_by=request.user.username,
+            is_approved=True,
+            approved_by=request.user.username,
+            approved_date=timezone.now().date(),
+        )
+        messages.success(request, f'Project "{project.name}" reopened.')
+        return redirect("project:project-detail", job_number=project.job_number)
 
 # ============================================
 # Specialized Project Views

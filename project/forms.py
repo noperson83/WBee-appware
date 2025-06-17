@@ -58,3 +58,17 @@ class LicenseForm(MaterialForm):
 class TravelForm(MaterialForm):
     def __init__(self, proj=None, *args, **kwargs):
         super().__init__(proj=proj, material_type="travel", *args, **kwargs)
+
+
+class ProjectStatusForm(ModelForm):
+    """Form for updating a project's status only."""
+
+    class Meta:
+        model = Project
+        fields = ["status"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        project = self.instance
+        if project and hasattr(project, "get_available_statuses"):
+            self.fields["status"].choices = project.get_available_statuses()
