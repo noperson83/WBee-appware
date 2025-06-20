@@ -6,7 +6,9 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wbee.settings')
+    # Use the base settings module, which reads from environment variables and
+    # optional .env files for secure configuration.
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wbee.settings.base')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
