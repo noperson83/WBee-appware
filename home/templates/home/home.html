@@ -524,9 +524,11 @@
                     <a href="#" class="btn btn-outline-warning btn-sm">
                         <i class="fas fa-file"></i> View Reports
                     </a>
+                    {% if request.user.is_superuser %}
                     <a href="/admin/" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-cogs"></i> Admin Panel
                     </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
