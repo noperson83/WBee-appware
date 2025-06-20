@@ -132,12 +132,19 @@ def load_user_tools(user):
     tools = []
     
     try:
-        from asset.models import Asset
-        
-        user_assets = Asset.objects.filter(
-            assigned_worker=user, 
-            is_active=True
-        ).order_by('category', 'name')
+        from asset.models import AssetAssignment
+
+        assignments = AssetAssignment.objects.filter(
+            assigned_to_worker=user,
+            is_active=True,
+            asset__is_active=True
+        ).select_related('asset__category', 'asset')
+
+        # Order assignments by category then name
+        assignments = assignments.order_by('asset__category__name', 'asset__name')
+
+        # Build list of assets from assignments
+        user_assets = [a.asset for a in assignments]
         
         # Group by category like in the original
         current_category = None
@@ -278,8 +285,12 @@ def load_dashboard_stats(user):
     }
     
     try:
-        from asset.models import Asset
-        stats['total_assets'] = Asset.objects.filter(assigned_worker=user, is_active=True).count()
+        from asset.models import AssetAssignment
+        stats['total_assets'] = AssetAssignment.objects.filter(
+            assigned_to_worker=user,
+            is_active=True,
+            asset__is_active=True
+        ).count()
     except (ImportError, AttributeError):
         pass
     
@@ -317,8 +328,12 @@ def load_backward_compatibility_data(user):
     }
     
     try:
-        from asset.models import Asset
-        user_assets = Asset.objects.filter(assigned_worker=user, is_active=True)
+        from asset.models import Asset, AssetAssignment
+        user_assets = Asset.objects.filter(
+            assignments__assigned_to_worker=user,
+            assignments__is_active=True,
+            is_active=True
+        ).distinct()
         
         # Original template variables
         data['ladder_list'] = user_assets.filter(asset_type__icontains='ladder')[:10]
