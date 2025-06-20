@@ -1,3 +1,4 @@
+{% load widget_tweaks %}
 <div class="image-preview mt-2" id="imagePreview" style="display: none;">
                         <img id="previewImg" src="" alt="Preview" class="img-fluid rounded" style="max-height: 200px;">
                       </div>
@@ -1155,7 +1156,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </style>
 {% endblock %}{% extends "home/base.html" %}
 {% load static %}
-{% load widget_tweaks %}
 
 {% block title %}
 {% if form.instance.pk %}Edit {{ form.instance.name }}{% else %}Add New Location{% endif %}
