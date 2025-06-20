@@ -11,6 +11,9 @@ urlpatterns = [
     path('create/', views.LocationCreateView.as_view(), name='location-create'),
     path('<uuid:pk>/update/', views.LocationUpdateView.as_view(), name='location-update'),
     path('<uuid:pk>/delete/', views.LocationDeleteView.as_view(), name='location-delete'),
+
+    # Export
+    path('export/', views.LocationExportView.as_view(), name='location-export'),
     
     # Document management
     path('<uuid:location_pk>/documents/add/', 

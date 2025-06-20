@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 from django.db.models import Q, Sum, Count
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
+import csv
 
 from client.models import Client
 from .models import Location, BusinessCategory, LocationType, LocationDocument, LocationNote
@@ -341,6 +342,42 @@ def location_map_data(request):
 def locations_map_view(request):
     """Display all locations on a map"""
     return render(request, 'location/locations_map.html')
+
+
+# Export view
+class LocationExportView(LoginRequiredMixin, View):
+    """Export locations to CSV."""
+
+    def get(self, request):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="locations.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow([
+            'Name', 'Client', 'Business Category', 'Location Type', 'Status',
+            'Address', 'City', 'State', 'Latitude', 'Longitude'
+        ])
+
+        locations = Location.objects.select_related(
+            'client', 'business_category', 'location_type'
+        ).prefetch_related('addresses')
+
+        for location in locations:
+            address = location.primary_address
+            writer.writerow([
+                location.name,
+                location.client.company_name if location.client else '',
+                location.business_category.name if location.business_category else '',
+                location.location_type.name if location.location_type else '',
+                location.status,
+                address.line1 if address else '',
+                address.city if address else '',
+                address.state_province if address else '',
+                location.latitude or '',
+                location.longitude or '',
+            ])
+
+        return response
 
 
 # Legacy support (redirects old jobsite URLs to new location URLs)
