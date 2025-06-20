@@ -958,7 +958,7 @@ class AssetBulkUpdateView(LoginRequiredMixin, PermissionRequiredMixin, FormView)
             messages.error(self.request, 'No assets selected for update.')
             return redirect('asset:list')
         
-        assets = Asset.objects.filter(uuid__in=asset_ids)
+        assets = Asset.objects.filter(id__in=asset_ids)
         update_fields = {}
         
         # Build update dictionary based on form data
@@ -995,7 +995,7 @@ class AssetBulkAssignView(LoginRequiredMixin, PermissionRequiredMixin, FormView)
             messages.error(self.request, 'No assets selected for assignment.')
             return redirect('asset:list')
         
-        assets = Asset.objects.filter(uuid__in=asset_ids, status='available')
+        assets = Asset.objects.filter(id__in=asset_ids, status='available')
         
         with transaction.atomic():
             for asset in assets:
@@ -1033,7 +1033,7 @@ class AssetBulkStatusView(LoginRequiredMixin, PermissionRequiredMixin, View):
             messages.error(request, 'No assets selected or status not provided.')
             return redirect('asset:list')
         
-        assets = Asset.objects.filter(uuid__in=asset_ids)
+        assets = Asset.objects.filter(id__in=asset_ids)
         updated_count = assets.update(status=new_status)
         
         messages.success(request, f'Updated status for {updated_count} assets.')
@@ -1150,13 +1150,13 @@ class AssetSearchAPIView(LoginRequiredMixin, View):
         ).select_related('category', 'assigned_worker')[:20]
         
         results = [{
-            'id': str(asset.uuid),
+            'id': str(asset.id),
             'asset_number': asset.asset_number,
             'name': asset.name,
             'category': asset.category.name if asset.category else '',
             'status': asset.status,
             'assigned_to': str(asset.assigned_worker) if asset.assigned_worker else None,
-            'url': reverse('asset:detail', args=[asset.uuid])
+            'url': reverse('asset:detail', args=[asset.id])
         } for asset in assets]
         
         return JsonResponse({'results': results})
@@ -1181,10 +1181,10 @@ class AssetFilterAPIView(LoginRequiredMixin, View):
         data = {
             'count': assets.count(),
             'assets': [{
-                'id': str(asset.uuid),
+                'id': str(asset.id),
                 'name': asset.name,
                 'status': asset.status,
-                'url': reverse('asset:detail', args=[asset.uuid])
+                'url': reverse('asset:detail', args=[asset.id])
             } for asset in assets[:50]]
         }
         
@@ -1206,7 +1206,7 @@ class AssetAutocompleteAPIView(LoginRequiredMixin, View):
         )[:10]
         
         results = [{
-            'id': str(asset.uuid),
+            'id': str(asset.id),
             'text': f"{asset.asset_number} - {asset.name}"
         } for asset in assets]
         
@@ -1218,7 +1218,7 @@ class AssetQuickStatusAPIView(LoginRequiredMixin, View):
     
     def post(self, request, asset_id):
         try:
-            asset = Asset.objects.get(uuid=asset_id)
+            asset = Asset.objects.get(id=asset_id)
             data = json.loads(request.body)
             
             new_status = data.get('status')
@@ -1254,7 +1254,7 @@ class AssetQuickAssignAPIView(LoginRequiredMixin, View):
     
     def post(self, request, asset_id):
         try:
-            asset = Asset.objects.get(uuid=asset_id)
+            asset = Asset.objects.get(id=asset_id)
             data = json.loads(request.body)
             
             worker_id = data.get('worker_id')
@@ -1354,11 +1354,11 @@ class AssetQRCodeView(LoginRequiredMixin, View):
     """Generate QR code for asset."""
     
     def get(self, request, asset_id):
-        asset = get_object_or_404(Asset, uuid=asset_id)
+        asset = get_object_or_404(Asset, id=asset_id)
         
         # Create QR code with asset URL
         qr_data = request.build_absolute_uri(
-            reverse('asset:mobile-detail', args=[asset.uuid])
+            reverse('asset:mobile-detail', args=[asset.id])
         )
         
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
@@ -1520,7 +1520,7 @@ class AssetMobileActionView(LoginRequiredMixin, View):
     """Mobile quick actions for assets."""
     
     def post(self, request, asset_id):
-        asset = get_object_or_404(Asset, uuid=asset_id)
+        asset = get_object_or_404(Asset, id=asset_id)
         action = request.POST.get('action')
         
         if action == 'checkout':
@@ -1632,7 +1632,7 @@ def generate_asset_report(assets, report_type='inventory'):
 
 def bulk_assign_assets(asset_ids, assignment_data, user):
     """Bulk assign multiple assets."""
-    assets = Asset.objects.filter(uuid__in=asset_ids, status='available')
+    assets = Asset.objects.filter(id__in=asset_ids, status='available')
     
     with transaction.atomic():
         for asset in assets:

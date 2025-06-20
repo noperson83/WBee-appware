@@ -221,7 +221,7 @@
                     <!-- Selection Checkbox -->
                     <div class="position-absolute top-0 start-0 p-2" style="z-index: 10;">
                         <input type="checkbox" class="form-check-input asset-checkbox" 
-                               value="{{ asset.uuid|default:asset.id }}" style="display: none;">
+                               value="{{ asset.id }}" style="display: none;">
                     </div>
                     
                     <!-- Asset Image -->
@@ -315,10 +315,10 @@
                     <!-- Card Actions -->
                     <div class="card-footer bg-transparent border-0">
                         <div class="d-flex gap-1">
-                            <a href="{% url 'asset:detail' asset.uuid %}" class="btn btn-sm btn-outline-primary flex-fill">
+                            <a href="{% url 'asset:detail' asset.id %}" class="btn btn-sm btn-outline-primary flex-fill">
                                 <i class="fas fa-eye me-1"></i>View
                             </a>
-                            <a href="{% url 'asset:update' asset.uuid %}" class="btn btn-sm btn-outline-secondary">
+                            <a href="{% url 'asset:update' asset.id %}" class="btn btn-sm btn-outline-secondary">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <div class="dropdown">
@@ -327,18 +327,18 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     {% if asset.status == 'available' %}
-                                      <li><a class="dropdown-item" href="{% url 'asset:assign' asset.uuid %}">
+                                      <li><a class="dropdown-item" href="{% url 'asset:assign' asset.id %}">
                                         <i class="fas fa-user-plus me-2"></i>Assign
                                     </a></li>
                                     {% endif %}
-                                      <li><a class="dropdown-item" href="{% url 'asset:maintenance' asset.uuid %}">
+                                      <li><a class="dropdown-item" href="{% url 'asset:maintenance' asset.id %}">
                                         <i class="fas fa-wrench me-2"></i>Maintenance
                                     </a></li>
-                                      <li><a class="dropdown-item" href="{% url 'asset:duplicate' asset.uuid %}">
+                                      <li><a class="dropdown-item" href="{% url 'asset:duplicate' asset.id %}">
                                         <i class="fas fa-copy me-2"></i>Duplicate
                                     </a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                      <li><a class="dropdown-item text-danger" href="{% url 'asset:delete' asset.uuid %}">
+                                      <li><a class="dropdown-item text-danger" href="{% url 'asset:delete' asset.id %}">
                                         <i class="fas fa-trash me-2"></i>Delete
                                     </a></li>
                                 </ul>
@@ -387,7 +387,7 @@
                         {% for asset in assets %}
                         <tr>
                             <td>
-                                <input type="checkbox" class="form-check-input asset-checkbox" value="{{ asset.uuid|default:asset.id }}">
+                                <input type="checkbox" class="form-check-input asset-checkbox" value="{{ asset.id }}">
                             </td>
                             <td>
                                 <strong>{{ asset.asset_number|default:asset.name }}</strong>
@@ -472,28 +472,28 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <a href="{% url 'asset:detail' asset.uuid %}" class="btn btn-outline-primary" title="View Details">
+                                    <a href="{% url 'asset:detail' asset.id %}" class="btn btn-outline-primary" title="View Details">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{% url 'asset:update' asset.uuid %}" class="btn btn-outline-secondary" title="Edit">
+                                    <a href="{% url 'asset:update' asset.id %}" class="btn btn-outline-secondary" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <button class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         {% if asset.status == 'available' %}
-                                          <li><a class="dropdown-item" href="{% url 'asset:assign' asset.uuid %}">
+                                          <li><a class="dropdown-item" href="{% url 'asset:assign' asset.id %}">
                                             <i class="fas fa-user-plus me-2"></i>Assign
                                         </a></li>
                                         {% endif %}
-                                          <li><a class="dropdown-item" href="{% url 'asset:maintenance' asset.uuid %}">
+                                          <li><a class="dropdown-item" href="{% url 'asset:maintenance' asset.id %}">
                                             <i class="fas fa-wrench me-2"></i>Maintenance
                                         </a></li>
-                                          <li><a class="dropdown-item" href="{% url 'asset:duplicate' asset.uuid %}">
+                                          <li><a class="dropdown-item" href="{% url 'asset:duplicate' asset.id %}">
                                             <i class="fas fa-copy me-2"></i>Duplicate
                                         </a></li>
                                         <li><hr class="dropdown-divider"></li>
-                                          <li><a class="dropdown-item text-danger" href="{% url 'asset:delete' asset.uuid %}">
+                                          <li><a class="dropdown-item text-danger" href="{% url 'asset:delete' asset.id %}">
                                             <i class="fas fa-trash me-2"></i>Delete
                                         </a></li>
                                     </ul>
