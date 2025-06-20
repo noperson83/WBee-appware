@@ -395,6 +395,27 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
     
     # Role-based permissions (customizable per business)
     roles = models.JSONField(default=list, blank=True, help_text='Business-specific roles')
+
+    @property
+    def role(self):
+        """Primary role for backwards compatibility."""
+        if self.roles:
+            return self.roles[0]
+        if self.is_superuser or self.is_admin:
+            return "admin"
+        if self.is_staff:
+            return "staff"
+        return ""
+
+    @role.setter
+    def role(self, value):
+        """Set the primary role while keeping the roles list in sync."""
+        if value:
+            if value in self.roles:
+                self.roles.remove(value)
+            self.roles.insert(0, value)
+        else:
+            self.roles = []
     
     # Address information
     addresses = GenericRelation(Address)
