@@ -515,13 +515,13 @@
                     <a href="{% url 'home:contact' %}" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-envelope"></i> Contact Support
                     </a>
-                    <a href="#" class="btn btn-outline-info btn-sm">
+                    <a href="{% url 'asset:create' %}" class="btn btn-outline-info btn-sm">
                         <i class="fas fa-plus"></i> Add Asset
                     </a>
-                    <a href="#" class="btn btn-outline-success btn-sm">
+                    <a href="{% url 'project:project-schedule' %}" class="btn btn-outline-success btn-sm">
                         <i class="fas fa-calendar"></i> Schedule Event
                     </a>
-                    <a href="#" class="btn btn-outline-warning btn-sm">
+                    <a href="{% url 'project:reports' %}" class="btn btn-outline-warning btn-sm">
                         <i class="fas fa-file"></i> View Reports
                     </a>
                     {% if request.user.is_superuser %}
