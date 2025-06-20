@@ -552,10 +552,10 @@ class ProjectCreateView(LoginRequiredMixin, ProjectPermissionMixin, AjaxResponse
     template_name = 'project/project_form.html'
     permission_required = 'project.add_project'
     
+    # ProjectForm does not accept a custom 'user' argument. Simply
+    # return the default kwargs provided by the generic view.
     def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
+        return super().get_form_kwargs()
     
     def form_valid(self, form):
         """Enhanced form processing with business logic"""
@@ -629,10 +629,9 @@ class ProjectUpdateView(ProjectAccessMixin, ProjectPermissionMixin, AjaxResponse
     slug_url_kwarg = 'job_number'
     permission_required = 'project.change_project'
     
+    # Return default kwargs; ProjectForm has no custom arguments
     def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
+        return super().get_form_kwargs()
     
     def form_valid(self, form):
         """Track changes and apply business logic"""
