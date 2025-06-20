@@ -12,8 +12,12 @@ urlpatterns = [
     path('<uuid:pk>/update/', views.LocationUpdateView.as_view(), name='location-update'),
     path('<uuid:pk>/delete/', views.LocationDeleteView.as_view(), name='location-delete'),
 
-    # Export
+    # Import/Export
+    path('import/', views.LocationImportView.as_view(), name='location-import'),
     path('export/', views.LocationExportView.as_view(), name='location-export'),
+    path('download-template/',
+         views.LocationImportTemplateView.as_view(),
+         name='download-template'),
     
     # Document management
     path('<uuid:location_pk>/documents/add/', 
