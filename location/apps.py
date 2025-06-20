@@ -1,4 +1,7 @@
 from django.apps import AppConfig
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class LocationConfig(AppConfig):
@@ -48,11 +51,10 @@ class LocationConfig(AppConfig):
         Only runs if the database is ready and migrated.
         """
         from django.db import connection
-        from django.core.management.color import no_style
         
         try:
             # Check if migrations have been applied
-            with connection.cursor() as cursor:
+            with connection.cursor():
                 # Check if our main tables exist
                 tables = connection.introspection.table_names()
                 required_tables = [
@@ -60,13 +62,13 @@ class LocationConfig(AppConfig):
                     'location_configurablechoice',
                     'location_location'
                 ]
-                
+
                 if all(table in tables for table in required_tables):
                     # Safe to create default data
                     from .models import create_default_business_categories
                     create_default_business_categories()
-                    
-        except Exception as e:
+
+        except Exception:
             # During migrations or initial setup, database might not be ready
             # This is normal and expected
-            pass
+            logger.exception("Error initializing default location data")
