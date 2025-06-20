@@ -18,6 +18,9 @@ urlpatterns = [
     path('download-template/',
          views.LocationImportTemplateView.as_view(),
          name='download-template'),
+
+    # Bulk operations
+    path('bulk/update/', views.bulk_update_locations, name='location-bulk-update'),
     
     # Document management
     path('<uuid:location_pk>/documents/add/', 
