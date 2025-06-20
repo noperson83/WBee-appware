@@ -10,6 +10,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django import forms
 from django.utils import timezone
+from django.db.models import Q
 from datetime import date, timedelta
 import logging
 
@@ -132,29 +133,20 @@ def load_user_tools(user):
     tools = []
     
     try:
-        from asset.models import Asset, AssetAssignment
+        from asset.models import Asset
 
         user_assets = Asset.objects.filter(
-            assigned_worker=user,
+            Q(assigned_worker=user) |
+            Q(assignments__assigned_to_worker=user, assignments__is_active=True),
             is_active=True
-        ).order_by('category', 'name')
-
-        if not user_assets.exists():
-            assignment_ids = AssetAssignment.objects.filter(
-                assigned_to_worker=user,
-                is_active=True
-            ).values_list('asset_id', flat=True)
-            user_assets = Asset.objects.filter(
-                id__in=assignment_ids,
-                is_active=True
-            ).order_by('category', 'name')
+        ).select_related('category').order_by('category__name', 'name').distinct()
         
         # Group by category like in the original
         current_category = None
         category_group = None
         
         for asset in user_assets:
-            category = str(getattr(asset, 'category', getattr(asset, 'asset_type', 'Other')))
+            category = getattr(asset.category, 'name', getattr(asset, 'asset_type', 'Other'))
             
             if category != current_category:
                 if category_group:
@@ -327,18 +319,12 @@ def load_backward_compatibility_data(user):
     }
     
     try:
-        from asset.models import Asset, AssetAssignment
-        user_assets = Asset.objects.filter(assigned_worker=user, is_active=True)
-
-        if not user_assets.exists():
-            assignment_ids = AssetAssignment.objects.filter(
-                assigned_to_worker=user,
-                is_active=True
-            ).values_list('asset_id', flat=True)
-            user_assets = Asset.objects.filter(
-                id__in=assignment_ids,
-                is_active=True
-            )
+        from asset.models import Asset
+        user_assets = Asset.objects.filter(
+            Q(assigned_worker=user) |
+            Q(assignments__assigned_to_worker=user, assignments__is_active=True),
+            is_active=True
+        ).distinct()
         
         # Original template variables
         data['ladder_list'] = user_assets.filter(asset_type__icontains='ladder')[:10]
@@ -351,7 +337,7 @@ def load_backward_compatibility_data(user):
         # Asset groups
         asset_categories = {}
         for asset in user_assets:
-            category = str(getattr(asset, 'category', getattr(asset, 'asset_type', 'Other')))
+            category = getattr(asset.category, 'name', getattr(asset, 'asset_type', 'Other'))
             if category not in asset_categories:
                 asset_categories[category] = []
             asset_categories[category].append(asset)
