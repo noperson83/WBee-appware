@@ -1,0 +1,21 @@
+{% extends "home/base.html" %}
+{% block title %}<title>{% if object %}Edit{% else %}Add{% endif %} Maintenance</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'asset:maintenance:list' %}">Maintenance</a></li>
+<li class="breadcrumb-item active">{% if object %}Edit{% else %}Add{% endif %}</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header">
+    <h6 class="m-0 font-weight-bold text-primary">{% if object %}Edit{% else %}Add{% endif %} Maintenance</h6>
+  </div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Save</button>
+      <a href="{% url 'asset:maintenance:list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

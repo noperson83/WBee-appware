@@ -1,0 +1,32 @@
+{% extends "home/base.html" %}
+{% block title %}<title>Maintenance Detail</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'asset:maintenance:list' %}">Maintenance</a></li>
+<li class="breadcrumb-item active">Detail</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header d-flex justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">{{ maintenance_record.asset.name }}</h6>
+    {% if perms.asset.change_assetmaintenancerecord %}
+      <a href="{% url 'asset:maintenance:update' maintenance_record.pk %}" class="btn btn-sm btn-outline-primary">
+        <i class="fas fa-edit"></i> Edit
+      </a>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <dl class="row">
+      <dt class="col-sm-3">Performed Date</dt>
+      <dd class="col-sm-9">{{ maintenance_record.performed_date }}</dd>
+      <dt class="col-sm-3">Type</dt>
+      <dd class="col-sm-9">{{ maintenance_record.get_maintenance_type_display }}</dd>
+      <dt class="col-sm-3">Performed By</dt>
+      <dd class="col-sm-9">{{ maintenance_record.performed_by }}</dd>
+      <dt class="col-sm-3">Description</dt>
+      <dd class="col-sm-9">{{ maintenance_record.description|linebreaksbr }}</dd>
+      <dt class="col-sm-3">Cost</dt>
+      <dd class="col-sm-9">${{ maintenance_record.total_cost|floatformat:2 }}</dd>
+    </dl>
+  </div>
+</div>
+{% endblock %}

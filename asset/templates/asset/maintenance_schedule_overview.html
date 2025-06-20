@@ -1,0 +1,40 @@
+{% extends "home/base.html" %}
+{% block title %}<title>Maintenance Schedule</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'asset:maintenance:list' %}">Maintenance</a></li>
+<li class="breadcrumb-item active">Schedule</li>
+{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header bg-danger text-white">Overdue</div>
+      <ul class="list-group list-group-flush">
+        {% for asset in overdue_maintenance %}
+        <li class="list-group-item"><a href="{{ asset.get_absolute_url }}">{{ asset.name }}</a></li>
+        {% empty %}<li class="list-group-item text-center">None</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header bg-warning">Due Today</div>
+      <ul class="list-group list-group-flush">
+        {% for asset in due_today %}
+        <li class="list-group-item"><a href="{{ asset.get_absolute_url }}">{{ asset.name }}</a></li>
+        {% empty %}<li class="list-group-item text-center">None</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-4">
+      <div class="card-header bg-info text-white">Upcoming</div>
+      <ul class="list-group list-group-flush">
+        {% for asset in upcoming_maintenance %}
+        <li class="list-group-item"><a href="{{ asset.get_absolute_url }}">{{ asset.name }}</a></li>
+        {% empty %}<li class="list-group-item text-center">None</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
