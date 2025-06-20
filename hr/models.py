@@ -464,10 +464,14 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
     def has_perm(self, perm, obj=None):
         """Does the worker have a specific permission?"""
         return self.is_admin
-    
+
     def has_module_perms(self, app_label):
         """Does the worker have permissions to view the app?"""
         return self.is_staff
+
+    def has_perms(self, perm_list, obj=None):
+        """Return True if the user has each of the specified permissions."""
+        return all(self.has_perm(perm, obj=obj) for perm in perm_list)
     
     # Employee information properties
     @property

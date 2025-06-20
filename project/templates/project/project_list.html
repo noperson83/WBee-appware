@@ -8,9 +8,11 @@
 <div class="card shadow mb-4">
   <div class="card-header py-3 d-flex justify-content-between">
     <h6 class="m-0 font-weight-bold text-primary">Projects</h6>
+    {% if user.is_superuser or user.is_admin %}
     <a href="{% url 'project:project-create' %}" class="btn btn-primary btn-sm">
       <i class="fas fa-plus"></i> Add Project
     </a>
+    {% endif %}
   </div>
   <div class="card-body p-0">
     <table class="table table-striped mb-0">
