@@ -4,9 +4,8 @@ from django.contrib import admin
 from django.urls import include, path
 from django.contrib.staticfiles.urls import static
 from django.conf import settings
-from django.urls import path, re_path
 
-admin.site.site_header = "Distrobution Solutions"
+admin.site.site_header = "Distribution Solutions"
 admin.site.index_title = "Database administration configuration."
 
 urlpatterns = [
