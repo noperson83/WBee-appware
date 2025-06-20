@@ -16,6 +16,7 @@ urlpatterns = [
     
     # Financial views
     path('<uuid:pk>/financial/', views.client_financial_dashboard, name='financial-dashboard'),
+    path('<uuid:pk>/efforts/', views.ClientEffortListView.as_view(), name='efforts'),
     
     # Export/Import
     path('export/csv/', views.export_clients_csv, name='export-csv'),
