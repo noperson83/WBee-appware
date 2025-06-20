@@ -45,6 +45,7 @@ THIRD_PARTY_APPS = [
     'import_export',  # For data import/export
     'crispy_forms',  # For better forms
     'crispy_bootstrap5',  # Bootstrap 5 support
+    'widget_tweaks',  # Form rendering utilities
 ]
 
 LOCAL_APPS = [

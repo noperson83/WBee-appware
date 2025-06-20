@@ -8,6 +8,7 @@ django-filter
 django-import-export
 django-crispy-forms
 crispy-bootstrap5
+django-widget-tweaks
 dj-database-url
 python-decouple
 Pillow
