@@ -126,7 +126,10 @@ urlpatterns = [
     path('', include(asset_patterns)),
     
     # Category management
-    path('categories/', include(category_patterns)),
+    path(
+        'categories/',
+        include((category_patterns, 'categories'), namespace='categories'),
+    ),
     
     # Maintenance management
     path(
