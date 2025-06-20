@@ -19,6 +19,7 @@ import json
 
 from .models import Client, Address, Contact, Revenue, FinancialPeriod
 from .forms import ClientForm, AddressForm, ContactForm
+from wip.models import WIPItem
 
 class StaffRequiredMixin(UserPassesTestMixin):
     """Mixin to require staff permissions"""
@@ -685,3 +686,24 @@ def export_clients_csv(request):
         ])
     
     return response
+
+
+class ClientEffortListView(LoginRequiredMixin, generic.ListView):
+    """List work-in-progress efforts for a specific client."""
+    model = WIPItem
+    template_name = "client/client_effort_list.html"
+    context_object_name = "effort_list"
+    paginate_by = 25
+
+    def get_queryset(self):
+        self.client = get_object_or_404(Client, pk=self.kwargs["pk"])
+        return (
+            WIPItem.objects.filter(project__location__client=self.client)
+            .select_related("project", "assigned_to")
+            .order_by("-created_at")
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["client"] = self.client
+        return context
