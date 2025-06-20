@@ -19,6 +19,7 @@ from django.contrib.auth.mixins import (
     PermissionRequiredMixin,
 )
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
 import csv
 import io
 
@@ -323,6 +324,80 @@ class LocationNoteUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('location:location-detail', kwargs={'pk': self.object.location.pk})
 
 
+# ============================================================================
+# BULK OPERATIONS
+# ============================================================================
+@login_required
+@require_http_methods(["POST"])
+def bulk_update_locations(request):
+    """Handle bulk actions on multiple locations."""
+    try:
+        ids_raw = request.POST.get('location_ids', '')
+        location_ids = [pk for pk in ids_raw.split(',') if pk]
+        action = request.POST.get('action')
+
+        if not location_ids:
+            messages.error(request, 'No locations selected')
+            return redirect('location:location-list')
+
+        locations = Location.objects.filter(id__in=location_ids)
+
+        if action == 'update_status':
+            new_status = request.POST.get('new_status')
+            if new_status:
+                updated = locations.update(status=new_status)
+                messages.success(request, f'Updated status for {updated} locations')
+        elif action == 'update_category':
+            category_id = request.POST.get('new_business_category')
+            if category_id:
+                category = BusinessCategory.objects.filter(id=category_id).first()
+                updated = locations.update(business_category=category)
+                messages.success(request, f'Updated business category for {updated} locations')
+        elif action == 'add_note':
+            title = request.POST.get('bulk_note_title') or 'Note'
+            content = request.POST.get('bulk_note_content', '')
+            for loc in locations:
+                LocationNote.objects.create(
+                    location=loc,
+                    title=title,
+                    content=content,
+                    created_by=request.user.get_full_name() or request.user.username,
+                )
+            messages.success(request, f'Added note to {locations.count()} locations')
+        elif action == 'recalculate_totals':
+            for loc in locations:
+                loc.calculate_total_contract_value()
+            messages.success(request, f'Recalculated totals for {locations.count()} locations')
+        elif action == 'export':
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="locations.csv"'
+            writer = csv.writer(response)
+            writer.writerow([
+                'Name', 'Client', 'Business Category', 'Location Type', 'Status',
+                'Address', 'City', 'State', 'Latitude', 'Longitude',
+            ])
+            for loc in locations.select_related('client', 'business_category', 'location_type').prefetch_related('addresses'):
+                address = loc.primary_address
+                writer.writerow([
+                    loc.name,
+                    loc.client.company_name if loc.client else '',
+                    loc.business_category.name if loc.business_category else '',
+                    loc.location_type.name if loc.location_type else '',
+                    loc.status,
+                    address.line1 if address else '',
+                    address.city if address else '',
+                    address.state_province if address else '',
+                    loc.latitude or '',
+                    loc.longitude or '',
+                ])
+            return response
+        else:
+            messages.error(request, 'Invalid action')
+
+    except Exception as exc:
+        messages.error(request, f'Error processing bulk action: {exc}')
+
+    return redirect('location:location-list')
 # Utility views
 @login_required
 def calculate_contract_totals(request, pk):
