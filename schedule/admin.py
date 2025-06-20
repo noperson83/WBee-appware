@@ -334,7 +334,7 @@ class EventAdmin(admin.ModelAdmin):
                 'project',
                 'location',
                 ('start_time', 'dist_time'),
-                'distributor'
+                'Supplier'
             )
         }),
         ('Staff Assignment', {
