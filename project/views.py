@@ -408,11 +408,11 @@ class ProjectDetailView(ProjectAccessMixin, DetailView):
     
     def get_queryset(self):
         return super().get_queryset().select_related(
-            'location', 'location__client', 'project_manager', 
+            'location', 'location__client', 'project_manager',
             'estimator', 'supervisor'
         ).prefetch_related(
             'team_leads', 'team_members', 'scope_items',
-            'device_items', 'changes', 'milestones'
+            'material_items', 'changes', 'milestones'
         )
     
     def get_context_data(self, **kwargs):
