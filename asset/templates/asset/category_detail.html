@@ -1,0 +1,23 @@
+{% extends "home/base.html" %}
+{% block title %}<title>{{ category.name }}</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'asset:categories:list' %}">Asset Categories</a></li>
+<li class="breadcrumb-item active">{{ category.name }}</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header py-3 d-flex justify-content-between">
+    <h6 class="m-0 font-weight-bold text-primary">{{ category.name }}</h6>
+    <div>
+      <a href="{% url 'asset:categories:update' category.pk %}" class="btn btn-sm btn-secondary"><i class="fas fa-edit"></i></a>
+      <a href="{% url 'asset:categories:delete' category.pk %}" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+    </div>
+  </div>
+  <div class="card-body">
+    <p>{{ category.description }}</p>
+    <a href="{% url 'asset:categories:assets' category.pk %}" class="btn btn-outline-primary btn-sm">
+      View Assets ({{ category.asset_count }})
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "home/base.html" %}
+{% block title %}<title>{{ category.name }} Assets</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'asset:categories:list' %}">Asset Categories</a></li>
+<li class="breadcrumb-item"><a href="{% url 'asset:categories:detail' category.pk %}">{{ category.name }}</a></li>
+<li class="breadcrumb-item active">Assets</li>
+{% endblock %}
+{% block content %}
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <h6 class="m-0 font-weight-bold text-primary">Assets in {{ category.name }}</h6>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Asset</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for asset in assets %}
+        <tr>
+          <td><a href="{% url 'asset:detail' asset.pk %}">{{ asset.name }}</a></td>
+        </tr>
+        {% empty %}
+        <tr><td class="text-center">No assets found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
