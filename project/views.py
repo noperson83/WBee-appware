@@ -376,7 +376,10 @@ class ProjectListView(LoginRequiredMixin, OptimizedQuerysetMixin, ListView):
         context.update({
             'status_choices': Project._meta.get_field('status').choices if hasattr(Project._meta.get_field('status'), 'choices') else [],
             'priority_choices': Project.PRIORITY_CHOICES,
-            'managers': User.objects.filter(role__in=['admin', 'project_manager']),
+            'managers': User.objects.filter(
+                Q(roles__contains=['admin']) |
+                Q(roles__contains=['project_manager'])
+            ),
             'current_filters': {
                 'search': self.request.GET.get('search', ''),
                 'status': self.request.GET.get('status', ''),
@@ -1811,14 +1814,16 @@ class ProjectTeamView(ProjectAccessMixin, DetailView):
         
         # Available team members (not already on project)
         available_members = User.objects.filter(
-            role__in=['worker', 'supervisor']
+            Q(roles__contains=['worker']) |
+            Q(roles__contains=['supervisor'])
         ).exclude(
             id__in=project.team_members.values_list('id', flat=True)
         )
         
         # Available team leads
         available_leads = User.objects.filter(
-            role__in=['supervisor', 'project_manager']
+            Q(roles__contains=['supervisor']) |
+            Q(roles__contains=['project_manager'])
         ).exclude(
             id__in=project.team_leads.values_list('id', flat=True)
         )
@@ -2237,7 +2242,9 @@ class TeamPerformanceReportView(LoginRequiredMixin, TemplateView):
         
         # Team member statistics
         team_stats = User.objects.filter(
-            role__in=['worker', 'supervisor', 'project_manager']
+            Q(roles__contains=['worker']) |
+            Q(roles__contains=['supervisor']) |
+            Q(roles__contains=['project_manager'])
         ).annotate(
             active_projects=Count('assigned_projects', filter=Q(
                 assigned_projects__status__in=['active', 'installing']
