@@ -132,7 +132,10 @@ urlpatterns = [
     path('maintenance/', include(maintenance_patterns)),
     
     # Assignment management  
-    path('assignments/', include(assignment_patterns)),
+    path(
+        'assignments/',
+        include((assignment_patterns, 'assignments'), namespace='assignments'),
+    ),
     
     # API endpoints
     path('api/', include(api_patterns)),
