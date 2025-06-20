@@ -50,7 +50,10 @@ def asset_pre_save(sender, instance, **kwargs):
                 # )
                 
         except sender.DoesNotExist:
-            pass
+            logger.warning(
+                "Original asset not found during pre_save for asset %s",
+                instance.pk,
+            )
 
 
 @receiver(post_save, sender='asset.Asset')

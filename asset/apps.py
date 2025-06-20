@@ -1,6 +1,9 @@
 # asset/apps.py
 from django.apps import AppConfig
 from django.db.models.signals import post_migrate
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AssetConfig(AppConfig):
@@ -47,7 +50,7 @@ class AssetConfig(AppConfig):
         Only runs after migrations are applied.
         """
         if kwargs.get('verbosity', 1) >= 2:
-            print("Setting up default asset data...")
+            logger.info("Setting up default asset data...")
         
         try:
             # Import here to avoid AppRegistryNotReady errors
@@ -83,10 +86,9 @@ class AssetConfig(AppConfig):
                   #  }
                 #)
                 
-        except Exception as e:
+        except Exception:
             # Don't fail if models don't exist yet
-            if kwargs.get('verbosity', 1) >= 1:
-                print(f"Could not create default asset data: {e}")
+            logger.exception("Could not create default asset data")
     
     @property
     def asset_depreciation_methods(self):
