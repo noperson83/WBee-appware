@@ -301,7 +301,7 @@ class ProjectListView(LoginRequiredMixin, OptimizedQuerysetMixin, ListView):
         Prefetch('milestones', queryset=ProjectMilestone.objects.filter(is_critical=True))
     ]
     annotations = {
-        'task_count': Count('tasks'),
+        'task_count': Count('task_lists__tasks'),
         'team_size': Count('team_members', distinct=True),
         'milestone_count': Count('milestones'),
     }
@@ -908,8 +908,8 @@ class ProjectProgressView(ProjectAccessMixin, DetailView):
         
         # Progress breakdown by scope items
         scope_progress = project.scope_items.annotate(
-            task_count=Count('tasks'),
-            completed_tasks=Count('tasks', filter=Q(tasks__completed=True))
+            task_count=Count('task_lists__tasks'),
+            completed_tasks=Count('task_lists__tasks', filter=Q(task_lists__tasks__completed=True))
         ).values(
             'area', 'system_type', 'percent_complete', 
             'task_count', 'completed_tasks'
@@ -2170,8 +2170,8 @@ class ProgressReportView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         
         projects = Project.objects.select_related('project_manager').annotate(
-            task_count=Count('tasks'),
-            completed_tasks=Count('tasks', filter=Q(tasks__completed=True)),
+            task_count=Count('task_lists__tasks'),
+            completed_tasks=Count('task_lists__tasks', filter=Q(task_lists__tasks__completed=True)),
             milestone_count=Count('milestones'),
             completed_milestones=Count('milestones', filter=Q(milestones__is_complete=True))
         )

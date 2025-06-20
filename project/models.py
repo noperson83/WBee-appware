@@ -4,6 +4,7 @@ from django.db import models
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.contenttypes.fields import GenericRelation
+from django.apps import apps
 from decimal import Decimal
 import uuid
 from datetime import date, timedelta
@@ -360,6 +361,12 @@ class Project(UUIDModel, TimeStampedModel):
         return None
     
     # Task and material relationships
+    @property
+    def tasks(self):
+        """Return all tasks associated with this project."""
+        Task = apps.get_model('todo', 'Task')
+        return Task.objects.filter(task_list__project=self)
+
     @property
     def total_tasks(self):
         """Get total number of tasks"""
