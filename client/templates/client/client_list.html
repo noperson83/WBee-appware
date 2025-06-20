@@ -7,7 +7,7 @@
 
 {% block breadcrumb %}
 <li class="breadcrumb-item">
-  <a href="{% url 'client' %}">Client Management</a>
+  <a href="{% url 'client:dashboard' %}">Client Management</a>
 </li>
 <li class="breadcrumb-item active">Client Directory</li>
 {% endblock %}
@@ -155,7 +155,7 @@
             </button>
           </div>
           {% if request.user.staff %}
-          <a href="{% url 'create-client' %}" class="btn btn-primary">
+          <a href="{% url 'client:create' %}" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i>Add Client
           </a>
           {% endif %}
@@ -164,7 +164,7 @@
               <i class="fas fa-download me-1"></i>Export
             </button>
             <div class="dropdown-menu">
-              <a class="dropdown-item" href="#" onclick="exportToCSV()">
+              <a class="dropdown-item" href="{% url 'client:export-csv' %}">
                 <i class="fas fa-file-csv me-2"></i>Export as CSV
               </a>
               <a class="dropdown-item" href="#" onclick="exportToPDF()">
@@ -349,7 +349,7 @@
                     <i class="fas fa-tasks me-2"></i>Efforts
                   </a>
                   {% if request.user.staff %}
-                  <a class="dropdown-item" href="{% url 'update-client' client.id %}">
+                  <a class="dropdown-item" href="{% url 'client:update' client.id %}">
                     <i class="fas fa-edit me-2"></i>Edit Client
                   </a>
                   <div class="dropdown-divider"></div>
@@ -370,7 +370,7 @@
           <h4 class="text-muted mt-3">No clients found</h4>
           <p class="text-muted">Start by adding your first client to the system.</p>
           {% if request.user.staff %}
-          <a href="{% url 'create-client' %}" class="btn btn-primary">
+          <a href="{% url 'client:create' %}" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i>Add Your First Client
           </a>
           {% endif %}
@@ -478,7 +478,7 @@
                         <i class="fas fa-tasks me-2"></i>Efforts
                       </a>
                       {% if request.user.staff %}
-                      <a class="dropdown-item" href="{% url 'update-client' client.id %}">
+                      <a class="dropdown-item" href="{% url 'client:update' client.id %}">
                         <i class="fas fa-edit me-2"></i>Edit
                       </a>
                       {% endif %}
@@ -574,11 +574,6 @@ $(document).ready(function() {
 });
 
 // Export functions
-function exportToCSV() {
-  // Implementation would depend on your backend
-  alert('CSV export functionality would be implemented here');
-}
-
 function exportToPDF() {
   // Implementation would depend on your backend
   alert('PDF export functionality would be implemented here');
