@@ -8,6 +8,12 @@ from django.conf import settings
 admin.site.site_header = "Distribution Solutions"
 admin.site.index_title = "Database administration configuration."
 
+# Restrict Django admin to superusers only
+def _superuser_only(request):
+    return request.user.is_active and request.user.is_superuser
+
+admin.site.has_permission = _superuser_only
+
 urlpatterns = [
     path("", include("home.urls")),
     path("grappelli/", include("grappelli.urls")),
