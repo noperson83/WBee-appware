@@ -11,7 +11,14 @@
 
 {% block styler %}
 <link href="{% static 'home/css/asset-management.css' %}" rel="stylesheet" type="text/css">
-{% endblock %} 50%;
+<style>
+    .table-actions {
+        min-width: 200px;
+    }
+    .condition-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
         display: inline-block;
         margin-right: 5px;
     }
