@@ -132,12 +132,22 @@ def load_user_tools(user):
     tools = []
     
     try:
-        from asset.models import Asset
-        
+        from asset.models import Asset, AssetAssignment
+
         user_assets = Asset.objects.filter(
-            assigned_worker=user, 
+            assigned_worker=user,
             is_active=True
         ).order_by('category', 'name')
+
+        if not user_assets.exists():
+            assignment_ids = AssetAssignment.objects.filter(
+                assigned_to_worker=user,
+                is_active=True
+            ).values_list('asset_id', flat=True)
+            user_assets = Asset.objects.filter(
+                id__in=assignment_ids,
+                is_active=True
+            ).order_by('category', 'name')
         
         # Group by category like in the original
         current_category = None
@@ -317,8 +327,18 @@ def load_backward_compatibility_data(user):
     }
     
     try:
-        from asset.models import Asset
+        from asset.models import Asset, AssetAssignment
         user_assets = Asset.objects.filter(assigned_worker=user, is_active=True)
+
+        if not user_assets.exists():
+            assignment_ids = AssetAssignment.objects.filter(
+                assigned_to_worker=user,
+                is_active=True
+            ).values_list('asset_id', flat=True)
+            user_assets = Asset.objects.filter(
+                id__in=assignment_ids,
+                is_active=True
+            )
         
         # Original template variables
         data['ladder_list'] = user_assets.filter(asset_type__icontains='ladder')[:10]
