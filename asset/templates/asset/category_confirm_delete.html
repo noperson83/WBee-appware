@@ -1,0 +1,20 @@
+{% extends "home/base.html" %}
+{% block title %}<title>Delete Category</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'asset:categories:list' %}">Asset Categories</a></li>
+<li class="breadcrumb-item active">Delete</li>
+{% endblock %}
+{% block content %}
+<form method="post">
+  {% csrf_token %}
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <p>Are you sure you want to delete {{ object.name }}?</p>
+      <div class="text-end">
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a href="{% url 'asset:categories:detail' object.pk %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
