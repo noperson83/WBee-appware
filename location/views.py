@@ -97,10 +97,35 @@ class LocationListView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['business_categories'] = BusinessCategory.objects.filter(is_active=True)
-        context['search_query'] = self.request.GET.get('search', '')
-        context['selected_category'] = self.request.GET.get('business_category', '')
-        context['selected_status'] = self.request.GET.get('status', '')
+        business_categories = BusinessCategory.objects.filter(is_active=True)
+        context['business_categories'] = business_categories
+
+        # Currently applied filters
+        current_filters = {
+            'search': self.request.GET.get('search', ''),
+            'business_category': self.request.GET.get('business_category', ''),
+            'status': self.request.GET.get('status', ''),
+            'client': self.request.GET.get('client', ''),
+            'has_coordinates': self.request.GET.get('has_coordinates', ''),
+            'date_from': self.request.GET.get('date_from', ''),
+            'date_to': self.request.GET.get('date_to', ''),
+            'sort': self.request.GET.get('sort', '-created_at'),
+        }
+        context['current_filters'] = current_filters
+
+        # Convenience variables used by templates
+        context['search_query'] = current_filters['search']
+        context['selected_category'] = current_filters['business_category']
+        context['selected_status'] = current_filters['status']
+
+        if current_filters['business_category']:
+            selected_cat = business_categories.filter(
+                id=current_filters['business_category']
+            ).first()
+            context['selected_category_name'] = selected_cat.name if selected_cat else ''
+        else:
+            context['selected_category_name'] = ''
+
         return context
 
 

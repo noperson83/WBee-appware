@@ -199,7 +199,7 @@
 
       {% if current_filters.business_category %}
       <span class="badge bg-info">
-        Category: {{ business_categories|dictsort:"id"|first.name }}
+        Category: {{ selected_category_name }}
         <a href="?{% for key, value in current_filters.items %}{% if key != 'business_category' and value %}{{ key }}={{ value }}&{% endif %}{% endfor %}" class="text-white ms-1">×</a>
       </span>
       {% endif %}
