@@ -1,5 +1,6 @@
 {% extends "home/base.html" %}
 {% load static %}
+{% load math_filters %}
 
 {% block title %}
 <title>Asset Management Dashboard - {{ request.user.company.company_name|default:"WBEE" }}</title>
