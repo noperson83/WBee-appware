@@ -1,17 +1,35 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
+from django.views.generic import (
+    ListView,
+    DetailView,
+    CreateView,
+    UpdateView,
+    DeleteView,
+    View,
+    FormView,
+)
 from django.urls import reverse, reverse_lazy
 from django.contrib import messages
 from django.db.models import Q, Sum, Count
 from django.http import JsonResponse, HttpResponse
 from django.core.paginator import Paginator
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import (
+    LoginRequiredMixin,
+    UserPassesTestMixin,
+    PermissionRequiredMixin,
+)
 from django.contrib.auth.decorators import login_required
 import csv
+import io
 
 from client.models import Client
 from .models import Location, BusinessCategory, LocationType, LocationDocument, LocationNote
-from .forms import LocationForm, LocationDocumentForm, LocationNoteForm
+from .forms import (
+    LocationForm,
+    LocationDocumentForm,
+    LocationNoteForm,
+    LocationImportForm,
+)
 
 
 def location_dashboard(request):
@@ -384,3 +402,73 @@ class LocationExportView(LoginRequiredMixin, View):
 def legacy_jobsite_redirect(request, pk):
     """Redirect old jobsite URLs to new location URLs"""
     return redirect('location:location-detail', pk=pk, permanent=True)
+
+
+class LocationImportView(LoginRequiredMixin, PermissionRequiredMixin, FormView):
+    """Import locations from a CSV file."""
+
+    template_name = 'location/location_import.html'
+    form_class = LocationImportForm
+    permission_required = 'location.add_location'
+
+    def form_valid(self, form):
+        csv_file = form.cleaned_data['csv_file']
+
+        try:
+            file_data = csv_file.read().decode('utf-8')
+            csv_data = csv.DictReader(io.StringIO(file_data))
+
+            created_count = 0
+            for row in csv_data:
+                client = Client.objects.filter(
+                    company_name=row.get('client', '').strip()
+                ).first()
+                business_category = BusinessCategory.objects.filter(
+                    name=row.get('business_category', '').strip()
+                ).first()
+                location_type = LocationType.objects.filter(
+                    name=row.get('location_type', '').strip()
+                ).first()
+
+                Location.objects.create(
+                    name=row.get('name', ''),
+                    client=client,
+                    business_category=business_category,
+                    location_type=location_type,
+                    description=row.get('description', ''),
+                    status=row.get('status', 'active'),
+                    latitude=row.get('latitude') or None,
+                    longitude=row.get('longitude') or None,
+                )
+                created_count += 1
+
+            messages.success(
+                self.request,
+                f'Successfully imported {created_count} locations.'
+            )
+        except Exception as exc:
+            messages.error(self.request, f'Error processing file: {exc}')
+
+        return redirect('location:location-list')
+
+
+class LocationImportTemplateView(LoginRequiredMixin, View):
+    """Provide a CSV template for location import."""
+
+    def get(self, request):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = (
+            'attachment; filename="location_import_template.csv"'
+        )
+
+        writer = csv.writer(response)
+        writer.writerow([
+            'name', 'client', 'business_category', 'location_type',
+            'status', 'description', 'latitude', 'longitude'
+        ])
+        writer.writerow([
+            'Example Site', 'ACME Corp', 'Retail', 'Warehouse',
+            'active', 'Example description', '40.7128', '-74.0060'
+        ])
+
+        return response

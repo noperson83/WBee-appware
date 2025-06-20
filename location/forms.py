@@ -475,3 +475,29 @@ class QuickLocationForm(forms.Form):
             'placeholder': 'Brief description'
         })
     )
+
+
+class LocationImportForm(forms.Form):
+    """Simple CSV import form for locations."""
+
+    csv_file = forms.FileField(
+        label="CSV File",
+        help_text="Upload CSV file with location data",
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': '.csv'
+        })
+    )
+
+    def clean_csv_file(self):
+        file = self.cleaned_data['csv_file']
+
+        if file:
+            name = file.name.lower()
+            if not name.endswith('.csv'):
+                raise ValidationError('File must be CSV format.')
+
+            if file.size > 10 * 1024 * 1024:
+                raise ValidationError('File size cannot exceed 10MB.')
+
+        return file
