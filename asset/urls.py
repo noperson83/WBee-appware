@@ -129,7 +129,10 @@ urlpatterns = [
     path('categories/', include(category_patterns)),
     
     # Maintenance management
-    path('maintenance/', include(maintenance_patterns)),
+    path(
+        'maintenance/',
+        include((maintenance_patterns, 'maintenance'), namespace='maintenance'),
+    ),
     
     # Assignment management  
     path(
