@@ -294,7 +294,13 @@ class ProjectListView(LoginRequiredMixin, OptimizedQuerysetMixin, ListView):
     context_object_name = 'projects'
     paginate_by = 25
     
-    select_related_fields = ['location', 'project_manager', 'business_category']
+    select_related_fields = [
+        'location',
+        'project_manager',
+        # Follow the relation through ``location`` to load the project's
+        # business category in a single query.
+        'location__business_category',
+    ]
     prefetch_related_fields = [
         'team_members',
         Prefetch('scope_items', queryset=ScopeOfWork.objects.select_related('project')),
