@@ -2,12 +2,12 @@
 {% block page_heading %}{% endblock %}
 {% block title %}<title>Add Todo List</title>{% endblock %}
 
-{% block breadcrumb %} / <a href="{% url 'location:location-list' %}">Job Site</a> / <a href="{% url 'project-list' %}">Project</a> / To Do List creation
+{% block breadcrumb %} / <a href="{% url 'location:location-list' %}">Job Site</a> / <a href="{% url 'project:project-list' %}">Project</a> / To Do List creation
 {% endblock %}
 
 {% block content %}
   
-  <h2>Add a list to <a href="{% url 'project-detail' proj %}">Project: {{ proj }} </a></h2>
+  <h2>Add a list to <a href="{% url 'project:project-detail' proj %}">Project: {{ proj }} </a></h2>
 
   <form action="" method="post">
     {% csrf_token %}
