@@ -430,7 +430,11 @@
                         {% for item in ladder_list %}
                         <div class="tool-item">
                             <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
-                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                            <small>
+                                {% if item.asset_number %}#{{ item.asset_number }}{% endif %}
+                                {% if item.location %} - {{ item.location }}{% endif %}
+                                {% if item.manufacturer %} - {{ item.manufacturer }}{% endif %}
+                            </small>
                         </div>
                         {% endfor %}
                     </div>
@@ -445,7 +449,11 @@
                         {% for item in vehicle_list %}
                         <div class="tool-item">
                             <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
-                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                            <small>
+                                {% if item.asset_number %}#{{ item.asset_number }}{% endif %}
+                                {% if item.location %} - {{ item.location }}{% endif %}
+                                {% if item.manufacturer %} - {{ item.manufacturer }}{% endif %}
+                            </small>
                         </div>
                         {% endfor %}
                     </div>
@@ -460,7 +468,11 @@
                         {% for item in tool_list %}
                         <div class="tool-item">
                             <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
-                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                            <small>
+                                {% if item.asset_number %}#{{ item.asset_number }}{% endif %}
+                                {% if item.location %} - {{ item.location }}{% endif %}
+                                {% if item.manufacturer %} - {{ item.manufacturer }}{% endif %}
+                            </small>
                         </div>
                         {% endfor %}
                     </div>
@@ -475,7 +487,11 @@
                         {% for item in power_tool_list %}
                         <div class="tool-item">
                             <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
-                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                            <small>
+                                {% if item.asset_number %}#{{ item.asset_number }}{% endif %}
+                                {% if item.location %} - {{ item.location }}{% endif %}
+                                {% if item.manufacturer %} - {{ item.manufacturer }}{% endif %}
+                            </small>
                         </div>
                         {% endfor %}
                     </div>
@@ -490,7 +506,11 @@
                         {% for item in fiber_list %}
                         <div class="tool-item">
                             <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
-                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                            <small>
+                                {% if item.asset_number %}#{{ item.asset_number }}{% endif %}
+                                {% if item.location %} - {{ item.location }}{% endif %}
+                                {% if item.manufacturer %} - {{ item.manufacturer }}{% endif %}
+                            </small>
                         </div>
                         {% endfor %}
                     </div>
@@ -505,7 +525,11 @@
                         {% for item in tester_list %}
                         <div class="tool-item">
                             <strong>{{ item.name|default:item.asset_number|default:"Asset" }}</strong>
-                            <small>{{ item.manufacturer|default:"Unknown" }}</small>
+                            <small>
+                                {% if item.asset_number %}#{{ item.asset_number }}{% endif %}
+                                {% if item.location %} - {{ item.location }}{% endif %}
+                                {% if item.manufacturer %} - {{ item.manufacturer }}{% endif %}
+                            </small>
                         </div>
                         {% endfor %}
                     </div>
