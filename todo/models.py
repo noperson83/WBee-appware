@@ -203,16 +203,22 @@ class TaskList(TimeStampedModel):
     @property
     def task_count(self):
         """Total number of tasks"""
+        if not self.pk:
+            return 0
         return self.tasks.count()
 
     @property
     def completed_task_count(self):
         """Number of completed tasks"""
+        if not self.pk:
+            return 0
         return self.tasks.filter(completed=True).count()
 
     @property
     def pending_task_count(self):
         """Number of pending tasks"""
+        if not self.pk:
+            return 0
         return self.tasks.filter(completed=False).count()
 
     @property
@@ -230,6 +236,8 @@ class TaskList(TimeStampedModel):
     @property
     def total_estimated_hours(self):
         """Total estimated hours for all tasks"""
+        if not self.pk:
+            return Decimal('0.00')
         return self.tasks.aggregate(
             total=models.Sum('total_hours')
         )['total'] or Decimal('0.00')
