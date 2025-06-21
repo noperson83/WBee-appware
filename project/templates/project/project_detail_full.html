@@ -62,7 +62,7 @@
           <div class"row">
             <b>Scope of work:</b>
             {% if request.user.is_staff %}
-              <a href="{% url 'create-scope-of-work' proj=project.job_number %}"><div class="add_jobsite"> + add </div></a>
+              <a href="{% url 'project:scope-create' job_number=project.job_number %}"><div class="add_jobsite"> + add </div></a>
             {% endif %}
           </div>
       </div>
