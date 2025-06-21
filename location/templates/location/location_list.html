@@ -11,13 +11,8 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<nav aria-label="breadcrumb" class="mb-4">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'home:index' %}">Home</a></li>
-    <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
-    <li class="breadcrumb-item active" aria-current="page">All Locations</li>
-  </ol>
-</nav>
+<li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
+<li class="breadcrumb-item active" aria-current="page">All Locations</li>
 {% endblock %}
 
 {% block content %}
