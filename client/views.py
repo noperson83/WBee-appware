@@ -238,28 +238,19 @@ class ClientDetailView(LoginRequiredMixin, generic.DetailView):
     def calculate_avg_project_value(self, client):
         """Calculate average project value"""
         try:
-            # Try location model first
-            from location.models import Location
-            projects = Location.objects.filter(
-                client=client, 
+            # Compute from project contracts associated with this client
+            from project.models import Project
+            projects = Project.objects.filter(
+                location__client=client,
                 contract_value__isnull=False
             )
             if projects.exists():
-                total_value = projects.aggregate(Sum('contract_value'))['contract_value__sum']
+                total_value = projects.aggregate(Sum('contract_value'))[
+                    'contract_value__sum'
+                ]
                 return total_value / projects.count() if total_value else 0
         except ImportError:
-            try:
-                # Fallback to jobsite model
-                from jobsite.models import Jobsite
-                projects = Jobsite.objects.filter(
-                    client=client, 
-                    contract_value__isnull=False
-                )
-                if projects.exists():
-                    total_value = projects.aggregate(Sum('contract_value'))['contract_value__sum']
-                    return total_value / projects.count() if total_value else 0
-            except ImportError:
-                pass
+            pass
         return 0
 
 class ClientCreateView(LoginRequiredMixin, StaffRequiredMixin, CreateView):
