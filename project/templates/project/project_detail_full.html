@@ -14,7 +14,7 @@
           </div>
           <div class="col-lg-12">
             {% if request.user.is_staff %}
-              <a href="{% url 'project-pdf' project.job_number %}"><div class="add_jobsite"> Quote </div></a>&nbsp;<a href="{% url 'project:project-edit' project.job_number %}"><div class="add_jobsite"> edit </div></a>
+              <a href="{% url 'project:project-pdf' project.job_number %}"><div class="add_jobsite"> Quote </div></a>&nbsp;<a href="{% url 'project:project-edit' project.job_number %}"><div class="add_jobsite"> edit </div></a>
             {% endif %}
           </div>
         </div>
