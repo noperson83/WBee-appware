@@ -6,7 +6,7 @@ This repository contains a collection of Django applications for managing many a
 
 - Python 3.11+
 - Django 5.2
-- Additional packages listed in `wbee/settings/base.py` (e.g. `django-extensions`, `djangorestframework`, `django-filter`, `django-import-export`, `django-crispy-forms`, `crispy-bootstrap5`, `django-cors-headers`, `dj-database-url`, `python-decouple`, `Pillow`, `easy-thumbnails`, `django-mptt`, `bleach`, `pytest-django`, `django-grappelli`, `django-filer`, `whitenoise`, `redis`, `qrcode`, `pytz`, `psycopg2-binary`, `sentry-sdk`, `django-storages[boto3]`, `django-debug-toolbar`).
+- Additional packages listed in `wbee/settings/base.py` (e.g. `django-extensions`, `djangorestframework`, `django-filter`, `django-import-export`, `django-crispy-forms`, `crispy-bootstrap5`, `django-cors-headers`, `dj-database-url`, `python-decouple`, `Pillow`, `easy-thumbnails`, `django-mptt`, `bleach`, `pytest-django`, `django-grappelli`, `django-filer`, `whitenoise`, `redis`, `qrcode`, `pytz`, `psycopg2-binary`, `sentry-sdk`, `django-storages[boto3]`, `django-debug-toolbar`, `weasyprint`).
 - A database supported by Django (SQLite is fine for development).
 
 ## Environment Setup
