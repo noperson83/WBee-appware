@@ -1,0 +1,13 @@
+/* ============================================
+   Styles extracted from home/templates/home/base.html
+   ============================================ */
+.breadcrumb-modern {
+    background: none;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.breadcrumb-modern .breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    color: #6c757d;
+}
