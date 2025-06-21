@@ -1,0 +1,7 @@
+.dashboard-links .card {
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+.dashboard-links .card:hover {
+    transform: scale(1.03);
+}

@@ -401,7 +401,7 @@ class ProjectListView(LoginRequiredMixin, OptimizedQuerysetMixin, ListView):
 class ProjectDetailView(ProjectAccessMixin, DetailView):
     """Comprehensive project detail view"""
     model = Project
-    template_name = 'project/project_detail.html'
+    template_name = 'project/project_detail_full.html'
     context_object_name = 'project'
     slug_field = 'job_number'
     slug_url_kwarg = 'job_number'
