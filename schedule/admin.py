@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.db.models import Sum, Count, Avg
+from django.db.models import Sum, Count, Avg, F, ExpressionWrapper, DurationField
 from django.utils import timezone
 from decimal import Decimal
 from django import forms
@@ -227,15 +227,19 @@ class CalendarAdmin(admin.ModelAdmin):
         """Display usage metrics"""
         # Calculate various metrics
         relations_count = obj.calendarrelation_set.count()
-        avg_event_duration = obj.events.aggregate(
-            avg_duration=Avg('end') - Avg('start')
-        )
+        avg_event_duration = obj.events.annotate(
+            duration=ExpressionWrapper(
+                F('end') - F('start'), output_field=DurationField()
+            )
+        ).aggregate(avg_duration=Avg('duration'))['avg_duration']
         
         html = "<table style='font-size: 12px;'>"
         html += f"<tr><td><strong>Relations:</strong></td><td>{relations_count}</td></tr>"
         html += f"<tr><td><strong>Requires Approval:</strong></td><td>{'Yes' if obj.requires_approval else 'No'}</td></tr>"
         html += f"<tr><td><strong>Auto Accept:</strong></td><td>{'Yes' if obj.auto_accept_events else 'No'}</td></tr>"
         html += f"<tr><td><strong>Default Duration:</strong></td><td>{obj.default_event_duration}</td></tr>"
+        if avg_event_duration:
+            html += f"<tr><td><strong>Avg Duration:</strong></td><td>{avg_event_duration}</td></tr>"
         html += "</table>"
         return mark_safe(html)
     usage_metrics.short_description = 'Usage Metrics'
