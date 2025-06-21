@@ -462,10 +462,18 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
     
     # Permission methods (required by Django)
     def has_perm(self, perm, obj=None):
-        """Does the worker have a specific permission?"""
-        # Superusers should inherently have all permissions. We also retain
-        # the legacy behaviour that grants permissions to admins.
-        return self.is_superuser or self.is_admin
+        """Return True if the user has the specified permission."""
+        # Superusers inherently have all permissions.  Legacy behaviour
+        # grants all permissions to admins as well.
+        if self.is_superuser or self.is_admin:
+            return True
+
+        # Allow project managers to create new projects without
+        # granting them full admin rights.
+        if perm == "project.add_project" and self.role == "project_manager":
+            return True
+
+        return False
 
     def has_module_perms(self, app_label):
         """Does the worker have permissions to view the app?"""
