@@ -23,7 +23,7 @@
     </div>
     <div class="form-group">
       <label for="id_scope">Project Scope</label>
-        {% if request.user.staff %}&nbsp; <a href="{% url 'create-scope-of-work' proj=proj %}"> <i class="fa fa-plus-square"></i> create</a>{% endif %}
+        {% if request.user.staff %}&nbsp; <a href="{% url 'project:scope-create' job_number=proj %}"> <i class="fa fa-plus-square"></i> create</a>{% endif %}
       {{form.scope}}
     </div>
     <div class="form-group">
