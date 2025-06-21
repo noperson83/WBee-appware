@@ -1,54 +1,99 @@
 {% extends "home/base.html" %}
-{% load static %}
-
 {% block title %}<title>Project Dashboard</title>{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'project/css/dashboard.css' %}">
-{% endblock %}
-
 {% block breadcrumb %}
 <li class="breadcrumb-item active">Projects</li>
 {% endblock %}
-
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="h3 mb-0">Project Dashboard</h1>
-  <a href="{% url 'project:project-create' %}" class="btn btn-primary">
-    <i class="fas fa-plus"></i> New Project
-  </a>
+  <a href="{% url 'project:project-create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Project</a>
 </div>
-
-<div class="row dashboard-links">
-  <div class="col-md-4 mb-3">
-    <a href="{% url 'project:project-list' %}" class="text-decoration-none text-reset">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <i class="fas fa-list fa-2x mb-2"></i>
-          <h5 class="card-title mb-0">All Projects</h5>
-        </div>
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Projects</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ project_stats.total_projects }}</div>
       </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ project_stats.active_projects }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Completed</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ project_stats.completed_projects }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card border-left-danger shadow h-100 py-2">
+      <div class="card-body">
+        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Overdue</div>
+        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ project_stats.overdue_projects }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow">
+      <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">Recent Projects</h6>
+        <a href="{% url 'project:project-list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="card-body">
+        {% if recent_projects %}
+        <ul class="list-group list-group-flush">
+          {% for p in recent_projects %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="{% url 'project:project-detail' p.job_number %}">{{ p.job_number }} - {{ p.name }}</a>
+            <span class="badge bg-secondary">{{ p.status }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">No recent projects.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Upcoming Milestones</h6>
+      </div>
+      <div class="card-body">
+        {% if upcoming_milestones %}
+        <ul class="list-group list-group-flush">
+          {% for m in upcoming_milestones %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>{{ m.project.job_number }} - {{ m.name }}</span>
+            <span>{{ m.target_date|date:"M d" }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">No upcoming milestones.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  {% for action in quick_actions %}
+  <div class="col-md-3 mb-3 text-center">
+    <a href="{{ action.url }}" class="btn btn-outline-secondary w-100">
+      <i class="fa {{ action.icon }}"></i><br>{{ action.title }}
     </a>
   </div>
-  <div class="col-md-4 mb-3">
-    <a href="{% url 'project:active-projects' %}" class="text-decoration-none text-reset">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <i class="fas fa-play fa-2x mb-2"></i>
-          <h5 class="card-title mb-0">Active Projects</h5>
-        </div>
-      </div>
-    </a>
-  </div>
-  <div class="col-md-4 mb-3">
-    <a href="{% url 'project:reports' %}" class="text-decoration-none text-reset">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <i class="fas fa-chart-line fa-2x mb-2"></i>
-          <h5 class="card-title mb-0">Reports</h5>
-        </div>
-      </div>
-    </a>
-  </div>
+  {% endfor %}
 </div>
 {% endblock %}
