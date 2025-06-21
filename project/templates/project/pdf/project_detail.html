@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        h1 { font-size: 24px; margin-bottom: 0.5em; }
+        dl { width: 100%; overflow: hidden; padding: 0; margin: 0; }
+        dt { float: left; width: 25%; font-weight: bold; }
+        dd { float: left; width: 75%; margin: 0 0 0.5em 0; }
+    </style>
+    <title>Project {{ project.job_number }}</title>
+</head>
+<body>
+    <h1>{{ project.name }}</h1>
+    <dl>
+        <dt>Job Number</dt>
+        <dd>{{ project.job_number }}</dd>
+        <dt>Status</dt>
+        <dd>{{ project.get_status_display|default:project.status }}</dd>
+        {% if project.description %}
+        <dt>Description</dt>
+        <dd>{{ project.description|linebreaksbr }}</dd>
+        {% endif %}
+        <dt>Location</dt>
+        <dd>{{ project.location }}</dd>
+        <dt>Due Date</dt>
+        <dd>{{ project.due_date }}</dd>
+        <dt>Generated</dt>
+        <dd>{{ today }}</dd>
+    </dl>
+</body>
+</html>
