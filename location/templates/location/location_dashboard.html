@@ -2,7 +2,9 @@
 {% load static %}
 
 {% block title %}<title>Location Dashboard</title>{% endblock %}
-{% block breadcrumb %}/ <a href="{% url 'location:dashboard' %}">Location Dashboard</a>{% endblock %}
+{% block breadcrumb %}
+    <li class="breadcrumb-item active" aria-current="page">Location Dashboard</li>
+{% endblock %}
 
 {% block styler %}
 <link href="{% static 'home/vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet" type="text/css">
