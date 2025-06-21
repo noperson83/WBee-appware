@@ -521,3 +521,9 @@ def successView(request):
     return render(request, 'home/success.html', {
         'message': 'Success! Thank you for your message.'
     })
+
+
+def schedule_demo(request):
+    """Simple demo view showing scheduled events snippet."""
+    return render(request, "home/schedule_example.html")
+
