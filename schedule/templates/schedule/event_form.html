@@ -17,7 +17,7 @@
           <div class="form-group">
             <div class="form-row">
               <label for="id_project">&nbsp; <b>Project:</b></label>{{ form.project.errors }}
-               {% if request.user.staff %}<div style="float:right;">&nbsp; <a href="{% url 'create-project-from' jobsi=jobsi %}"> <i class="fa fa-plus-square"></i> create</a></div>{% endif %}
+               {% comment %} Link to create project removed because corresponding URL pattern no longer exists {% endcomment %}
               <select class="form-control" name="project" required="" id="id_project">
                 {% for project in form.project %}
                   {{ project }}
