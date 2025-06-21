@@ -159,6 +159,7 @@ body.fixed-nav {
    ============================================ */
 
 .card {
+  --bs-card-color: aquamarine;
   border: none;
   border-radius: var(--border-radius);
   box-shadow: var(--card-shadow);
@@ -180,6 +181,7 @@ body.fixed-nav {
 
 .card-body {
   padding: 1.5rem;
+  color: var(--bs-card-color);
 }
 
 .card-footer {
@@ -759,6 +761,7 @@ body.sidenav-toggled .content-wrapper {
   }
   
   .card {
+    --bs-card-color: aquamarine;
     background: #1e293b;
     border-color: #334155;
   }
@@ -801,6 +804,7 @@ body.sidenav-toggled .content-wrapper {
 @media (max-width: 575.98px) {
   .card-body {
     padding: 1rem;
+    color: var(--bs-card-color);
   }
   
   .btn {
