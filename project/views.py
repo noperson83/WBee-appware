@@ -1262,6 +1262,11 @@ class ScopeOfWorkListView(ProjectAccessMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['project'] = self.project
+        context['materials'] = self.object_list
+        context['material_type'] = 'Device'
+        context['create_url'] = reverse('project:device-create', kwargs={'job_number': self.project.job_number})
+        context['edit_url_name'] = 'project:device-edit'
+        context['delete_url_name'] = 'project:device-delete'
         return context
 
 class ScopeOfWorkCreateView(ProjectAccessMixin, CreateView):
@@ -1400,6 +1405,14 @@ class ProjectDeviceDetailView(DetailView):
     template_name = 'project/device_detail.html'
     context_object_name = 'device_item'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['material_type'] = 'Device'
+        context['list_url_name'] = 'project:device-list'
+        context['edit_url_name'] = 'project:device-edit'
+        context['delete_url_name'] = 'project:device-delete'
+        return context
+
 class ProjectDeviceUpdateView(UpdateView):
     """Update project device"""
     model = ProjectMaterial
@@ -1418,9 +1431,15 @@ class ProjectDeviceDeleteView(DeleteView):
     """Delete project device"""
     model = ProjectMaterial
     template_name = 'project/device_confirm_delete.html'
-    
+
     def get_success_url(self):
         return reverse('project:device-list', kwargs={'job_number': self.object.project.job_number})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['material_type'] = 'Device'
+        context['list_url_name'] = 'project:device-list'
+        return context
 
 # Additional material views for hardware, software, licenses, and travel
 
@@ -1437,6 +1456,11 @@ class ProjectHardwareListView(ProjectAccessMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['project'] = self.project
+        context['materials'] = self.object_list
+        context['material_type'] = 'Hardware'
+        context['create_url'] = reverse('project:hardware-create', kwargs={'job_number': self.project.job_number})
+        context['edit_url_name'] = 'project:hardware-edit'
+        context['delete_url_name'] = 'project:hardware-delete'
         return context
 
 class ProjectHardwareCreateView(ProjectAccessMixin, CreateView):
@@ -1454,6 +1478,34 @@ class ProjectHardwareCreateView(ProjectAccessMixin, CreateView):
         kwargs['proj'] = self.project.job_number
         return kwargs
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        context['material_type'] = 'Travel'
+        context['list_url_name'] = 'project:travel-list'
+        return context
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        context['material_type'] = 'License'
+        context['list_url_name'] = 'project:license-list'
+        return context
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        context['material_type'] = 'Software'
+        context['list_url_name'] = 'project:software-list'
+        return context
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        context['material_type'] = 'Hardware'
+        context['list_url_name'] = 'project:hardware-list'
+        return context
+
     def form_valid(self, form):
         form.instance.project = self.project
         form.instance.material_type = 'hardware'
@@ -1468,6 +1520,14 @@ class ProjectHardwareDetailView(DetailView):
     template_name = 'project/device_detail.html'
     context_object_name = 'hardware_item'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['material_type'] = 'Hardware'
+        context['list_url_name'] = 'project:hardware-list'
+        context['edit_url_name'] = 'project:hardware-edit'
+        context['delete_url_name'] = 'project:hardware-delete'
+        return context
+
 class ProjectHardwareUpdateView(UpdateView):
     """Update project hardware"""
     model = ProjectMaterial
@@ -1479,6 +1539,34 @@ class ProjectHardwareUpdateView(UpdateView):
         kwargs['proj'] = self.object.project.job_number
         return kwargs
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.object.project
+        context['material_type'] = 'Travel'
+        context['list_url_name'] = 'project:travel-list'
+        return context
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.object.project
+        context['material_type'] = 'License'
+        context['list_url_name'] = 'project:license-list'
+        return context
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.object.project
+        context['material_type'] = 'Software'
+        context['list_url_name'] = 'project:software-list'
+        return context
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.object.project
+        context['material_type'] = 'Hardware'
+        context['list_url_name'] = 'project:hardware-list'
+        return context
+
     def get_success_url(self):
         return reverse('project:hardware-list', kwargs={'job_number': self.object.project.job_number})
 
@@ -1489,6 +1577,12 @@ class ProjectHardwareDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse('project:hardware-list', kwargs={'job_number': self.object.project.job_number})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['material_type'] = 'Hardware'
+        context['list_url_name'] = 'project:hardware-list'
+        return context
 
 
 class ProjectSoftwareListView(ProjectAccessMixin, ListView):
@@ -1504,6 +1598,11 @@ class ProjectSoftwareListView(ProjectAccessMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['project'] = self.project
+        context['materials'] = self.object_list
+        context['material_type'] = 'Software'
+        context['create_url'] = reverse('project:software-create', kwargs={'job_number': self.project.job_number})
+        context['edit_url_name'] = 'project:software-edit'
+        context['delete_url_name'] = 'project:software-delete'
         return context
 
 class ProjectSoftwareCreateView(ProjectAccessMixin, CreateView):
@@ -1535,6 +1634,14 @@ class ProjectSoftwareDetailView(DetailView):
     template_name = 'project/device_detail.html'
     context_object_name = 'software_item'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['material_type'] = 'Software'
+        context['list_url_name'] = 'project:software-list'
+        context['edit_url_name'] = 'project:software-edit'
+        context['delete_url_name'] = 'project:software-delete'
+        return context
+
 class ProjectSoftwareUpdateView(UpdateView):
     """Update project software"""
     model = ProjectMaterial
@@ -1557,6 +1664,12 @@ class ProjectSoftwareDeleteView(DeleteView):
     def get_success_url(self):
         return reverse('project:software-list', kwargs={'job_number': self.object.project.job_number})
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['material_type'] = 'Software'
+        context['list_url_name'] = 'project:software-list'
+        return context
+
 
 class ProjectLicenseListView(ProjectAccessMixin, ListView):
     """List project licenses"""
@@ -1571,6 +1684,11 @@ class ProjectLicenseListView(ProjectAccessMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['project'] = self.project
+        context['materials'] = self.object_list
+        context['material_type'] = 'License'
+        context['create_url'] = reverse('project:license-create', kwargs={'job_number': self.project.job_number})
+        context['edit_url_name'] = 'project:license-edit'
+        context['delete_url_name'] = 'project:license-delete'
         return context
 
 class ProjectLicenseCreateView(ProjectAccessMixin, CreateView):
@@ -1602,6 +1720,14 @@ class ProjectLicenseDetailView(DetailView):
     template_name = 'project/device_detail.html'
     context_object_name = 'license_item'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['material_type'] = 'License'
+        context['list_url_name'] = 'project:license-list'
+        context['edit_url_name'] = 'project:license-edit'
+        context['delete_url_name'] = 'project:license-delete'
+        return context
+
 class ProjectLicenseUpdateView(UpdateView):
     """Update project license"""
     model = ProjectMaterial
@@ -1624,6 +1750,12 @@ class ProjectLicenseDeleteView(DeleteView):
     def get_success_url(self):
         return reverse('project:license-list', kwargs={'job_number': self.object.project.job_number})
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['material_type'] = 'License'
+        context['list_url_name'] = 'project:license-list'
+        return context
+
 
 class ProjectTravelListView(ProjectAccessMixin, ListView):
     """List project travel items"""
@@ -1638,6 +1770,11 @@ class ProjectTravelListView(ProjectAccessMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['project'] = self.project
+        context['materials'] = self.object_list
+        context['material_type'] = 'Travel'
+        context['create_url'] = reverse('project:travel-create', kwargs={'job_number': self.project.job_number})
+        context['edit_url_name'] = 'project:travel-edit'
+        context['delete_url_name'] = 'project:travel-delete'
         return context
 
 class ProjectTravelCreateView(ProjectAccessMixin, CreateView):
@@ -1669,6 +1806,14 @@ class ProjectTravelDetailView(DetailView):
     template_name = 'project/device_detail.html'
     context_object_name = 'travel_item'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['material_type'] = 'Travel'
+        context['list_url_name'] = 'project:travel-list'
+        context['edit_url_name'] = 'project:travel-edit'
+        context['delete_url_name'] = 'project:travel-delete'
+        return context
+
 class ProjectTravelUpdateView(UpdateView):
     """Update travel item"""
     model = ProjectMaterial
@@ -1690,6 +1835,12 @@ class ProjectTravelDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse('project:travel-list', kwargs={'job_number': self.object.project.job_number})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['material_type'] = 'Travel'
+        context['list_url_name'] = 'project:travel-list'
+        return context
 
 # ============================================
 # Project Changes and Milestones

@@ -1,7 +1,26 @@
 {% extends "home/base.html" %}
-{% block title %}<title>Feature Unavailable</title>{% endblock %}
+{% load humanize %}
+{% block title %}<title>{{ material_type }} Detail</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project:project-detail' object.project.job_number %}">{{ object.project.job_number }}</a></li>
+<li class="breadcrumb-item"><a href="{% url list_url_name object.project.job_number %}">{{ material_type }}s</a></li>
+<li class="breadcrumb-item active">Detail</li>
+{% endblock %}
 {% block content %}
-<div class="alert alert-warning mt-4">
-  This feature is not yet implemented.
+<div class="card">
+  <div class="card-header"><h5 class="mb-0">{{ material_type }} Details</h5></div>
+  <div class="card-body">
+    <dl class="row">
+      <dt class="col-sm-3">Product</dt><dd class="col-sm-9">{{ object.product }}</dd>
+      <dt class="col-sm-3">Quantity</dt><dd class="col-sm-9">{{ object.quantity }}</dd>
+      <dt class="col-sm-3">Unit Cost</dt><dd class="col-sm-9">${{ object.unit_cost|floatformat:2 }}</dd>
+      <dt class="col-sm-3">Total</dt><dd class="col-sm-9">${{ object.total|floatformat:2 }}</dd>
+      <dt class="col-sm-3">Status</dt><dd class="col-sm-9">{{ object.status }}</dd>
+      <dt class="col-sm-3">Delivered</dt><dd class="col-sm-9">{{ object.delivered_date|date:'M d, Y' }}</dd>
+      <dt class="col-sm-3">Installed</dt><dd class="col-sm-9">{{ object.installed_date|date:'M d, Y' }}</dd>
+    </dl>
+    <a href="{% url edit_url_name object.pk %}" class="btn btn-primary">Edit</a>
+    <a href="{% url delete_url_name object.pk %}" class="btn btn-danger">Delete</a>
+  </div>
 </div>
 {% endblock %}

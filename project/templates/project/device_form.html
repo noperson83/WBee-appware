@@ -1,7 +1,27 @@
 {% extends "home/base.html" %}
-{% block title %}<title>Feature Unavailable</title>{% endblock %}
+{% block title %}<title>{% if form.instance.pk %}Edit {{ material_type }}{% else %}Add {{ material_type }}{% endif %}</title>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project:project-detail' project.job_number %}">{{ project.job_number }}</a></li>
+<li class="breadcrumb-item"><a href="{% url list_url_name project.job_number %}">{{ material_type }}s</a></li>
+<li class="breadcrumb-item active">{% if form.instance.pk %}Edit{% else %}Add{% endif %}</li>
+{% endblock %}
 {% block content %}
-<div class="alert alert-warning mt-4">
-  This feature is not yet implemented.
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow">
+      <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">{% if form.instance.pk %}Edit {{ material_type }}{% else %}Add {{ material_type }}{% endif %}</h6>
+      </div>
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
