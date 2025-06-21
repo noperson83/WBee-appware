@@ -12,7 +12,7 @@
 {% block breadcrumb %}
 <nav aria-label="breadcrumb" class="mb-4">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'home:index' %}">Home</a></li>
     <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
     <li class="breadcrumb-item"><a href="{{ object.location.get_absolute_url }}">{{ object.location.name }}</a></li>
     <li class="breadcrumb-item"><a href="{{ object.location.get_absolute_url }}#documents-tab">Documents</a></li>

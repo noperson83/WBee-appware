@@ -1171,7 +1171,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% block breadcrumb %}
 <nav aria-label="breadcrumb" class="mb-4">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'home:index' %}">Home</a></li>
     <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
     <li class="breadcrumb-item"><a href="{% url 'location:location-list' %}">All Locations</a></li>
     {% if form.instance.pk %}
