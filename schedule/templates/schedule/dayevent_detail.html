@@ -2,7 +2,10 @@
 
 {% block title %}<title>Day event details</title>{% endblock %}
 
-{% block breadcrumb %} / <a href="{% url 'schedule' %}">Schedule</a> / Day event detail{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'schedule' %}">Schedule</a></li>
+<li class="breadcrumb-item active">Day event detail</li>
+{% endblock %}
 
  
 {% block content %}

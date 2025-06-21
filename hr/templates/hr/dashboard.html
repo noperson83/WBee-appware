@@ -2,7 +2,10 @@
 {% load static %}
 
 {% block title %}<title>HR Dashboard</title>{% endblock %}
-{% block breadcrumb %} / <a href="{% url 'hr:index' %}">HR</a> / Dashboard{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'hr:index' %}">HR</a></li>
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
 
 {% block content %}
 <div class="row">

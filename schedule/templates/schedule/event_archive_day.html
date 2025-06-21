@@ -3,8 +3,12 @@
 {% load static %}
 {% block title %}<title>Schedule</title>{% endblock %}
 {% block styler %}<link href="{% static 'home/vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet" type="text/css"> {% endblock %}
-{% block breadcrumb %} / <a href="{% url 'schedule' %}">Schedule</a> / <b>{{ day }}</b>
-{% if request.user.staff %} / <a href="{% url 'create-event' proj=0 %}">add a new event</a>{% else %}{% endif %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'schedule' %}">Schedule</a></li>
+<li class="breadcrumb-item active"><b>{{ day }}</b></li>
+{% if request.user.staff %}
+<li class="breadcrumb-item"><a href="{% url 'create-event' proj=0 %}">add a new event</a></li>
+{% endif %}
 {% endblock %}
 
 {% block content %}

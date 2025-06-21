@@ -2,7 +2,10 @@
 {% extends "home/base.html" %}
 {% load i18n %}
 {% block title %}<title>The Calendar</title>{% endblock %}
-{% block breadcrumb %} / <a href="{% url 'jobsite' %}">Jobsite</a> / detail / {{ jobsite.job_title }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'jobsite' %}">Jobsite</a></li>
+<li class="breadcrumb-item active">detail / {{ jobsite.job_title }}</li>
+{% endblock %}
 
 {% block content %}
 {% load scheduletags %}

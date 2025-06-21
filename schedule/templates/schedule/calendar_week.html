@@ -2,7 +2,9 @@
 {% load scheduletags i18n %}
 
 {% block title %}<title>Calendar Week</title>{% endblock %}
-{% block breadcrumb %} / {{ calendar.name }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ calendar.name }}</li>
+{% endblock %}
 {% block content %}
 
 {% include "schedule/_dialogs.html" %}

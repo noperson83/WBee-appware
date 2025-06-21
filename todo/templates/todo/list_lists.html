@@ -2,7 +2,11 @@
 
 {% block title %}<title>{{ list_title }} Todo Lists</title>{% endblock %}
 
-{% block breadcrumb %} / <a href="{% url 'location:location-list' %}">Job Site</a> / <a href="{% url 'project:project-list' %}">Project</a> / To Do List{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'location:location-list' %}">Job Site</a></li>
+<li class="breadcrumb-item"><a href="{% url 'project:project-list' %}">Project</a></li>
+<li class="breadcrumb-item active">To Do List</li>
+{% endblock %}
 
 {% block content %}
   <h1>Todo Lists</h1>

@@ -1,8 +1,12 @@
 {% extends "home/base.html" %}
 
 {% block title %}<title>Delete time card</title>{% endblock %}
-{% block breadcrumb %} / <a href="{% url 'timecard' %}">Time card</a> / Time card / TODAY IS {{ tadai }}
-  {% if request.user.staff %} / <a href="{% url 'create-timecard' %}">add a new day</a>{% endif %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'timecard' %}">Time card</a></li>
+<li class="breadcrumb-item active">Time card / TODAY IS {{ tadai }}</li>
+{% if request.user.staff %}
+<li class="breadcrumb-item"><a href="{% url 'create-timecard' %}">add a new day</a></li>
+{% endif %}
 {% endblock %}
 
 {% block content %}
