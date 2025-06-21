@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse
-from django.views.generic import CreateView, DetailView
+from django.views.generic import CreateView, DetailView, ListView
 from django.shortcuts import get_object_or_404
 
 from .models import Event, Calendar
@@ -51,3 +51,11 @@ class CalendarDetailView(LoginRequiredMixin, DetailView):
             }
         )
         return context
+
+
+class CalendarListView(LoginRequiredMixin, ListView):
+    """Simple calendar list view to serve as schedule index."""
+
+    model = Calendar
+    template_name = "schedule/calendar_list.html"
+    # use default context object name "object_list" for compatibility
