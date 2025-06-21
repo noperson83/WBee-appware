@@ -1,9 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse
-from django.views.generic import CreateView
+from django.views.generic import CreateView, DetailView
 from django.shortcuts import get_object_or_404
 
-from .models import Event
+from .models import Event, Calendar
 from .forms import NewEventForm
 from project.models import Project
 
@@ -29,3 +29,25 @@ class EventCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def get_success_url(self):
         return self.object.get_absolute_url()
+
+
+class CalendarDetailView(LoginRequiredMixin, DetailView):
+    """Display details for a specific calendar."""
+
+    model = Calendar
+    template_name = "schedule/calendar.html"
+    slug_field = "slug"
+    slug_url_kwarg = "slug"
+    context_object_name = "calendar"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cal = self.object
+        context.update(
+            {
+                "calendar_name": cal.name,
+                "calendar_slug": cal.slug,
+                "events_count": cal.events.count(),
+            }
+        )
+        return context
