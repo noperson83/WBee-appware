@@ -2,6 +2,7 @@
 
 from django.contrib import admin
 from django.urls import include, path
+from schedule.views import EventCreateView
 from django.contrib.staticfiles.urls import static
 from django.conf import settings
 
@@ -28,6 +29,7 @@ urlpatterns = [
     path('project/', include('project.urls')),
     path('material/', include('material.urls')),
     path('receipts/', include('receipts.urls')),
+    path('create-event/<str:proj>/', EventCreateView.as_view(), name='create-event'),
     path("schedule/", include("schedule.urls")),
     path('timecard/', include('timecard.urls')),
     path('todo/', include('todo.urls', namespace="todo")),
