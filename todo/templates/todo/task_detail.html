@@ -100,11 +100,11 @@
         <table>
           {% for device in device_mate_list %}
           <tr width="100%">
-            <td width="60%"><a href="{% url 'project-device-detail' device.pk %}"> {{ device.device.general_disc }}</a></td>
+            <td width="60%"><a href="{% url 'project:device-detail' device.pk %}"> {{ device.device.general_disc }}</a></td>
             <td>
               {{ device.qty }}
               {% if request.user.staff and request.user.admin %}
-              - <a href="{% url 'update-project-device' device.pk %}">edit</a> - ${{ device.total }} 
+              - <a href="{% url 'project:device-edit' device.pk %}">edit</a> - ${{ device.total }}
               {% else %}
               {% endif %}
             </td>
@@ -129,10 +129,10 @@
         <table>
           {% for hardware in hardware_mate_list %}
           <tr>
-            <td width="200px"><a href="{% url 'project-hardware-detail' hardware.pk %}"> {{ hardware.hardware.general_disc }}</a></td>
+            <td width="200px"><a href="{% url 'project:hardware-detail' hardware.pk %}"> {{ hardware.hardware.general_disc }}</a></td>
             <td>{{ hardware.qty }}
               {% if request.user.staff and request.user.admin %}
-                - <a href="{% url 'update-project-hardware' hardware.pk %}">edit</a> - ${{ hardware.total }} 
+                - <a href="{% url 'project:hardware-edit' hardware.pk %}">edit</a> - ${{ hardware.total }}
               {% else %}
               {% endif %}
             </td>
@@ -157,10 +157,10 @@
         <table>
           {% for software in software_mate_list %}
           <tr>
-            <td width="200px"><a href="{% url 'project-software-detail' software.pk %}"> {{ software.software.general_disc }}</a></td>
+            <td width="200px"><a href="{% url 'project:software-detail' software.pk %}"> {{ software.software.general_disc }}</a></td>
             <td>{{ software.qty }}
               {% if request.user.staff and request.user.admin %}
-                - <a href="{% url 'update-project-software' software.pk %}">edit</a> - ${{ software.total }} 
+                - <a href="{% url 'project:software-edit' software.pk %}">edit</a> - ${{ software.total }}
               {% else %}
               {% endif %}
             </td>
@@ -185,10 +185,10 @@
         <table>
           {% for license in license_mate_list %}
           <tr>
-            <td width="200px"><a href="{% url 'project-license-detail' license.pk %}"> {{ license.license.general_disc }}</a></td>
+            <td width="200px"><a href="{% url 'project:license-detail' license.pk %}"> {{ license.license.general_disc }}</a></td>
             <td>{{ license.qty }}
               {% if request.user.staff and request.user.admin %}
-                - <a href="{% url 'update-project-license' license.pk %}">edit</a> - ${{ license.total }} 
+                - <a href="{% url 'project:license-edit' license.pk %}">edit</a> - ${{ license.total }}
               {% else %}
               {% endif %}
             </td>
@@ -213,11 +213,11 @@
         <table>
           {% for travel in travel_mate_list %}
           <tr width="100%">
-            <td width="70%"><a href="{% url 'project-travel-detail' travel.pk %}"> {{ travel.travel_name }}</a></td>
+            <td width="70%"><a href="{% url 'project:travel-detail' travel.pk %}"> {{ travel.travel_name }}</a></td>
             <td>
               {{ travel.qty }}
               {% if request.user.staff and request.user.admin %}
-                - <a href="{% url 'update-project-travel' travel.pk %}">edit</a> - ${{ travel.total }} 
+                - <a href="{% url 'project:travel-edit' travel.pk %}">edit</a> - ${{ travel.total }}
               {% else %}
               {% endif %}
             </td>

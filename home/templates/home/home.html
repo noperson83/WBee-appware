@@ -340,7 +340,7 @@
                 
                 {% if scheduled_events or project_event_list %}
                 <div class="text-end mt-3">
-                    <a href="#" class="text-primary text-decoration-none">View full schedule...</a>
+                    <a href="{% url 'schedule:schedule' %}" class="text-primary text-decoration-none">View full schedule...</a>
                 </div>
                 {% endif %}
             </div>
