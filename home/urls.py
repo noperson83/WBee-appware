@@ -12,6 +12,7 @@ app_name = 'home'
 urlpatterns = [
     # Main dashboard
     path('', views.index, name='index'),
+    path('schedule-demo/', views.schedule_demo, name='schedule-demo'),
     
     # Contact functionality
     path('contact/', views.contactView, name='contact'),

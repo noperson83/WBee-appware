@@ -1,0 +1,85 @@
+{% extends 'home/base.html' %}
+{% block title %}Schedule Demo{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Schedule Demo</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-lg-8">
+    <div class="card mb-3">
+      <div class="card-header">
+        <i class="fa fa-bell-o"></i> Scheduled events
+      </div>
+      <div class="list-group list-group-flush small">
+        <!-- Example items -->
+        <a class="list-group-item list-group-item-action" href="#">
+          <div class="media">
+            <div class="statusLost" style="background-color:#3b576c;">3159</div>
+            <div class="media-body">
+              <strong>April 28th</strong> Sun City Day 12: Screens <strong>Sun City Oro Valley AV</strong>.
+              <div class="text-muted smaller">site: 6 a.m.</div>
+            </div>
+          </div>
+        </a>
+        <a class="list-group-item list-group-item-action" href="#">
+          <div class="media">
+            <div class="statusLost" style="background-color:#eadd8c;">3159</div>
+            <div class="media-body">
+              <strong>April 27th</strong> Installing parts in 3 Rooms: Bring Parts <strong>Sun City Oro Valley AV</strong>.
+              <div class="text-muted smaller">site: 6 a.m.</div>
+            </div>
+          </div>
+        </a>
+        <a class="list-group-item list-group-item-action" href="#">
+          <div class="media">
+            <div class="statusLost" style="background-color:#70dd9c;">3022</div>
+            <div class="media-body">
+              <strong>July 02nd</strong> Test all buttons: Test and function <strong>Del Sol</strong>.
+              <div class="text-muted smaller">office: 8:30 a.m. - site: 10 a.m.</div>
+            </div>
+          </div>
+        </a>
+        <a class="list-group-item list-group-item-action" href="#">
+          <div class="media">
+            <div class="statusLost" style="background-color:#058989;">2832</div>
+            <div class="media-body">
+              <strong>April 29th</strong> Start of AVB install: Install <strong>Catalina Foothills Church</strong>.
+              <div class="text-muted smaller">site: 9 a.m.</div>
+            </div>
+          </div>
+        </a>
+        <a class="list-group-item list-group-item-action" href="#">
+          <div class="media">
+            <div class="statusLost" style="background-color:#599f90;">2772</div>
+            <div class="media-body">
+              <strong>Nov. 12th</strong> Speaker Hang: Meet at the school and continue <strong>Littleton Academy of Arts</strong>.
+              <div class="text-muted smaller">office: 6 a.m. - site: 8 a.m.</div>
+            </div>
+          </div>
+        </a>
+        <a class="list-group-item list-group-item-action" href="#">View full schedule...</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header" style="background-color:rgb(0,119,255);">
+        <b>Tools</b>
+      </div>
+      <div class="list-group list-group-flush small">
+        <a class="list-group-item list-group-item-action" href="#">
+          <div class="media">
+            <div class="statusLost">Ladder</div>
+            <div class="media-body">
+              <strong>AV1200</strong> Location: Truck
+              <div class="text-muted smaller">Twelve Footer - Orange</div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
