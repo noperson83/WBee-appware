@@ -3,7 +3,9 @@
 {% load scheduletags i18n %}
 
 {% block title %}<title>Calendar Month</title>{% endblock %}
-{% block breadcrumb %} / <a href="{% url 'calendar_list' %}">{{ calendar.name }}</a>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'calendar_list' %}">{{ calendar.name }}</a></li>
+{% endblock %}
 {% block styler %}  
   <link rel="stylesheet" href="{% static 'schedule/schedule.css' %}" type="text/css" media="screen">
   <link rel="stylesheet" href="{% static 'schedule/jquery-ui.css' %}" type="text/css" media="screen">

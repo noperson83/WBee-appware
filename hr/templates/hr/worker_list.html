@@ -3,7 +3,11 @@
 
 {% block title %}<title>Staff List</title>{% endblock %}
 {% block styler %}<link href="{% static 'home/vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet" type="text/css"> {% endblock %}
-{% block breadcrumb %} / <a href="{% url 'hr:index' %}">HR</a> / <a href="{% url 'hr:worker-list' %}">Staff</a> / List{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'hr:index' %}">HR</a></li>
+<li class="breadcrumb-item"><a href="{% url 'hr:worker-list' %}">Staff</a></li>
+<li class="breadcrumb-item active">List</li>
+{% endblock %}
 
 {% block content %}
 <!-- Search and Filter Section -->

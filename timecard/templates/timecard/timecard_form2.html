@@ -1,7 +1,9 @@
 {% extends "home/base.html" %}
 
 {% block title %}<title>Create Time Card</title>{% endblock %}
-{% block breadcrumb %} / <a href="{% url 'timecard' %}">Time card</a>{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'timecard' %}">Time card</a></li>
+{% endblock %}
 
 {% block content %}
 {% if request.user.staff %}

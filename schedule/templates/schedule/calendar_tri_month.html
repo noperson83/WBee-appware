@@ -1,7 +1,9 @@
 {% extends "home/base.html" %}
 {% load scheduletags i18n %}
 
-{% block breadcrumb %} / {{ calendar.name }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item active">{{ calendar.name }}</li>
+{% endblock %}
 
 {% block content %}
 <div class="tablewrapper">

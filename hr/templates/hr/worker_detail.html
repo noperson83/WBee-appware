@@ -2,7 +2,11 @@
 {% load static %}
 
 {% block title %}<title>{{ worker.get_full_name }} - Staff Details</title>{% endblock %}
-{% block breadcrumb %} / <a href="{% url 'hr:index' %}">HR</a> / <a href="{% url 'hr:worker-list' %}">Staff</a> / {{ worker.get_short_name }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'hr:index' %}">HR</a></li>
+<li class="breadcrumb-item"><a href="{% url 'hr:worker-list' %}">Staff</a></li>
+<li class="breadcrumb-item active">{{ worker.get_short_name }}</li>
+{% endblock %}
 
 {% block content %}
 <div class="row">

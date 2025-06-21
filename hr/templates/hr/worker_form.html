@@ -6,9 +6,9 @@
 {% endblock %}
 
 {% block breadcrumb %}
-/ <a href="{% url 'hr:index' %}">HR</a> 
-/ <a href="{% url 'hr:worker-list' %}">Staff</a> 
-/ {% if object %}Edit {{ object.get_short_name }}{% else %}Add Worker{% endif %}
+<li class="breadcrumb-item"><a href="{% url 'hr:index' %}">HR</a></li>
+<li class="breadcrumb-item"><a href="{% url 'hr:worker-list' %}">Staff</a></li>
+<li class="breadcrumb-item active">{% if object %}Edit {{ object.get_short_name }}{% else %}Add Worker{% endif %}</li>
 {% endblock %}
 
 {% block content %}
