@@ -463,11 +463,14 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
     # Permission methods (required by Django)
     def has_perm(self, perm, obj=None):
         """Does the worker have a specific permission?"""
-        return self.is_admin
+        # Superusers should inherently have all permissions. We also retain
+        # the legacy behaviour that grants permissions to admins.
+        return self.is_superuser or self.is_admin
 
     def has_module_perms(self, app_label):
         """Does the worker have permissions to view the app?"""
-        return self.is_staff
+        # Provide module access to staff and superusers.
+        return self.is_superuser or self.is_staff
 
     def has_perms(self, perm_list, obj=None):
         """Return True if the user has each of the specified permissions."""
