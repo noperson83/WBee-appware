@@ -1,3 +1,7 @@
 .card {
   --bs-card-color: aquamarine;
 }
+
+.card-body {
+  color: var(--bs-card-color);
+}
