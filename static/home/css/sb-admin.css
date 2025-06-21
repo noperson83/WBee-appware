@@ -159,6 +159,7 @@ body.fixed-nav {
    ============================================ */
 
 .card {
+  --bs-card-color: aquamarine;
   border: none;
   border-radius: var(--border-radius);
   box-shadow: var(--card-shadow);
