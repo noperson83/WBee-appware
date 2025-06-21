@@ -1,7 +1,7 @@
 {% extends "home/base.html" %}
 {% load i18n %}
 {% block title %}<title>Project info Delete</title> {% endblock %}
-{% block breadcrumb %} / <a href="{% url 'jobsite-list' %}">Job Site</a> / <a href="{% url 'project-list' %}">Project</a> / Delete project info{% endblock %}
+{% block breadcrumb %} / <a href="{% url 'location:location-list' %}">Job Site</a> / <a href="{% url 'project-list' %}">Project</a> / Delete project info{% endblock %}
 
 {% block content %}
 {% if request.user.admin %}
