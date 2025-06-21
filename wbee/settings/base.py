@@ -110,6 +110,7 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
+                'wbee.context_processors.site_title.site_title',
             ],
         },
     },
@@ -420,6 +421,7 @@ if DEBUG:
 
 # Company-specific configurations
 COMPANY_NAME = config('COMPANY_NAME', default='WBEE Universal Company')
+SITE_TITLE = config('SITE_TITLE', default='WBEE Universal Company Manager')
 COMPANY_ADDRESS = config('COMPANY_ADDRESS', default='')
 COMPANY_PHONE = config('COMPANY_PHONE', default='')
 COMPANY_EMAIL = config('COMPANY_EMAIL', default='info@wbee.app')
