@@ -101,13 +101,17 @@ class TaskListAdmin(admin.ModelAdmin):
         'created_by__last_name'
     )
     
-    prepopulated_fields = {'slug': ('name',)}
+    # Slug is auto-generated and not editable, but we still display it in the
+    # admin detail view. Removing it from ``prepopulated_fields`` prevents
+    # Django from treating it as a writable field.
+
     
     readonly_fields = (
+        'slug',
         'completion_stats',
         'time_analysis',
         'task_distribution',
-        'list_statistics'
+        'list_statistics',
     )
     
     fieldsets = (
