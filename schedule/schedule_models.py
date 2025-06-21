@@ -580,7 +580,9 @@ class Event(TimeStampedModel):
     @property
     def duration(self):
         """Get event duration as timedelta"""
-        return self.end - self.start
+        if self.start and self.end:
+            return self.end - self.start
+        return timedelta()
 
     @property
     def duration_hours(self):
@@ -814,7 +816,9 @@ class Occurrence(TimeStampedModel):
     @property
     def duration(self):
         """Get occurrence duration"""
-        return self.end - self.start
+        if self.start and self.end:
+            return self.end - self.start
+        return timedelta()
 
     @property
     def duration_hours(self):
