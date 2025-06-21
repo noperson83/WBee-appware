@@ -685,14 +685,17 @@ class TaskAdmin(admin.ModelAdmin):
             variance = actual_hours - est_hours
             variance_color = '#dc3545' if variance > 0 else '#28a745'
             return format_html(
-                '<strong>{:.1f}h</strong> est.<br>'
-                '<small style="color: {};">{:.1f}h actual</small>',
-                est_hours,
+                '<strong>{}</strong> est.<br>'
+                '<small style="color: {};">{} actual</small>',
+                f"{est_hours:.1f}h",
                 variance_color,
-                actual_hours
+                f"{actual_hours:.1f}h"
             )
         else:
-            return format_html('<strong>{:.1f}h</strong> est.', est_hours)
+            return format_html(
+                '<strong>{}</strong> est.',
+                f"{est_hours:.1f}h"
+            )
     time_summary.short_description = 'Time'
 
     def dependency_status(self, obj):
@@ -1226,9 +1229,9 @@ class TaskTemplateItemAdmin(admin.ModelAdmin):
         """Display time and team size"""
         total_hours = obj.allotted_time * obj.team_size
         return format_html(
-            '{:.1f}h<br><small>{} × {} person{}</small>',
-            total_hours,
-            obj.allotted_time,
+            '{}<br><small>{} × {} person{}</small>',
+            f"{total_hours:.1f}h",
+            f"{obj.allotted_time:.1f}h",
             obj.team_size,
             's' if obj.team_size > 1 else ''
         )
