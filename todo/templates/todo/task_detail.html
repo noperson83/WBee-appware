@@ -2,7 +2,7 @@
 
 {% block title %}<title>Task:{{ task.title }}</title>{% endblock %}
 
-{% block breadcrumb %} / <a href="{% url 'jobsite-list' %}">Job Site</a> / <a href="{% url 'project-list' %}">Project</a> / To Do List{% endblock %}
+{% block breadcrumb %} / <a href="{% url 'location:location-list' %}">Job Site</a> / <a href="{% url 'project-list' %}">Project</a> / To Do List{% endblock %}
 
 {% block content %}
 <div class="row">
