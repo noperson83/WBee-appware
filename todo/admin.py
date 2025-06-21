@@ -196,6 +196,8 @@ class TaskListAdmin(admin.ModelAdmin):
 
     def status_indicator(self, obj):
         """Display status with appropriate styling"""
+        if not obj.pk:
+            return obj.get_status_display()
         colors = {
             'active': '#28a745',
             'on_hold': '#ffc107',
@@ -218,6 +220,8 @@ class TaskListAdmin(admin.ModelAdmin):
 
     def progress_bar(self, obj):
         """Display progress bar"""
+        if not obj.pk:
+            return ""  # Nothing to display for unsaved objects
         percent = obj.completion_percentage
         
         if percent >= 100:
@@ -242,6 +246,8 @@ class TaskListAdmin(admin.ModelAdmin):
 
     def task_summary(self, obj):
         """Display task count summary"""
+        if not obj.pk:
+            return ""
         return format_html(
             '<strong>{} tasks</strong><br>'
             '<small>{} pending | {} done</small>',
@@ -271,6 +277,8 @@ class TaskListAdmin(admin.ModelAdmin):
 
     def due_date_display(self, obj):
         """Display due date with warning if approaching"""
+        if not obj.pk:
+            return ""
         if not obj.target_completion_date:
             return "No deadline"
         
@@ -290,6 +298,8 @@ class TaskListAdmin(admin.ModelAdmin):
 
     def completion_stats(self, obj):
         """Display completion statistics"""
+        if not obj.pk:
+            return "N/A"
         html = "<table style='font-size: 12px;'>"
         html += f"<tr><td><strong>Total Tasks:</strong></td><td>{obj.task_count}</td></tr>"
         html += f"<tr><td><strong>Completed:</strong></td><td>{obj.completed_task_count}</td></tr>"
@@ -310,6 +320,8 @@ class TaskListAdmin(admin.ModelAdmin):
 
     def time_analysis(self, obj):
         """Display time analysis"""
+        if not obj.pk:
+            return "N/A"
         total_hours = obj.total_estimated_hours
         
         html = "<table style='font-size: 12px;'>"
@@ -330,6 +342,9 @@ class TaskListAdmin(admin.ModelAdmin):
 
     def task_distribution(self, obj):
         """Display task distribution by status/priority"""
+        if not obj.pk:
+            return "N/A"
+
         tasks = obj.tasks.all()
         
         # Count by status
@@ -360,6 +375,8 @@ class TaskListAdmin(admin.ModelAdmin):
 
     def list_statistics(self, obj):
         """Display comprehensive list statistics"""
+        if not obj.pk:
+            return "N/A"
         html = "<table style='font-size: 12px;'>"
         html += f"<tr><td><strong>Created:</strong></td><td>{obj.created_at.strftime('%m/%d/%Y %H:%M')}</td></tr>"
         html += f"<tr><td><strong>Created By:</strong></td><td>{obj.created_by.get_full_name() if obj.created_by else 'Unknown'}</td></tr>"
