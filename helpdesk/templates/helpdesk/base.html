@@ -15,7 +15,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    {% block title %}{% block helpdesk_title %}{{ SITE_TITLE }}{% endblock %}{% endblock %} :: {% trans "Powered by django-helpdesk" %}
+    <title>{% block title %}{% block helpdesk_title %}{{ SITE_TITLE }}{% endblock %}{% endblock %} :: {% trans "Powered by django-helpdesk" %}</title>
 
     <!-- Bootstrap Core CSS -->
     {% if helpdesk_settings.HELPDESK_USE_CDN %}

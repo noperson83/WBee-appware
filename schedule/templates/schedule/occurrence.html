@@ -1,6 +1,8 @@
 {% extends "home/base.html" %}
 {% load i18n scheduletags %}
 
+{% block title %}{{ occurrence.title }}{% endblock %}
+
 {% block body %}
 <div class="navigation">
   <a class="btn btn-primary gradient" href="{% url "day_calendar" occurrence.event.calendar.slug %}{% querystring_for_date occurrence.start 3 %}">
