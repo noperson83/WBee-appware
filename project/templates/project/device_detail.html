@@ -1,6 +1,6 @@
 {% extends "home/base.html" %}
 {% load humanize %}
-{% block title %}<title>{{ material_type }} Detail</title>{% endblock %}
+{% block title %}{{ material_type }} Detail{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'project:project-detail' object.project.job_number %}">{{ object.project.job_number }}</a></li>
 <li class="breadcrumb-item"><a href="{% url list_url_name object.project.job_number %}">{{ material_type }}s</a></li>

@@ -1,7 +1,7 @@
 {% extends "home/base.html" %}
 {% load static %}
 
-{% block title %}<title>Delete Location - {{ object.name }}</title>{% endblock %}
+{% block title %}Delete Location - {{ object.name }}{% endblock %}
 {% block breadcrumb %}
 / <a href="{% url 'location:location-list' %}">Locations</a>
 / <a href="{{ object.get_absolute_url }}">{{ object.name }}</a>

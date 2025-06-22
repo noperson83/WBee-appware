@@ -1,5 +1,5 @@
 {% extends "home/base.html" %}
-{% block title %}<title>Delete {{ material_type }}</title>{% endblock %}
+{% block title %}Delete {{ material_type }}{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'project:project-detail' object.project.job_number %}">{{ object.project.job_number }}</a></li>
 <li class="breadcrumb-item"><a href="{% url list_url_name object.project.job_number %}">{{ material_type }}s</a></li>

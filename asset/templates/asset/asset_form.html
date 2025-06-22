@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-<title>{% if object %}Edit {{ object.name }}{% else %}Add New Asset{% endif %} - {{ request.user.company.company_name|default:"WBEE" }}</title>
+{% if object %}Edit {{ object.name }}{% else %}Add New Asset{% endif %} - {{ request.user.company.company_name|default:"WBEE" }}
 {% endblock %}
 
 {% block breadcrumb %}

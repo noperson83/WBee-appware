@@ -1,7 +1,7 @@
 {% extends "home/base.html" %}
 
 {% block title %}
-<title>{% if form.instance.pk %}Edit Receipt{% else %}New Receipt{% endif %}</title>
+{% if form.instance.pk %}Edit Receipt{% else %}New Receipt{% endif %}
 {% endblock %}
 
 {% block breadcrumb %}

@@ -1,7 +1,7 @@
 {% extends "home/base.html" %}
 {% load static %}
 
-{% block title %}<title>{{ client.company_name }} - Efforts</title>{% endblock %}
+{% block title %}{{ client.company_name }} - Efforts{% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'client:dashboard' %}">Client Management</a></li>

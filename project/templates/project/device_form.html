@@ -1,5 +1,5 @@
 {% extends "home/base.html" %}
-{% block title %}<title>{% if form.instance.pk %}Edit {{ material_type }}{% else %}Add {{ material_type }}{% endif %}</title>{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit {{ material_type }}{% else %}Add {{ material_type }}{% endif %}{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'project:project-detail' project.job_number %}">{{ project.job_number }}</a></li>
 <li class="breadcrumb-item"><a href="{% url list_url_name project.job_number %}">{{ material_type }}s</a></li>

@@ -1,7 +1,7 @@
 {% extends "home/base.html" %}
 
 {% block title %}
-<title>{% if form.instance.pk %}Edit Purchase Type{% else %}New Purchase Type{% endif %}</title>
+{% if form.instance.pk %}Edit Purchase Type{% else %}New Purchase Type{% endif %}
 {% endblock %}
 
 {% block breadcrumb %}
