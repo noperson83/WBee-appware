@@ -1,5 +1,5 @@
 {% extends "home/base.html" %}
-{% block title %}<title>{{ category.name }} Assets</title>{% endblock %}
+{% block title %}{{ category.name }} Assets{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'asset:categories:list' %}">Asset Categories</a></li>
 <li class="breadcrumb-item"><a href="{% url 'asset:categories:detail' category.pk %}">{{ category.name }}</a></li>

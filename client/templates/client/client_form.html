@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-<title>{% if client %}Update {{ client.company_name }}{% else %}Create New Client{% endif %} - WBEE</title>
+{% if client %}Update {{ client.company_name }}{% else %}Create New Client{% endif %} - WBEE
 {% endblock %}
 
 {% block breadcrumb %}

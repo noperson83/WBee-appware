@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-<title>{% if object %}Edit {{ object.get_full_name }}{% else %}Add New Worker{% endif %}</title>
+{% if object %}Edit {{ object.get_full_name }}{% else %}Add New Worker{% endif %}
 {% endblock %}
 
 {% block breadcrumb %}

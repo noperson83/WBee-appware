@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-<title>{{ asset.name }} - Asset Details - {{ request.user.company.company_name|default:"WBEE" }}</title>
+{{ asset.name }} - Asset Details - {{ request.user.company.company_name|default:"WBEE" }}
 {% endblock %}
 
 {% block breadcrumb %}

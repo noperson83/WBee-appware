@@ -1,6 +1,6 @@
 {% extends "home/base.html" %}
 {% block title %}
-<title>{% if form.instance.pk %}Edit Assignment{% else %}New Assignment{% endif %}</title>
+{% if form.instance.pk %}Edit Assignment{% else %}New Assignment{% endif %}
 {% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'asset:assignments:list' %}">Assignments</a></li>

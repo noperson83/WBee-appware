@@ -1,7 +1,7 @@
 {% extends "home/base.html" %}
 {% load static %}
 
-{% block title %}<title>{{ worker.get_full_name }} - Staff Details</title>{% endblock %}
+{% block title %}{{ worker.get_full_name }} - Staff Details{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'hr:index' %}">HR</a></li>
 <li class="breadcrumb-item"><a href="{% url 'hr:worker-list' %}">Staff</a></li>

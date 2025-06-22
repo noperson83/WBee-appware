@@ -1,6 +1,6 @@
 {% extends "home/base.html" %}
 
-{% block title %}<title>{{ purchase_type.name }}</title>{% endblock %}
+{% block title %}{{ purchase_type.name }}{% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'receipts:purchase-type-list' %}">Purchase Types</a></li>

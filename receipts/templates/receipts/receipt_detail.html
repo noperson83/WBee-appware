@@ -1,6 +1,6 @@
 {% extends "home/base.html" %}
 
-{% block title %}<title>Receipt {{ receipt.id }}</title>{% endblock %}
+{% block title %}Receipt {{ receipt.id }}{% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'receipts:list' %}">Receipts</a></li>

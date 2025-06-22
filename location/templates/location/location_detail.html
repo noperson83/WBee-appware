@@ -1,7 +1,7 @@
 {% extends "home/base.html" %}
 {% load static %}
 
-{% block title %}<title>{{ location.name }} - Location Details</title>{% endblock %}
+{% block title %}{{ location.name }} - Location Details{% endblock %}
 {% block breadcrumb %}
 / <a href="{% url 'location:location-list' %}">Locations</a>
 / {{ location.name }}

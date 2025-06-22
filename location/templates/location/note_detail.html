@@ -1,7 +1,7 @@
 {% extends "home/base.html" %}
 {% load static %}
 
-{% block title %}<title>{{ note.title }} - Note Details</title>{% endblock %}
+{% block title %}{{ note.title }} - Note Details{% endblock %}
 {% block breadcrumb %}
 / <a href="{% url 'location:location-list' %}">Locations</a>
 / <a href="{{ note.location.get_absolute_url }}">{{ note.location.name }}</a>

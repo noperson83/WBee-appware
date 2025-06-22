@@ -1,5 +1,5 @@
 {% extends "home/base.html" %}
-{% block title %}<title>{{ project.name }} Activity</title>{% endblock %}
+{% block title %}{{ project.name }} Activity{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'project:dashboard' %}">Projects</a></li>
 <li class="breadcrumb-item"><a href="{% url 'project:project-detail' project.job_number %}">{{ project.name }}</a></li>

@@ -1,5 +1,5 @@
 {% extends "home/base.html" %}
-{% block title %}<title>{% if form.instance.pk %}Edit Manufacturer{% else %}Add Manufacturer{% endif %}</title>{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit Manufacturer{% else %}Add Manufacturer{% endif %}{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'material:manufacturer-list' %}">Manufacturers</a></li>
 <li class="breadcrumb-item active">{% if form.instance.pk %}Edit{% else %}Create{% endif %}</li>

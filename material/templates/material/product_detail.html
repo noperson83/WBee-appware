@@ -1,5 +1,5 @@
 {% extends "home/base.html" %}
-{% block title %}<title>{{ product.name }}</title>{% endblock %}
+{% block title %}{{ product.name }}{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'material:product-list' %}">Products</a></li>
 <li class="breadcrumb-item active">{{ product.name }}</li>

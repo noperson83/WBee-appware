@@ -36,7 +36,7 @@
             padding-left: 2em;
         }
         </style>
-        <title>{% block title %}{{ SITE_TITLE }} Help{% endblock %}</title>
+        {% block title %}{{ SITE_TITLE }} Help{% endblock %}
     </head>
     <body>
         <h1>{% block heading %}django-helpdesk Help{% endblock %}</h1>

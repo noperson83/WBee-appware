@@ -1,5 +1,5 @@
 {% extends "home/base.html" %}
-{% block title %}<title>{% if object %}Edit{% else %}Add{% endif %} Maintenance</title>{% endblock %}
+{% block title %}{% if object %}Edit{% else %}Add{% endif %} Maintenance{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'asset:maintenance:list' %}">Maintenance</a></li>
 <li class="breadcrumb-item active">{% if object %}Edit{% else %}Add{% endif %}</li>
