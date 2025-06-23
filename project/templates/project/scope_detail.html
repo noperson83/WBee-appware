@@ -1,7 +1,22 @@
 {% extends "home/base.html" %}
-{% block title %}Feature Unavailable{% endblock %}
+{% block title %}Scope Detail{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project:project-detail' project.job_number %}">{{ project.job_number }}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'project:scope-list' job_number=project.job_number %}">Scope of Work</a></li>
+<li class="breadcrumb-item active">Detail</li>
+{% endblock %}
 {% block content %}
-<div class="alert alert-warning mt-4">
-  This feature is not yet implemented.
+<div class="card">
+  <div class="card-header"><h5 class="mb-0">Scope Details</h5></div>
+  <div class="card-body">
+    <dl class="row">
+      <dt class="col-sm-3">Area</dt><dd class="col-sm-9">{{ scope_item.area }}</dd>
+      <dt class="col-sm-3">System Type</dt><dd class="col-sm-9">{{ scope_item.system_type }}</dd>
+      <dt class="col-sm-3">Description</dt><dd class="col-sm-9">{{ scope_item.description }}</dd>
+      <dt class="col-sm-3">Percent Complete</dt><dd class="col-sm-9">{{ scope_item.percent_complete }}%</dd>
+    </dl>
+    <a href="{% url 'project:scope-edit' scope_item.pk %}" class="btn btn-primary">Edit</a>
+    <a href="{% url 'project:scope-delete' scope_item.pk %}" class="btn btn-danger">Delete</a>
+  </div>
 </div>
 {% endblock %}
