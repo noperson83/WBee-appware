@@ -1,7 +1,37 @@
 {% extends "home/base.html" %}
-{% block title %}Feature Unavailable{% endblock %}
+{% block title %}Scope of Work - {{ project.name }}{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project:project-detail' project.job_number %}">{{ project.job_number }}</a></li>
+<li class="breadcrumb-item active">Scope of Work</li>
+{% endblock %}
 {% block content %}
-<div class="alert alert-warning mt-4">
-  This feature is not yet implemented.
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">Scope of Work</h1>
+  <a href="{% url 'project:scope-create' job_number=project.job_number %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Scope</a>
 </div>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Area</th>
+      <th>System Type</th>
+      <th class="text-end">Complete</th>
+      <th class="text-end"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in scope_items %}
+    <tr>
+      <td><a href="{% url 'project:scope-detail' item.pk %}">{{ item.area }}</a></td>
+      <td>{{ item.system_type }}</td>
+      <td class="text-end">{{ item.percent_complete }}%</td>
+      <td class="text-end">
+        <a href="{% url 'project:scope-edit' item.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+        <a href="{% url 'project:scope-delete' item.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4" class="text-center text-muted">No scope items added.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}

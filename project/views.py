@@ -52,6 +52,7 @@ from .serializers import ProjectSerializer, ScopeOfWorkSerializer
 
 from .utils import generate_job_number, calculate_project_metrics
 from .permissions import ProjectAccessMixin, ProjectPermissionMixin
+from todo.models import TaskList
 
 User = get_user_model()
 
@@ -442,6 +443,10 @@ class ProjectDetailView(ProjectAccessMixin, DetailView):
             'days_until_due': project.days_until_due,
             'is_overdue': project.is_overdue,
         }
+
+        # Scope of work and related task lists
+        context['scope_list'] = project.scope_items.all()
+        context['task_list'] = TaskList.objects.filter(project=project).select_related('scope')
 
         # Consolidated metrics using utility function
         context['metrics'] = calculate_project_metrics(project)
@@ -1254,19 +1259,14 @@ class ScopeOfWorkListView(ProjectAccessMixin, ListView):
     model = ScopeOfWork
     template_name = 'project/scope_list.html'
     context_object_name = 'scope_items'
-    
+
     def get_queryset(self):
         self.project = get_object_or_404(Project, job_number=self.kwargs['job_number'])
         return self.project.scope_items.all().order_by('priority', 'area')
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['project'] = self.project
-        context['materials'] = self.object_list
-        context['material_type'] = 'Device'
-        context['create_url'] = reverse('project:device-create', kwargs={'job_number': self.project.job_number})
-        context['edit_url_name'] = 'project:device-edit'
-        context['delete_url_name'] = 'project:device-delete'
         return context
 
 class ScopeOfWorkCreateView(ProjectAccessMixin, CreateView):
@@ -1288,6 +1288,11 @@ class ScopeOfWorkCreateView(ProjectAccessMixin, CreateView):
         form.instance.project = self.project
         form.instance.material_type = 'device'
         return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.project
+        return context
     
     def get_success_url(self):
         return reverse('project:scope-list', kwargs={'job_number': self.project.job_number})
@@ -1301,16 +1306,31 @@ class ScopeOfWorkUpdateView(ProjectAccessMixin, UpdateView):
     def get_success_url(self):
         return reverse('project:scope-list', kwargs={'job_number': self.object.project.job_number})
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.object.project
+        return context
+
 class ScopeOfWorkDetailView(ProjectAccessMixin, DetailView):
     """Detailed view of scope item"""
     model = ScopeOfWork
     template_name = 'project/scope_detail.html'
     context_object_name = 'scope_item'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.object.project
+        return context
+
 class ScopeOfWorkDeleteView(ProjectAccessMixin, DeleteView):
     """Delete scope of work item"""
     model = ScopeOfWork
     template_name = 'project/scope_confirm_delete.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['project'] = self.object.project
+        return context
     
     def get_success_url(self):
         return reverse('project:scope-list', kwargs={'job_number': self.object.project.job_number})
