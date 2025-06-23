@@ -8,6 +8,7 @@ from django.utils.safestring import mark_safe
 from django.db.models import Sum, Count
 from django.utils import timezone
 from django.conf import settings
+from decimal import Decimal, ROUND_DOWN
 
 from .models import (
     BusinessCategory, ConfigurableChoice, LocationType, Location, 
@@ -456,6 +457,14 @@ class LocationAdmin(admin.ModelAdmin):
             return f"Projects are called '{obj.project_term}' for this business type"
         return "Using default 'Projects' terminology"
     project_term_display.short_description = 'Project Terminology'
+
+    def save_model(self, request, obj, form, change):
+        """Truncate latitude/longitude to six decimal places before saving."""
+        if obj.latitude is not None:
+            obj.latitude = obj.latitude.quantize(Decimal('0.000001'), rounding=ROUND_DOWN)
+        if obj.longitude is not None:
+            obj.longitude = obj.longitude.quantize(Decimal('0.000001'), rounding=ROUND_DOWN)
+        super().save_model(request, obj, form, change)
 
     # Custom actions
     def calculate_contract_values(self, request, queryset):
