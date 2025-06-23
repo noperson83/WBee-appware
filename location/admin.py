@@ -375,8 +375,11 @@ class LocationAdmin(admin.ModelAdmin):
             lat = float(lat)
             lng = float(lng)
             return format_html(
-                '<a href="https://www.google.com/maps?q={},{}" target="_blank">{:.4f}, {:.4f}</a>',
-                lat, lng, lat, lng
+                '<a href="https://www.google.com/maps?q={},{}" target="_blank">{}, {}</a>',
+                lat,
+                lng,
+                f"{lat:.4f}",
+                f"{lng:.4f}"
             )
         return "—"
     coordinates_display.short_description = 'GPS Coordinates'
