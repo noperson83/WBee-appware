@@ -73,7 +73,7 @@
       <div class="card-body">
         {% if scope_list %}
           {% for scope in scope_list %}
-            <a id="link" href="{% url 'scope-detail' scope.id %}"><b>{{ scope.area }}</b></a> - {{ scope.system_type }}
+            <a id="link" href="{% url 'project:scope-detail' scope.id %}"><b>{{ scope.area }}</b></a> - {{ scope.system_type }}
             <ul>
               {% if task_list %}
                 {% for tasklist in task_list %}
