@@ -20,6 +20,9 @@ SECRET_KEY = config('SECRET_KEY', default='a4$zmm5u_$ao70cmji80*8@8oedg&+mnm)r_a
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='bb.wbee.app', cast=Csv())
 
+# Google Maps API key
+GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='AIzaSyBC_8mf34uW13LKTM1fKekn_xL7w_socHE')
+
 # Application definition
 DJANGO_APPS = [
     'grappelli',  # Must be before django.contrib.admin

@@ -2,6 +2,7 @@ from django.db import models
 from django.urls import reverse
 from django.core.validators import RegexValidator
 from django.contrib.contenttypes.fields import GenericRelation
+from django.conf import settings
 from decimal import Decimal
 import uuid
 
@@ -353,7 +354,7 @@ class Location(UUIDModel, TimeStampedModel):
         """Generate Google Maps embed URL"""
         if self.coordinates:
             lat, lng = self.coordinates
-            return f"https://www.google.com/maps/embed/v1/place?key=YOUR_API_KEY&q={lat},{lng}"
+            return f"https://www.google.com/maps/embed/v1/place?key={settings.GOOGLE_MAPS_API_KEY}&q={lat},{lng}"
         return None
     
     @property
