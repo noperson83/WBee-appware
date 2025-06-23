@@ -76,7 +76,9 @@
       </li>
       <li class="list-group-item">
         <strong>For Project:</strong>
-          <a href="{{ task.task_list.scope.project.get_absolute_url }}">{{ task.task_list.scope.project.job_num }} - {{ task.task_list.scope.project.job_name }} - {{ task.task_list.scope.project.jobsite }}</a>
+          <a href="{{ task.task_list.scope.project.get_absolute_url }}">
+            {{ task.task_list.scope.project.job_number }} - {{ task.task_list.scope.project.name }} - {{ task.task_list.scope.project.location }}
+          </a>
       </li>
     </ul>
   </div>
@@ -91,7 +93,7 @@
     <div class="card mb-3">
       <div class="card-header"><b>Devices</b>
         {% if request.user.staff %}
-          <a href="{% url 'project:device-create' job_number=task.task_list.scope.project.job_num %}"><div class="add_jobsite"> + add</div></a>
+          <a href="{% url 'project:device-create' job_number=task.task_list.scope.project.job_number %}"><div class="add_jobsite"> + add</div></a>
         {% else %}
         {% endif %}
       </div>
@@ -120,7 +122,7 @@
     <div class="card mb-3">
       <div class="card-header"><b>Hardware</b> - <a href="">details</a>
         {% if request.user.staff %}
-          <a href="{% url 'project:hardware-create' job_number=task.task_list.scope.project.job_num %}"><div class="add_jobsite"> + add</div></a>
+          <a href="{% url 'project:hardware-create' job_number=task.task_list.scope.project.job_number %}"><div class="add_jobsite"> + add</div></a>
         {% else %}
         {% endif %}
       </div>
@@ -148,7 +150,7 @@
     <div class="card mb-3">
       <div class="card-header"><b>Software</b> - <a href="">details</a>
         {% if request.user.staff %}
-          <a href="{% url 'project:software-create' job_number=task.task_list.scope.project.job_num %}"><div class="add_jobsite"> + add</div></a>
+          <a href="{% url 'project:software-create' job_number=task.task_list.scope.project.job_number %}"><div class="add_jobsite"> + add</div></a>
         {% else %}
         {% endif %}
       </div>
@@ -176,7 +178,7 @@
     <div class="card mb-3">
       <div class="card-header"><b>License</b> - <a href="">details</a>
         {% if request.user.staff %}
-          <a href="{% url 'project:license-create' job_number=task.task_list.scope.project.job_num %}"><div class="add_jobsite"> + add</div></a>
+          <a href="{% url 'project:license-create' job_number=task.task_list.scope.project.job_number %}"><div class="add_jobsite"> + add</div></a>
         {% else %}
         {% endif %}
       </div>
@@ -204,7 +206,7 @@
     <div class="card mb-3">
       <div class="card-header"><b>Travel</b>
         {% if request.user.staff %}
-          <a href="{% url 'project:travel-create' job_number=task.task_list.scope.project.job_num %}"><div class="add_jobsite"> + add</div></a>
+          <a href="{% url 'project:travel-create' job_number=task.task_list.scope.project.job_number %}"><div class="add_jobsite"> + add</div></a>
         {% else %}
         {% endif %}
       </div>

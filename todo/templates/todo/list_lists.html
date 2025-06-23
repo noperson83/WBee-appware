@@ -22,7 +22,7 @@
     <ul class="list-group mb-4">
       {% for task in group.list %}
       <li class="list-group-item d-flex justify-content-between align-items-center">
-        <a href="{{ task.scope.project.get_absolute_url }}">{{ task.scope.project.job_num }}</a> - <a href="{% url 'todo:list_detail' task.id task.slug %}">{{ task.name|truncatechars:35 }}</a> 
+        <a href="{{ task.scope.project.get_absolute_url }}">{{ task.scope.project.job_number }}</a> - <a href="{% url 'todo:list_detail' task.id task.slug %}">{{ task.name|truncatechars:35 }}</a>
         <span class="badge badge-primary badge-pill">{{ task.task_set.count }}</span>
       </li>
       {% endfor %}
