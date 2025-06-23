@@ -431,7 +431,7 @@ class LocationAdmin(admin.ModelAdmin):
             
             stats = {
                 'total_projects': projects.count(),
-                'active_projects': projects.exclude(job_status__in=['c', 'm', 'l']).count(),
+                'active_projects': projects.exclude(status__in=['c', 'm', 'l']).count(),
                 'documents': obj.documents.count(),
                 'notes': obj.notes.count(),
             }

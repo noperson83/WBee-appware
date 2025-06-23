@@ -173,7 +173,7 @@ class LocationDetailView(DetailView):
                 location=location
             ).order_by('-created_at')
             context['active_projects_count'] = context['projects'].exclude(
-                job_status__in=['c', 'm', 'l']
+                status__in=['c', 'm', 'l']
             ).count()
         except ImportError:
             context['projects'] = []

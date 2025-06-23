@@ -329,7 +329,7 @@ class Location(UUIDModel, TimeStampedModel):
     def active_projects_count(self):
         """Count of active projects at this location"""
         try:
-            return self.projects.exclude(job_status__in=['c', 'm', 'l']).count()
+            return self.projects.exclude(status__in=['c', 'm', 'l']).count()
         except:
             return 0
     
@@ -390,8 +390,8 @@ class Location(UUIDModel, TimeStampedModel):
         """Get summary of project statuses at this location"""
         try:
             from project.models import Project
-            return Project.objects.filter(location=self).values('job_status').annotate(
-                count=models.Count('job_status')
+            return Project.objects.filter(location=self).values('status').annotate(
+                count=models.Count('status')
             )
         except ImportError:
             return []
