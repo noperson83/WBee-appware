@@ -275,7 +275,8 @@ class Project(UUIDModel, TimeStampedModel):
         return f"{self.job_number} - {self.name} ({self.location.name})"
     
     def get_absolute_url(self):
-        return reverse('project-detail', args=[str(self.job_number)])
+        """Return the URL for this project detail view."""
+        return reverse('project:project-detail', kwargs={'job_number': str(self.job_number)})
     
     # Business-specific terminology
     @property
