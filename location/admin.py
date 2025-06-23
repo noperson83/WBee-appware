@@ -370,6 +370,9 @@ class LocationAdmin(admin.ModelAdmin):
         """Display GPS coordinates"""
         if obj.coordinates:
             lat, lng = obj.coordinates
+            # Ensure values are plain floats to avoid SafeString formatting errors
+            lat = float(lat)
+            lng = float(lng)
             return format_html(
                 '<a href="https://www.google.com/maps?q={},{}" target="_blank">{:.4f}, {:.4f}</a>',
                 lat, lng, lat, lng
