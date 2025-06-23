@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.db.models import Sum, Count
 from django.utils import timezone
+from django.conf import settings
 
 from .models import (
     BusinessCategory, ConfigurableChoice, LocationType, Location, 
@@ -412,13 +413,11 @@ class LocationAdmin(admin.ModelAdmin):
         """Display embedded map if coordinates available"""
         if obj.coordinates:
             lat, lng = obj.coordinates
-            # Note: Replace YOUR_API_KEY with actual Google Maps API key
             return format_html(
-                '<div style="background: #f0f0f0; padding: 10px; text-align: center;">'
-                '<p>Map would appear here with Google Maps API key</p>'
-                '<p><a href="https://www.google.com/maps?q={},{}" target="_blank">View on Google Maps</a></p>'
-                '</div>',
-                lat, lng
+                '<iframe width="300" height="200" src="https://www.google.com/maps/embed/v1/place?key={key}&q={lat},{lng}" allowfullscreen></iframe>',
+                key=settings.GOOGLE_MAPS_API_KEY,
+                lat=lat,
+                lng=lng,
             )
         return "No coordinates set"
     coordinates_map.short_description = 'Map Preview'
