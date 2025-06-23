@@ -538,10 +538,18 @@ class Department(TimeStampedModel):
     
     @property
     def full_department_path(self):
-        """Get full department hierarchy path"""
-        if self.parent_department:
-            return f"{self.parent_department.full_department_path} > {self.name}"
-        return self.name
+        """Return the department hierarchy path without infinite recursion"""
+        names = []
+        current = self
+        visited = set()
+        while current is not None:
+            if current.pk in visited:
+                # Break on cycles to avoid infinite recursion
+                break
+            names.append(current.name)
+            visited.add(current.pk)
+            current = current.parent_department
+        return " > ".join(reversed(names))
 
 # Company settings model for system-wide configurations
 class CompanySettings(TimeStampedModel):
