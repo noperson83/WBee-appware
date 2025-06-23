@@ -26,7 +26,11 @@
       <h5>Tasks assigned to me (in all groups)</h5>
     {% else %}
       <h5>{{ view_completed|yesno:"Completed tasks, Tasks" }} in "{{ task_list.name }}"</h5>
-      <h5><a href="{{ task_list.scope.project.get_absolute_url }}">{{ task_list.scope.project.job_num }} - {{ task_list.scope.project.job_name }} - {{ task_list.scope.project.jobsite }}</a></h5>
+      <h5>
+        <a href="{{ task_list.scope.project.get_absolute_url }}">
+          {{ task_list.scope.project.job_number }} - {{ task_list.scope.project.name }} - {{ task_list.scope.project.location }}
+        </a>
+      </h5>
       <p><small><i>In workgroup "{{ task_list.group }}" - drag rows to set priorities.</i></small></p>
     {% endif %}
 
@@ -79,7 +83,11 @@
 
   {% else %}
     <h4>No tasks on this list yet  in "{{ task_list.name }}" (add one!)</h4>
-    <h5><a href="{{ task_list.scope.project.get_absolute_url }}">{{ task_list.scope.project.job_num }} - {{ task_list.scope.project.job_name }} - {{ task_list.scope.project.jobsite }}</a></h5>
+    <h5>
+      <a href="{{ task_list.scope.project.get_absolute_url }}">
+        {{ task_list.scope.project.job_number }} - {{ task_list.scope.project.name }} - {{ task_list.scope.project.location }}
+      </a>
+    </h5>
     {% include 'todo/include/toggle_delete.html' %}
 
   {% endif %}
