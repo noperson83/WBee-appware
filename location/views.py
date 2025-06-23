@@ -25,7 +25,14 @@ import csv
 import io
 
 from client.models import Client
-from .models import Location, BusinessCategory, LocationType, LocationDocument, LocationNote
+from .models import (
+    Location,
+    BusinessCategory,
+    LocationType,
+    LocationDocument,
+    LocationNote,
+    get_dynamic_choices,
+)
 from .forms import (
     LocationForm,
     LocationDocumentForm,
@@ -320,7 +327,87 @@ class LocationNoteUpdateView(LoginRequiredMixin, UpdateView):
     model = LocationNote
     form_class = LocationNoteForm
     template_name = 'location/note_form.html'
-    
+
+    def get_success_url(self):
+        return reverse('location:location-detail', kwargs={'pk': self.object.location.pk})
+
+
+class LocationNoteListView(LoginRequiredMixin, ListView):
+    """List notes for a specific location with filtering"""
+    model = LocationNote
+    template_name = 'location/note_list.html'
+    context_object_name = 'notes'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = LocationNote.objects.filter(
+            location_id=self.kwargs['location_pk']
+        ).order_by('-created_at')
+
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(
+                Q(title__icontains=search) | Q(content__icontains=search)
+            )
+
+        note_type = self.request.GET.get('note_type')
+        if note_type:
+            queryset = queryset.filter(note_type=note_type)
+
+        priority = self.request.GET.get('priority')
+        if priority:
+            queryset = queryset.filter(priority=priority)
+
+        req_follow = self.request.GET.get('requires_followup')
+        if req_follow in ['true', 'false']:
+            queryset = queryset.filter(requires_followup=(req_follow == 'true'))
+
+        client_visible = self.request.GET.get('client_visible')
+        if client_visible in ['true', 'false']:
+            queryset = queryset.filter(is_client_visible=(client_visible == 'true'))
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        location = get_object_or_404(Location, pk=self.kwargs['location_pk'])
+        context['location'] = location
+        context['today'] = timezone.now().date()
+        context['week_from_now'] = context['today'] + timezone.timedelta(days=7)
+
+        notes_all = location.notes.all()
+        context['total_notes'] = notes_all.count()
+        context['followup_notes_count'] = notes_all.filter(requires_followup=True).count()
+        context['client_visible_count'] = notes_all.filter(is_client_visible=True).count()
+        context['overdue_followups_count'] = notes_all.filter(
+            requires_followup=True,
+            followup_date__lt=context['today']
+        ).count()
+
+        context['note_type_choices'] = get_dynamic_choices('note_type', location.business_category)
+
+        return context
+
+
+class LocationNoteDetailView(LoginRequiredMixin, DetailView):
+    """Display a single location note"""
+    model = LocationNote
+    template_name = 'location/note_detail.html'
+    context_object_name = 'note'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        note = self.object
+        context['recent_notes'] = note.location.notes.order_by('-created_at')[:5]
+        context['today'] = timezone.now().date()
+        return context
+
+
+class LocationNoteDeleteView(LoginRequiredMixin, DeleteView):
+    """Delete a location note"""
+    model = LocationNote
+    template_name = 'location/note_confirm_delete.html'
+
     def get_success_url(self):
         return reverse('location:location-detail', kwargs={'pk': self.object.location.pk})
 

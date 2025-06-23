@@ -31,12 +31,21 @@ urlpatterns = [
          name='document-delete'),
     
     # Note management
-    path('<uuid:location_pk>/notes/add/', 
-         views.LocationNoteCreateView.as_view(), 
+    path('<uuid:location_pk>/notes/add/',
+         views.LocationNoteCreateView.as_view(),
          name='note-create'),
-    path('notes/<int:pk>/update/', 
-         views.LocationNoteUpdateView.as_view(), 
+    path('notes/<int:pk>/update/',
+         views.LocationNoteUpdateView.as_view(),
          name='note-update'),
+    path('<uuid:location_pk>/notes/',
+         views.LocationNoteListView.as_view(),
+         name='note-list'),
+    path('notes/<int:pk>/',
+         views.LocationNoteDetailView.as_view(),
+         name='note-detail'),
+    path('notes/<int:pk>/delete/',
+         views.LocationNoteDeleteView.as_view(),
+         name='note-delete'),
     
     # Utility views
     path('<uuid:pk>/calculate-totals/', 
