@@ -456,7 +456,7 @@
             <h5 class="mb-0">
               <i class="fas fa-building me-2"></i>Job Sites
               {% if request.user.is_staff %}
-                <a href="#" class="btn btn-sm btn-primary float-end">
+                <a href="{% url 'location:location-create' %}?client={{ client_detail.id }}" class="btn btn-sm btn-primary float-end">
                   <i class="fas fa-plus me-1"></i>Add Job Site
                 </a>
               {% endif %}
@@ -470,24 +470,24 @@
                 <div>
                   <h6 class="mb-1">
                     <a href="{{ jobsite.get_absolute_url }}" class="text-decoration-none">
-                      {{ jobsite.job_title }}
+                      {{ jobsite.name }}
                     </a>
                   </h6>
-                  {% if jobsite.address %}
+                  {% if jobsite.primary_address %}
                     <small class="text-muted">
                       <i class="fas fa-map-marker-alt me-1"></i>
-                      {{ jobsite.address }}
+                      {{ jobsite.full_address_display }}
                     </small>
                   {% endif %}
                 </div>
                 <div class="text-end">
-                  {% if jobsite.signed_contract %}
+                  {% if jobsite.contract_signed_date %}
                     <span class="badge badge-success">
                       <i class="fas fa-check me-1"></i>Signed
                     </span>
                   {% endif %}
                   {% if jobsite.status %}
-                    <span class="badge badge-info">{{ jobsite.get_status_display }}</span>
+                    <span class="badge badge-info">{{ jobsite.status }}</span>
                   {% endif %}
                 </div>
               </div>
@@ -499,7 +499,7 @@
               <h6 class="text-muted mt-3">No job sites yet</h6>
               <p class="text-muted">Create the first job site for this client.</p>
               {% if request.user.is_staff %}
-                <a href="#" class="btn btn-primary">
+                <a href="{% url 'location:location-create' %}?client={{ client_detail.id }}" class="btn btn-primary">
                   <i class="fas fa-plus me-1"></i>Add First Job Site
                 </a>
               {% endif %}
