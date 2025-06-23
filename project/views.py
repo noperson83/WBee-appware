@@ -550,12 +550,11 @@ class ProjectDetailView(ProjectAccessMixin, DetailView):
         
         return sorted(activities, key=lambda x: x['date'], reverse=True)[:10]
 
-class ProjectCreateView(LoginRequiredMixin, ProjectPermissionMixin, AjaxResponseMixin, CreateView):
+class ProjectCreateView(LoginRequiredMixin, AjaxResponseMixin, CreateView):
     """Create new project with business logic validation"""
     model = Project
     form_class = ProjectForm
     template_name = 'project/project_form.html'
-    permission_required = 'project.add_project'
     
     # ProjectForm does not accept a custom 'user' argument. Simply
     # return the default kwargs provided by the generic view.
