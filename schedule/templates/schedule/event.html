@@ -35,16 +35,16 @@
               <a href="{{ event.project.get_absolute_url }}">{{ event.project.job_name }} : {{ event.project.job_num }}</a>
             </h4>
             <p class="
-              {% if event.project.job_status == 'p' %}statusProspect
-              {% elif event.project.job_status == 'q' %}statusQuoted
-              {% elif event.project.job_status == 'o' %}statusInstalling
-              {% elif event.project.job_status == 'c' %}statusComplete
-              {% elif event.project.job_status == 's' %}statusService
-              {% elif event.project.job_status == 't' %}statusTm
-              {% elif event.project.job_status == 'm' %}statusPaid
-              {% elif event.project.job_status == 'i' %}statusInvoiced
+              {% if event.project.status == 'p' %}statusProspect
+              {% elif event.project.status == 'q' %}statusQuoted
+              {% elif event.project.status == 'o' %}statusInstalling
+              {% elif event.project.status == 'c' %}statusComplete
+              {% elif event.project.status == 's' %}statusService
+              {% elif event.project.status == 't' %}statusTm
+              {% elif event.project.status == 'm' %}statusPaid
+              {% elif event.project.status == 'i' %}statusInvoiced
               {% else %}statusLost
-              {% endif %}">Status: {{ event.project.get_job_status_display }}</p>
+              {% endif %}">Status: {{ event.project.get_status_display|default:event.project.status }}</p>
             
             <strong><a href="{{ event.project.jobsite.get_absolute_url }}">{{ event.project.jobsite }}</a></strong> - 
                 (<a href="{{ event.project.jobsite.job_client.get_absolute_url }}">{{ event.project.jobsite.job_client }}</a>)
@@ -56,8 +56,8 @@
               </h6>
             </a>
             {% if event.project.due_date %}
-              {% if event.project.job_status != 'c' %}
-                <strong>Due date:</strong> {{event.project.due_date}}
+              {% if event.project.status != 'c' %}
+                <strong>Due date:</strong> {{ event.project.due_date }}
               {% endif %}
             {% endif %}
           </div>

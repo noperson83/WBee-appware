@@ -223,8 +223,8 @@ class ClientAdmin(admin.ModelAdmin):
             
             stats = {
                 'total_projects': projects.count(),
-                'active_projects': projects.exclude(job_status__in=['c', 'm', 'l']).count(),
-                'completed_projects': projects.filter(job_status='c').count(),
+                'active_projects': projects.exclude(status__in=['c', 'm', 'l']).count(),
+                'completed_projects': projects.filter(status='c').count(),
                 'total_locations': obj.locations.count(),  # Updated from jobsites
                 'active_locations': obj.locations.exclude(status__in=['inactive', 'complete']).count(),
             }
