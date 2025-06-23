@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'asset' %}">Assets</a></li>
+<li class="breadcrumb-item"><a href="{% url 'asset:list' %}">Assets</a></li>
 {% if object %}
 <li class="breadcrumb-item"><a href="{{ object.get_absolute_url }}">{{ object.asset_number }}</a></li>
 <li class="breadcrumb-item active">Edit</li>

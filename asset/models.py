@@ -304,7 +304,8 @@ class Asset(UUIDModel, TimeStampedModel):
         return f"{self.asset_number} - {self.name}"
 
     def get_absolute_url(self):
-        return reverse("asset-detail", args=[str(self.id)])
+        """Return the canonical URL for this asset using the namespaced detail view."""
+        return reverse("asset:detail", args=[str(self.id)])
 
     # Dynamic choice methods
     def get_available_statuses(self):
