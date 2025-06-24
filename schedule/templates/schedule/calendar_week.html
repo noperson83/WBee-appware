@@ -11,19 +11,19 @@
 
 <div class="row row-centered">
   <div class="col">
-    <a class="btn btn-primary gradient" href="{% url "month_calendar" calendar.slug %}{% querystring_for_date period.start 2 %}">
+    <a class="btn btn-primary gradient" href="{% url "schedule:month_calendar" calendar.slug %}{% querystring_for_date period.start 2 %}">
       {% trans "Month" %}
     </a>
-    <a class="btn btn-primary gradient" href="{% url "year_calendar" calendar.slug %}{% querystring_for_date period.start 1 %}">
+    <a class="btn btn-primary gradient" href="{% url "schedule:year_calendar" calendar.slug %}{% querystring_for_date period.start 1 %}">
       {% trans "Year" %}
     </a>
   </div>
   <div class="col">
-    {{ calendar.name }} {% prevnext "week_calendar" calendar period "\W\e\ek W, M Y" %}
+    {{ calendar.name }} {% prevnext "schedule:week_calendar" calendar period "\W\e\ek W, M Y" %}
   </div>
   <div class="col">
     <div class="now">
-      <a class="btn btn-primary gradient" href="{% url "week_calendar" calendar.slug %}">
+      <a class="btn btn-primary gradient" href="{% url "schedule:week_calendar" calendar.slug %}">
         {% trans "This week" %}
       </a>
     </div>
@@ -33,7 +33,7 @@
   {% for day in period.get_days %}
     <div class="col-md-3">
       <div class="row row-centered">
-        <a class="btn btn-primary gradient" href="{% url "day_calendar" calendar.slug %}{% querystring_for_date day.start 3 %}">
+        <a class="btn btn-primary gradient" href="{% url "schedule:day_calendar" calendar.slug %}{% querystring_for_date day.start 3 %}">
           {{day.start|date:"l, d"}}
         </a>
       </div>

@@ -25,12 +25,12 @@
    <div class="card sched_container scheduler_month">
    <div class="row sched_navline" style="width: 100%;">
     <div class="col">
-      <a href="{% url "day_calendar" calendar.slug %}"><div class="btn-custom sched_tab sched_tab_first" name="day_tab">{% trans "Day" %}</div></a>
-      <a href="{% url "week_calendar" calendar.slug %}"><div class="btn-custom sched_tab" name="week_tab">{% trans "Week" %}</div></a>
-      <a href="{% url "month_calendar" calendar.slug %}{% querystring_for_date period.start 2 %}"><div class="btn-custom sched_tab active" name="month_tab">{% trans "Month" %}</div></a>
-      <a href="{% url "year_calendar" calendar.slug %}{% querystring_for_date period.start 1 %}"><div class="btn-custom sched_tab sched_tab_last" name="month_tab">{% trans "Year" %}</div></a>
+      <a href="{% url "schedule:day_calendar" calendar.slug %}"><div class="btn-custom sched_tab sched_tab_first" name="day_tab">{% trans "Day" %}</div></a>
+      <a href="{% url "schedule:week_calendar" calendar.slug %}"><div class="btn-custom sched_tab" name="week_tab">{% trans "Week" %}</div></a>
+      <a href="{% url "schedule:month_calendar" calendar.slug %}{% querystring_for_date period.start 2 %}"><div class="btn-custom sched_tab active" name="month_tab">{% trans "Month" %}</div></a>
+      <a href="{% url "schedule:year_calendar" calendar.slug %}{% querystring_for_date period.start 1 %}"><div class="btn-custom sched_tab sched_tab_last" name="month_tab">{% trans "Year" %}</div></a>
     </div>
-    <div class="col sched_date"><span class="month_head">{% prevnext "month_calendar" calendar period "F Y"%}</span></div>
+    <div class="col sched_date"><span class="month_head">{% prevnext "schedule:month_calendar" calendar period "F Y"%}</span></div>
     <div class="col sched_date"><span class="month_head"><div class="calendarname">{{ calendar.name }}</div></span></div>
   </div>
  
@@ -41,10 +41,10 @@
         </div>
       </div>
       <div class="row-centered">
-        <a href="{% url "tri_month_calendar" calendar.slug %}{% querystring_for_date period.start 2 %}">
+        <a href="{% url "schedule:tri_month_calendar" calendar.slug %}{% querystring_for_date period.start 2 %}">
           {% trans "Three Month Calendar" %}
         </a>
-        <a href="{% url "year_calendar" calendar.slug %}{% querystring_for_date period.start 1 %}">
+        <a href="{% url "schedule:year_calendar" calendar.slug %}{% querystring_for_date period.start 1 %}">
           {% trans "Full Year Calendar" %}
         </a>
     </div>
