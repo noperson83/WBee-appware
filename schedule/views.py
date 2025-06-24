@@ -1,14 +1,14 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse
 from django.views.generic import CreateView, DetailView, ListView
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.http import Http404
 from django.utils import timezone
 import datetime
 
 from .periods import Day, Week, Month, Year, weekday_names
 from .settings import GET_EVENTS_FUNC
-from .models import Event, Calendar
+from .models import Event, Calendar, Occurrence
 from .forms import NewEventForm
 from project.models import Project
 
@@ -238,4 +238,22 @@ class TriMonthCalendarView(MonthCalendarView):
     """Display a three-month calendar view for a specific calendar."""
 
     template_name = "schedule/calendar_tri_month.html"
+
+
+class OccurrenceDetailView(LoginRequiredMixin, DetailView):
+    """Simple detail view for a persisted occurrence."""
+
+    model = Occurrence
+    template_name = "schedule/occurrence.html"
+    context_object_name = "occurrence"
+
+
+def occurrence_by_date(request, event_id, year, month, day, hour, minute, second):
+    """Fallback view for unsaved occurrences.
+
+    Since individual occurrence views are not supported, redirect the
+    request to the associated event detail page.
+    """
+
+    return redirect("schedule:event-detail", event_id)
 
