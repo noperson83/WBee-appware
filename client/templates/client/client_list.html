@@ -150,6 +150,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
     justify-content: center;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     z-index: 1050;
+    font-size: 1.25rem;
   }
 </style>
 {% endblock %}
@@ -178,7 +179,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
               <i class="fas fa-list"></i> Table
             </button>
           </div>
-          {% if request.user.staff %}
+          {% if request.user.is_staff %}
           <a href="{% url 'client:create' %}" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i>Add Client
           </a>
@@ -529,9 +530,11 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
     </div>
   </div>
 </div>
+{% if request.user.is_staff %}
 <a href="{% url 'client:create' %}" class="btn btn-primary rounded-circle add-client-btn" title="Add Client">
   <i class="fas fa-plus"></i>
 </a>
+{% endif %}
 {% endblock %}
 
 {% block scripter %}
