@@ -100,9 +100,9 @@
   </div>
   <div class="col-lg-4">
     <div class="card mb-3">
-      <div class="card-header" style="background-color:rgb(0, 119, 255);"><b>Scheduled days</b>
+      <div class="card-header" style="background-color:rgb(0, 119, 255);"><b>Scheduled Work</b>
         {% if request.user.is_staff %}
-          <a href="{% url 'create-event' proj=project.job_number %}"><div class="add_jobsite"> + add</div></a>
+          <a href="{% url 'create-event' proj=project.job_number %}"><div class="add_jobsite"> + add work</div></a>
         {% endif %}
       </div>
       {% if scheduling_event_list %}

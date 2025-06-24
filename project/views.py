@@ -465,6 +465,15 @@ class ProjectDetailView(ProjectAccessMixin, DetailView):
             target_date__gte=date.today(),
             is_complete=False
         ).order_by('target_date')[:5]
+
+        # Scheduled events for this project
+        from schedule.models import Event
+        upcoming_events = Event.objects.filter(
+            project=project
+        ).select_related('lead').order_by('start')
+        context['scheduling_event_list'] = upcoming_events
+        context['event_time'] = sum((e.duration_hours for e in upcoming_events), 0)
+
         
         # Team information
         context['team_info'] = {
