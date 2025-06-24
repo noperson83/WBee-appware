@@ -137,6 +137,20 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
     color: #ffd700;
     margin-right: 4px;
   }
+
+  .add-client-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    z-index: 1050;
+  }
 </style>
 {% endblock %}
 
@@ -236,27 +250,27 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
   <!-- Filter Tabs -->
   <ul class="nav nav-tabs filter-tabs" role="tablist">
     <li class="nav-item">
-      <a class="nav-link active" href="#" data-filter="all">
+      <a class="nav-link {% if not status_filter or status_filter == 'all' %}active{% endif %}" href="#" data-filter="all">
         <i class="fas fa-list me-1"></i>All Clients
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="#" data-filter="active">
+      <a class="nav-link {% if status_filter == 'active' %}active{% endif %}" href="#" data-filter="active">
         <span class="status-indicator status-active"></span>Active
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="#" data-filter="prospect">
+      <a class="nav-link {% if status_filter == 'prospect' %}active{% endif %}" href="#" data-filter="prospect">
         <span class="status-indicator status-prospect"></span>Prospects
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="#" data-filter="top">
+      <a class="nav-link {% if status_filter == 'top' %}active{% endif %}" href="#" data-filter="top">
         <i class="fas fa-star text-warning me-1"></i>Top Clients
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" href="#" data-filter="inactive">
+      <a class="nav-link {% if status_filter == 'inactive' %}active{% endif %}" href="#" data-filter="inactive">
         <span class="status-indicator status-inactive"></span>Inactive
       </a>
     </li>
@@ -515,6 +529,9 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
     </div>
   </div>
 </div>
+<a href="{% url 'client:create' %}" class="btn btn-primary rounded-circle add-client-btn" title="Add Client">
+  <i class="fas fa-plus"></i>
+</a>
 {% endblock %}
 
 {% block scripter %}
@@ -549,18 +566,7 @@ $(document).ready(function() {
     $('#cardViewContainer').addClass('d-none');
   });
 
-  // Filter functionality
-  $('.filter-tabs .nav-link').click(function(e) {
-    e.preventDefault();
-    
-    // Update active tab
-    $('.filter-tabs .nav-link').removeClass('active');
-    $(this).addClass('active');
-    
-    // Get filter value
-    const filter = $(this).data('filter');
-    
-    // Filter cards
+  function applyFilter(filter) {
     if (filter === 'all') {
       $('.client-item, .client-row').show();
     } else if (filter === 'top') {
@@ -570,7 +576,23 @@ $(document).ready(function() {
       $('.client-item, .client-row').hide();
       $(`.client-item[data-status="${filter}"], .client-row[data-status="${filter}"]`).show();
     }
+  }
+
+  // Filter functionality
+  $('.filter-tabs .nav-link').click(function(e) {
+    e.preventDefault();
+
+    $('.filter-tabs .nav-link').removeClass('active');
+    $(this).addClass('active');
+
+    const filter = $(this).data('filter');
+    applyFilter(filter);
   });
+
+  const initialFilter = "{{ status_filter|default:'all' }}";
+  applyFilter(initialFilter);
+  $('.filter-tabs .nav-link').removeClass('active');
+  $(`.filter-tabs .nav-link[data-filter="${initialFilter}"]`).addClass('active');
 
   // Search functionality
   $('#clientSearch').on('input', function() {

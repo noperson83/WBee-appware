@@ -183,6 +183,9 @@ body.fixed-nav {
   padding: 1.5rem;
   color: var(--bs-card-color);
 }
+.card .text-dark {
+  color: var(--bs-card-color) !important;
+}
 
 .card-footer {
   border-top: 1px solid #e2e8f0;
@@ -805,6 +808,9 @@ body.sidenav-toggled .content-wrapper {
   .card-body {
     padding: 1rem;
     color: var(--bs-card-color);
+  }
+  .card .text-dark {
+    color: var(--bs-card-color) !important;
   }
   
   .btn {
