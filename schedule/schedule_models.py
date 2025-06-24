@@ -891,20 +891,11 @@ class Occurrence(TimeStampedModel):
 
     def get_absolute_url(self):
         """Return the detail URL for this occurrence."""
-        if self.pk is not None:
-            return reverse(
-                'schedule:occurrence-detail',
-                kwargs={'occurrence_id': self.pk, 'event_id': self.event.id}
-            )
-        return reverse(
-            'schedule:occurrence-by-date',
-            kwargs={
-                'event_id': self.event.id,
-                'year': self.start.year,
-                'month': self.start.month,
-                'day': self.start.day,
-                'hour': self.start.hour,
-                'minute': self.start.minute,
-                'second': self.start.second,
-            }
-        )
+        # The legacy implementation attempted to reverse the ``occurrence-detail``
+        # and ``occurrence-by-date`` URL patterns from ``django-scheduler``.  Those
+        # views are not available in this project which resulted in a
+        # ``NoReverseMatch`` error when templates referenced an occurrence
+        # without an associated primary key.  To keep the interface simple we
+        # just link back to the related event detail page.
+
+        return reverse('schedule:event-detail', args=[self.event.id])
