@@ -2952,8 +2952,25 @@ class ProjectImportView(PlaceholderView):
     pass
 
 
-class ProjectScheduleView(PlaceholderView):
-    pass
+class ProjectScheduleView(LoginRequiredMixin, TemplateView):
+    """Display upcoming scheduled events for the logged in user."""
+    template_name = 'project/schedule.html'
+
+    def get_context_data(self, **kwargs):
+        from schedule.models import Event
+
+        context = super().get_context_data(**kwargs)
+        now = timezone.now()
+        events = (
+            Event.objects.filter(
+                Q(workers=self.request.user) | Q(lead=self.request.user) | Q(creator=self.request.user),
+                start__gte=now
+            )
+            .select_related('project')
+            .order_by('start')[:50]
+        )
+        context['events'] = events
+        return context
 
 
 class ProjectValidationDetailView(PlaceholderView):
