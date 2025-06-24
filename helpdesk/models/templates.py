@@ -39,7 +39,7 @@ class PreSetReply(models.Model):
 
     # Queue Assignment
     queues = models.ManyToManyField(
-        'base.Queue',
+        'helpdesk.Queue',
         blank=True,
         help_text=_('Leave blank to allow this reply to be used for all queues, or select those queues you wish to limit this reply to.')
     )
@@ -145,7 +145,7 @@ class EmailTemplate(models.Model):
 
     # Queue Assignment
     queues = models.ManyToManyField(
-        'base.Queue',
+        'helpdesk.Queue',
         blank=True,
         help_text=_('Leave blank to use for all queues, or select specific queues')
     )

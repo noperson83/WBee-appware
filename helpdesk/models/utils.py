@@ -148,7 +148,7 @@ class UserSettings(models.Model):
         help_text=_('Visual theme preference')
     )
     default_queue = models.ForeignKey(
-        'base.Queue',
+        'helpdesk.Queue',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -308,7 +308,7 @@ class IgnoreEmail(models.Model):
 
     # Queue Assignment
     queues = models.ManyToManyField(
-        'base.Queue',
+        'helpdesk.Queue',
         blank=True,
         help_text=_('Leave blank for this rule to apply to all queues, or select specific queues.')
     )
