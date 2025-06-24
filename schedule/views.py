@@ -36,6 +36,14 @@ class EventCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return self.object.get_absolute_url()
 
 
+class EventDetailView(LoginRequiredMixin, DetailView):
+    """Display detailed information for a single event."""
+
+    model = Event
+    template_name = "schedule/event.html"
+    context_object_name = "event"
+
+
 class CalendarDetailView(LoginRequiredMixin, DetailView):
     """Display details for a specific calendar."""
 
