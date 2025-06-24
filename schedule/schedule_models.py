@@ -563,10 +563,16 @@ class Event(TimeStampedModel):
             if self.start and self.start.time() != time.min:
                 errors['start'] = 'All-day events should start at midnight'
         
-        # Validate worker capacity
-        if self.workers.count() > 0 and self.required_workers > 0:
-            if self.workers.count() > self.required_workers * 2:  # Allow some flexibility
-                errors['workers'] = f'Too many workers assigned (max recommended: {self.required_workers * 2})'
+        # Validate worker capacity only when the instance has a primary key
+        # (Django can't access many-to-many relations on unsaved objects).
+        if self.pk:
+            worker_count = self.workers.count()
+            if worker_count > 0 and self.required_workers > 0:
+                if worker_count > self.required_workers * 2:  # Allow some flexibility
+                    errors['workers'] = (
+                        f'Too many workers assigned (max recommended: '
+                        f'{self.required_workers * 2})'
+                    )
         
         if errors:
             raise ValidationError(errors)
@@ -627,6 +633,10 @@ class Event(TimeStampedModel):
     @property
     def worker_count(self):
         """Get number of assigned workers"""
+        # When the event hasn't been saved yet, accessing the many-to-many
+        # manager would raise an error. Return 0 in that case.
+        if not self.pk:
+            return 0
         return self.workers.count()
 
     @property
