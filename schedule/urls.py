@@ -10,6 +10,16 @@ urlpatterns = [
     path("calendars/", views.CalendarListView.as_view(), name="calendar_list"),
     path("<int:calendar_id>/ical/", CalendarICalendar(), name="calendar-ical"),
     path("events/<int:pk>/", views.EventDetailView.as_view(), name="event-detail"),
+    path(
+        "occurrence/<int:pk>/",
+        views.OccurrenceDetailView.as_view(),
+        name="occurrence-detail",
+    ),
+    path(
+        "occurrence/by-date/<int:event_id>/<int:year>/<int:month>/<int:day>/<int:hour>/<int:minute>/<int:second>/",
+        views.occurrence_by_date,
+        name="occurrence-by-date",
+    ),
     path("event/create/<str:proj>/", views.EventCreateView.as_view(), name="create-event"),
     path(
         "calendars/<slug:slug>/create-event/",
