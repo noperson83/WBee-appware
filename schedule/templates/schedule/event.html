@@ -137,13 +137,13 @@
         </div>
       </div>
     <div class="col-lg-6">
-      <a class="btn btn-primary gradient" href="{% url "day_calendar" event.calendar.slug %}{% querystring_for_date event.start 3 %}">
+        <a class="btn btn-primary gradient" href="{% url "schedule:day_calendar" event.calendar.slug %}{% querystring_for_date event.start 3 %}">
         {% trans "Day" %}
       </a>
-      <a class="btn btn-primary gradient" href="{% url "month_calendar" event.calendar.slug %}{% querystring_for_date event.start 2 %}">
+        <a class="btn btn-primary gradient" href="{% url "schedule:month_calendar" event.calendar.slug %}{% querystring_for_date event.start 2 %}">
         {% trans "Month" %}
       </a>
-      <a class="btn btn-primary gradient" href="{% url "year_calendar" event.calendar.slug %}{% querystring_for_date event.start 1 %}">
+        <a class="btn btn-primary gradient" href="{% url "schedule:year_calendar" event.calendar.slug %}{% querystring_for_date event.start 1 %}">
         {% trans "Year" %}
       </a>
     </div>
