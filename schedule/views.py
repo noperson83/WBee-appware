@@ -88,17 +88,17 @@ class MonthCalendarView(LoginRequiredMixin, DetailView):
     context_object_name = "calendar"
 
     def _get_date(self):
+        now = timezone.now()
         try:
-            parts = {
-                key: int(self.request.GET.get(key))
-                for key in ["year", "month", "day", "hour", "minute", "second"]
-                if self.request.GET.get(key) is not None
-            }
-            if parts:
-                return datetime.datetime(**parts)
+            year = int(self.request.GET.get("year", now.year))
+            month = int(self.request.GET.get("month", now.month))
+            day = int(self.request.GET.get("day", 1))
+            hour = int(self.request.GET.get("hour", 0))
+            minute = int(self.request.GET.get("minute", 0))
+            second = int(self.request.GET.get("second", 0))
+            return datetime.datetime(year, month, day, hour, minute, second)
         except ValueError:
             raise Http404
-        return timezone.now()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -127,17 +127,17 @@ class WeekCalendarView(LoginRequiredMixin, DetailView):
     context_object_name = "calendar"
 
     def _get_date(self):
+        now = timezone.now()
         try:
-            parts = {
-                key: int(self.request.GET.get(key))
-                for key in ["year", "month", "day", "hour", "minute", "second"]
-                if self.request.GET.get(key) is not None
-            }
-            if parts:
-                return datetime.datetime(**parts)
+            year = int(self.request.GET.get("year", now.year))
+            month = int(self.request.GET.get("month", now.month))
+            day = int(self.request.GET.get("day", now.day))
+            hour = int(self.request.GET.get("hour", 0))
+            minute = int(self.request.GET.get("minute", 0))
+            second = int(self.request.GET.get("second", 0))
+            return datetime.datetime(year, month, day, hour, minute, second)
         except ValueError:
             raise Http404
-        return timezone.now()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -166,17 +166,17 @@ class DayCalendarView(LoginRequiredMixin, DetailView):
     context_object_name = "calendar"
 
     def _get_date(self):
+        now = timezone.now()
         try:
-            parts = {
-                key: int(self.request.GET.get(key))
-                for key in ["year", "month", "day", "hour", "minute", "second"]
-                if self.request.GET.get(key) is not None
-            }
-            if parts:
-                return datetime.datetime(**parts)
+            year = int(self.request.GET.get("year", now.year))
+            month = int(self.request.GET.get("month", now.month))
+            day = int(self.request.GET.get("day", now.day))
+            hour = int(self.request.GET.get("hour", 0))
+            minute = int(self.request.GET.get("minute", 0))
+            second = int(self.request.GET.get("second", 0))
+            return datetime.datetime(year, month, day, hour, minute, second)
         except ValueError:
             raise Http404
-        return timezone.now()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -205,17 +205,17 @@ class YearCalendarView(LoginRequiredMixin, DetailView):
     context_object_name = "calendar"
 
     def _get_date(self):
+        now = timezone.now()
         try:
-            parts = {
-                key: int(self.request.GET.get(key))
-                for key in ["year", "month", "day", "hour", "minute", "second"]
-                if self.request.GET.get(key) is not None
-            }
-            if parts:
-                return datetime.datetime(**parts)
+            year = int(self.request.GET.get("year", now.year))
+            month = int(self.request.GET.get("month", 1))
+            day = int(self.request.GET.get("day", 1))
+            hour = int(self.request.GET.get("hour", 0))
+            minute = int(self.request.GET.get("minute", 0))
+            second = int(self.request.GET.get("second", 0))
+            return datetime.datetime(year, month, day, hour, minute, second)
         except ValueError:
             raise Http404
-        return timezone.now()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

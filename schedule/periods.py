@@ -94,7 +94,9 @@ class Period(object):
         for event in self.events:
             event_occurrences = event.get_occurrences(self.start, self.end, clear_prefetch=False)
             occurrences += event_occurrences
-        return sorted(occurrences, **self.sorting_options)
+        sort_opts = {'key': lambda o: o.start}
+        sort_opts.update(self.sorting_options)
+        return sorted(occurrences, **sort_opts)
 
     def cached_get_sorted_occurrences(self):
         if hasattr(self, '_occurrences'):
