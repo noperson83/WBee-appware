@@ -18,7 +18,7 @@
                 {% endfor %}
             </ul>
         {% endif %}
-<a class="btn btn-primary gradient" href="{% url 'calendar_create_event' calendar_slug %}">
+<a class="btn btn-primary gradient" href="{% url 'schedule:calendar_create_event' calendar_slug %}">
     <span class='glyphicon glyphicon-plus'></span>
     {% trans "Add New Session" %}
 </a>

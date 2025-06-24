@@ -107,7 +107,7 @@ def create_event_url(context, calendar, slot):
         'slug': calendar.slug,
     }
     context['create_event_url'] = '%s%s' % (
-        reverse('calendar_create_event', kwargs=lookup_context),
+        reverse('schedule:calendar_create_event', kwargs=lookup_context),
         querystring_for_date(slot))
     return context
 

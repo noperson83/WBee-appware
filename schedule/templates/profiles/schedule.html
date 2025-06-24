@@ -50,12 +50,12 @@
     </tbody>
 </table>
 {% else %}
-    {% url "calendar_create_event" as add_event_url %}
+    {% url "schedule:calendar_create_event" as add_event_url %}
     <p>{% blocktrans %}You haven't added any <a href="{{ add_event_url }}">event</a> yet.{% endblocktrans %}</p>
 {% endif %}
 
 <p>
-    <a href="{% url "calendar_create_event" calendar %}">{% block schedule_add_event_link_label %}{% trans "Add event" %}{% endblock %}</a>
+    <a href="{% url "schedule:calendar_create_event" calendar %}">{% block schedule_add_event_link_label %}{% trans "Add event" %}{% endblock %}</a>
 </p>
 
 {% endblock %}
