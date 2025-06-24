@@ -1,0 +1,12 @@
+version: '3'
+services:
+  app:
+    image: python:3.11
+    volumes:
+      - .:/app
+    working_dir: /app
+    env_file:
+      - .env
+    command: bash -c "./codex_setup.sh && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
