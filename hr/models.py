@@ -442,7 +442,8 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
         return self.get_full_name()
     
     def get_absolute_url(self):
-        return reverse('worker-detail', args=[str(self.id)])
+        """Return the URL to this worker's detail page."""
+        return reverse('hr:worker-detail', args=[str(self.id)])
     
     def get_full_name(self):
         """Return the full name"""
