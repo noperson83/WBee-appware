@@ -24,7 +24,7 @@
     <tbody>
       {% for e in events %}
       <tr{% if e.is_user_event %} class="table-info"{% endif %}>
-        <td><a href="{% url 'day_calendar' e.calendar.slug %}{% querystring_for_date e.start 3 %}">{{ e.start|date:"M d, Y g:i A" }}</a></td>
+        <td><a href="{% url 'schedule:day_calendar' e.calendar.slug %}{% querystring_for_date e.start 3 %}">{{ e.start|date:"M d, Y g:i A" }}</a></td>
         <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
         <td>{% if e.project %}<a href="{% url 'project:project-detail' e.project.job_number %}">{{ e.project.name }}</a>{% else %}-{% endif %}</td>
         <td>{% if e.project %}<a href="{{ e.project.location.get_absolute_url }}">{{ e.project.location.name }}</a>{% else %}{{ e.location|default:"" }}{% endif %}</td>
