@@ -98,11 +98,15 @@ def load_scheduled_events(user):
         # Try to load from schedule app
         from schedule.models import Event
         
-        upcoming_events = Event.objects.filter(
-            workers=user,
-            start__gte=timezone.now(),
-            start__lte=timezone.now() + timedelta(days=30)
-        ).order_by('start')[:5]
+        upcoming_events = (
+            Event.objects.filter(
+                Q(workers=user) | Q(lead=user) | Q(creator=user),
+                start__gte=timezone.now(),
+                start__lte=timezone.now() + timedelta(days=30)
+            )
+            .select_related('project')
+            .order_by('start')[:5]
+        )
         
         for event in upcoming_events:
             # Extract job number from title if it exists

@@ -245,6 +245,16 @@
         </a>
     </div>
     <div class="col">
+        <a href="{% url 'project:project-schedule' %}" class="text-decoration-none">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-calendar fa-2x mb-2 text-info"></i>
+                    <div>Schedule</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col">
         <a href="{% url 'todo:lists' %}" class="text-decoration-none">
             <div class="card text-center h-100">
                 <div class="card-body">
@@ -288,6 +298,7 @@
         <li><a class="dropdown-item" href="{% url 'asset:list' %}"><i class="fas fa-toolbox me-2 text-warning"></i>Assets</a></li>
         <li><a class="dropdown-item" href="{% url 'hr:worker-list' %}"><i class="fas fa-users me-2 text-success"></i>Staff</a></li>
         <li><a class="dropdown-item" href="{% url 'timecard:list' %}"><i class="fas fa-clock me-2 text-danger"></i>Time Cards</a></li>
+        <li><a class="dropdown-item" href="{% url 'project:project-schedule' %}"><i class="fas fa-calendar me-2 text-info"></i>Schedule</a></li>
         <li><a class="dropdown-item" href="{% url 'todo:lists' %}"><i class="fas fa-tasks me-2 text-primary"></i>Todo</a></li>
         <li><a class="dropdown-item" href="{% url 'receipts:list' %}"><i class="fas fa-receipt me-2 text-secondary"></i>Receipts</a></li>
         <li><a class="dropdown-item" href="{% url 'wip:list' %}"><i class="fas fa-balance-scale me-2 text-warning"></i>WIP</a></li>
