@@ -2,7 +2,7 @@
 
 {% block title %}Time card{% endblock %}
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'schedule' %}">Schedule</a></li>
+<li class="breadcrumb-item"><a href="{% url 'schedule:schedule' %}">Schedule</a></li>
 <li class="breadcrumb-item active">Time card / TODAY IS {{ tadai }}</li>
 {% if request.user.staff %}
 <li class="breadcrumb-item"><a href="{% url 'create-timecard' %}">add a new day</a></li>

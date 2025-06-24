@@ -3,7 +3,7 @@
 {% block title %}Schedule{% endblock %}
 {% block styler %}<link href="{% static 'home/vendor/datatables/dataTables.bootstrap4.css' %}" rel="stylesheet" type="text/css"> {% endblock %}
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'schedule' %}">Schedule</a></li>
+<li class="breadcrumb-item"><a href="{% url 'schedule:schedule' %}">Schedule</a></li>
 <li class="breadcrumb-item active"><b>{{ now|date:"F, jS o" }}</b></li>
 {% if request.user.staff %}
 <li class="breadcrumb-item"><a href="{% url 'create-event' proj=dayevent.project.job_num %}">add a new event</a></li>
