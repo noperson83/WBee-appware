@@ -42,14 +42,24 @@ class AddTaskListForm(ModelForm):
         
 
 class AddEditTaskForm(ModelForm):
-    """The picklist showing the users to which a new task can be assigned
-    must find other members of the group this TaskList is attached to."""
+    """Form used for both adding and editing tasks.
+
+    The ``assigned_to`` picklist should contain members of the group that
+    owns the task list the task belongs to. ``task_list`` is expected in the
+    ``initial`` kwargs so we grab it before calling ``super().__init__`` since
+    Django's ``ModelForm`` pops the ``initial`` key during initialisation.
+    """
 
     def __init__(self, user, *args, **kwargs):
+        # Preserve ``initial`` before ``ModelForm`` removes it
+        initial = kwargs.get("initial", {})
+        task_list = initial.get("task_list")
+
         super().__init__(*args, **kwargs)
-        task_list = kwargs.get("initial").get("task_list")
-        members = task_list.group.worker_set.all()
-        self.fields["assigned_to"].queryset = members
+
+        if task_list:
+            members = task_list.group.worker_set.all()
+            self.fields["assigned_to"].queryset = members
         self.fields["assigned_to"].label_from_instance = lambda obj: "%s (%s)" % (
             obj.get_full_name(),
             obj.email,
@@ -64,7 +74,8 @@ class AddEditTaskForm(ModelForm):
             "class": "custom-select mb-3",
             "name": "position",
         }
-        self.fields["task_list"].value = kwargs["initial"]["task_list"].id
+        if task_list:
+            self.fields["task_list"].value = task_list.id
 
     due_date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}), required=False)
 
