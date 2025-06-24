@@ -686,6 +686,29 @@ class Event(TimeStampedModel):
             self.completion_notes = completion_notes
         self.save()
 
+    def get_occurrences(self, start, end, clear_prefetch=True):
+        """Return occurrences for this event within the given time range."""
+        if clear_prefetch:
+            self.refresh_from_db()
+
+        occurrences = list(
+            self.occurrence_set.filter(start__lt=end, end__gt=start)
+        )
+
+        if not occurrences and self.rule is None:
+            if self.start < end and self.end > start:
+                occurrences.append(
+                    Occurrence(
+                        event=self,
+                        start=self.start,
+                        end=self.end,
+                        original_start=self.start,
+                        original_end=self.end,
+                    )
+                )
+
+        return occurrences
+
 class EventRelationManager(models.Manager):
     def get_events_for_object(self, content_object, distinction='', inherit=True):
         """Get events for a specific object with optional inheritance"""
