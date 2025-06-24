@@ -51,12 +51,13 @@ def day_cell(context, calendar, day, month, size='regular'):
 
 
 @register.inclusion_tag('schedule/_daily_table.html', takes_context=True)
-def daily_table(context, day, start=8, end=20, increment=30):
+def daily_table(context, day, start=0, end=24, increment=30):
     """
-      Display a nice table with occurrences and action buttons.
+      Display a table with occurrences and action buttons.
+
       Arguments:
-      start - hour at which the day starts
-      end - hour at which the day ends
+      start - hour at which the day starts (default 0)
+      end - hour at which the day ends (default 24)
       increment - size of a time slot (in minutes)
     """
     user = context['request'].user
