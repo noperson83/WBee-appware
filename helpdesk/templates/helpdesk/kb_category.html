@@ -12,7 +12,7 @@
 
 {% for item in items %}
 {% cycle 'one' 'two' 'three' as itemnumperrow silent %}
-{% ifequal itemnumperrow 'one' %}<div class="row">{% endifequal %}
+{% if itemnumperrow == 'one' %}<div class="row">{% endif %}
     <div class="col-lg-3">
         <div class="panel panel-primary">
             <div class="panel-heading">
@@ -32,7 +32,7 @@
             </div>
         </div>
     </div>
-{% ifequal itemnumperrow 'three' %}</div>{% endifequal %}
+{% if itemnumperrow == 'three' %}</div>{% endif %}
 {% endfor %}
 
 {% endblock %}
