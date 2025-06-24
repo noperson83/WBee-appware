@@ -38,6 +38,12 @@
                   {{ workers }}
                 {% endfor %}</select></div>
             <div class="form-row">
+              <label for="id_tasks">&nbsp; Tasks:</label>{{ form.tasks.errors }}
+              <select class="form-control" name="tasks" multiple="" id="id_tasks">
+                {% for task in form.tasks %}
+                  {{ task }}
+                {% endfor %}</select></div>
+            <div class="form-row">
               <label for="id_calendar">&nbsp; Calendar:</label>{{ form.calendar.errors }}
               <select class="form-control" name="calendar" id="id_calendar">
                 {% for calendar in form.calendar %}

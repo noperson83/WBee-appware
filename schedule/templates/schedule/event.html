@@ -104,6 +104,17 @@
               <h3>{% trans "Project Details" %}</h3>
               <p>{{event.details}}</p>
             {% endif %}
+            {% if event.tasks.exists %}
+              <h3>{% trans "Related Tasks" %}</h3>
+              <ul>
+              {% for task in event.tasks.all %}
+                <li>
+                  <a href="{{ task.get_absolute_url }}">{{ task.title }}</a>
+                  {% if task.completed %}(completed){% else %}{{ task.get_status_display|default:task.status }}{% endif %}
+                </li>
+              {% endfor %}
+              </ul>
+            {% endif %}
           </div>
         </div>
       </div>

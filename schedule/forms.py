@@ -5,6 +5,7 @@ from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 
 from schedule.models import Event, Occurrence
+from todo.models import Task
 from schedule.widgets import ColorInput
 
 
@@ -24,9 +25,17 @@ class NewEventForm(ModelForm):
     start = forms.SplitDateTimeField(label=_("start"))
     end = forms.SplitDateTimeField(label=_("end"),
                                    help_text=_("The end time must be later than start time."))
-    end_recurring_period = forms.DateTimeField(label=_("End recurring period"),
-                                               help_text=_("This date is ignored for one time only events."),
-                                               required=False)
+    end_recurring_period = forms.DateTimeField(
+        label=_("End recurring period"),
+        help_text=_("This date is ignored for one time only events."),
+        required=False,
+    )
+    tasks = forms.ModelMultipleChoiceField(
+        queryset=Task.objects.all(),
+        required=False,
+        widget=forms.SelectMultiple(attrs={"class": "custom-select mb-3"}),
+        label=_("Tasks"),
+    )
 
     def clean(self):
         if 'end' in self.cleaned_data and 'start' in self.cleaned_data:
@@ -46,10 +55,14 @@ class NewEventForm(ModelForm):
             "class": "custom-select mb-3",
             "name": "color_event",
         }
+        self.fields["tasks"].widget.attrs.update({
+            "id": "id_tasks",
+            "name": "tasks",
+        })
     
     class Meta:
         model = Event
-        fields = ['project', 'lead', 'workers', 'text', 'equip', 'details', 'start_time', 'start', 'end', 'title', 'description', 'creator', 'rule', 'end_recurring_period', 'calendar', 'color_event']
+        fields = ['project', 'lead', 'workers', 'tasks', 'text', 'equip', 'details', 'start_time', 'start', 'end', 'title', 'description', 'creator', 'rule', 'end_recurring_period', 'calendar', 'color_event']
         exclude = []
         
 

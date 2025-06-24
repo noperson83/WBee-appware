@@ -349,6 +349,10 @@ class EventAdmin(admin.ModelAdmin):
                 'staff_breakdown'
             )
         }),
+        ('Tasks', {
+            'fields': ('tasks',),
+            'classes': ('collapse',),
+        }),
         ('Legacy Fields', {
             'fields': (
                 'text',
@@ -404,7 +408,7 @@ class EventAdmin(admin.ModelAdmin):
         })
     )
 
-    filter_horizontal = ('workers',)
+    filter_horizontal = ('workers', 'tasks')
     inlines = [EventRelationInline, OccurrenceInline]
 
     actions = [
