@@ -600,17 +600,23 @@ class Event(TimeStampedModel):
     @property
     def is_past(self):
         """Check if event is in the past"""
+        if not self.end:
+            return False
         return self.end < timezone.now()
 
     @property
     def is_current(self):
         """Check if event is currently happening"""
+        if not self.start or not self.end:
+            return False
         now = timezone.now()
         return self.start <= now <= self.end
 
     @property
     def is_upcoming(self):
         """Check if event is upcoming"""
+        if not self.start:
+            return False
         return self.start > timezone.now()
 
     @property
