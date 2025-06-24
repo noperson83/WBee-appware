@@ -6,7 +6,7 @@ from django.http import Http404
 from django.utils import timezone
 import datetime
 
-from .periods import Month, weekday_names
+from .periods import Day, Week, Month, Year, weekday_names
 from .settings import GET_EVENTS_FUNC
 from .models import Event, Calendar
 from .forms import NewEventForm
@@ -103,3 +103,127 @@ class MonthCalendarView(LoginRequiredMixin, DetailView):
             }
         )
         return context
+
+
+class WeekCalendarView(LoginRequiredMixin, DetailView):
+    """Display a weekly calendar view for a specific calendar."""
+
+    model = Calendar
+    template_name = "schedule/calendar_week.html"
+    slug_field = "slug"
+    slug_url_kwarg = "slug"
+    context_object_name = "calendar"
+
+    def _get_date(self):
+        try:
+            parts = {
+                key: int(self.request.GET.get(key))
+                for key in ["year", "month", "day", "hour", "minute", "second"]
+                if self.request.GET.get(key) is not None
+            }
+            if parts:
+                return datetime.datetime(**parts)
+        except ValueError:
+            raise Http404
+        return timezone.now()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        calendar = self.object
+        date = self._get_date()
+        events = GET_EVENTS_FUNC(self.request, calendar)
+        period = Week(events, date, tzinfo=timezone.get_current_timezone())
+        context.update(
+            {
+                "date": date,
+                "period": period,
+                "calendar": calendar,
+                "weekday_names": weekday_names,
+            }
+        )
+        return context
+
+
+class DayCalendarView(LoginRequiredMixin, DetailView):
+    """Display a daily calendar view for a specific calendar."""
+
+    model = Calendar
+    template_name = "schedule/calendar_day.html"
+    slug_field = "slug"
+    slug_url_kwarg = "slug"
+    context_object_name = "calendar"
+
+    def _get_date(self):
+        try:
+            parts = {
+                key: int(self.request.GET.get(key))
+                for key in ["year", "month", "day", "hour", "minute", "second"]
+                if self.request.GET.get(key) is not None
+            }
+            if parts:
+                return datetime.datetime(**parts)
+        except ValueError:
+            raise Http404
+        return timezone.now()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        calendar = self.object
+        date = self._get_date()
+        events = GET_EVENTS_FUNC(self.request, calendar)
+        period = Day(events, date, tzinfo=timezone.get_current_timezone())
+        context.update(
+            {
+                "date": date,
+                "period": period,
+                "calendar": calendar,
+                "weekday_names": weekday_names,
+            }
+        )
+        return context
+
+
+class YearCalendarView(LoginRequiredMixin, DetailView):
+    """Display a yearly calendar view for a specific calendar."""
+
+    model = Calendar
+    template_name = "schedule/calendar_year.html"
+    slug_field = "slug"
+    slug_url_kwarg = "slug"
+    context_object_name = "calendar"
+
+    def _get_date(self):
+        try:
+            parts = {
+                key: int(self.request.GET.get(key))
+                for key in ["year", "month", "day", "hour", "minute", "second"]
+                if self.request.GET.get(key) is not None
+            }
+            if parts:
+                return datetime.datetime(**parts)
+        except ValueError:
+            raise Http404
+        return timezone.now()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        calendar = self.object
+        date = self._get_date()
+        events = GET_EVENTS_FUNC(self.request, calendar)
+        period = Year(events, date, tzinfo=timezone.get_current_timezone())
+        context.update(
+            {
+                "date": date,
+                "period": period,
+                "calendar": calendar,
+                "weekday_names": weekday_names,
+            }
+        )
+        return context
+
+
+class TriMonthCalendarView(MonthCalendarView):
+    """Display a three-month calendar view for a specific calendar."""
+
+    template_name = "schedule/calendar_tri_month.html"
+
