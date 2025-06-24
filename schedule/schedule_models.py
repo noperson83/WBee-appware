@@ -193,7 +193,8 @@ class Calendar(TimeStampedModel):
         ).order_by('start')
 
     def get_absolute_url(self):
-        return reverse('calendar-detail', kwargs={'slug': self.slug})
+        """Return the detail URL for this calendar."""
+        return reverse('schedule:calendar-detail', kwargs={'slug': self.slug})
 
 class CalendarRelationManager(models.Manager):
     def create_relation(self, calendar, content_object, distinction='', inheritable=True):
@@ -652,7 +653,8 @@ class Event(TimeStampedModel):
         return None
 
     def get_absolute_url(self):
-        return reverse('event-detail', args=[self.id])
+        """Return the detail URL for this event."""
+        return reverse('schedule:event-detail', args=[self.id])
 
     def can_edit(self, user):
         """Check if user can edit this event"""
@@ -865,17 +867,21 @@ class Occurrence(TimeStampedModel):
         self.save()
 
     def get_absolute_url(self):
+        """Return the detail URL for this occurrence."""
         if self.pk is not None:
-            return reverse('occurrence-detail', kwargs={
-                'occurrence_id': self.pk,
-                'event_id': self.event.id
-            })
-        return reverse('occurrence-by-date', kwargs={
-            'event_id': self.event.id,
-            'year': self.start.year,
-            'month': self.start.month,
-            'day': self.start.day,
-            'hour': self.start.hour,
-            'minute': self.start.minute,
-            'second': self.start.second,
-        })
+            return reverse(
+                'schedule:occurrence-detail',
+                kwargs={'occurrence_id': self.pk, 'event_id': self.event.id}
+            )
+        return reverse(
+            'schedule:occurrence-by-date',
+            kwargs={
+                'event_id': self.event.id,
+                'year': self.start.year,
+                'month': self.start.month,
+                'day': self.start.day,
+                'hour': self.start.hour,
+                'minute': self.start.minute,
+                'second': self.start.second,
+            }
+        )
