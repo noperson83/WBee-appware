@@ -31,6 +31,7 @@ urlpatterns = [
     path('create-event/<str:proj>/', EventCreateView.as_view(), name='create-event'),
     path("schedule/", include("schedule.urls")),
     path('timecard/', include('timecard.urls')),
+    path('helpdesk/', include('helpdesk.urls', namespace="helpdesk")),
     path('todo/', include('todo.urls', namespace="todo")),
     path('wip/', include('wip.urls')),
 ]
