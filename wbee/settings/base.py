@@ -5,11 +5,12 @@ Production-ready configuration with environment variables
 
 import os
 from pathlib import Path
-from decouple import config, Csv
+from decouple import Csv, AutoConfig
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+config = AutoConfig(search_path=BASE_DIR)
 
 # ==============================================================================
 # CORE SETTINGS
@@ -56,7 +57,7 @@ LOCAL_APPS = [
     'client.apps.ClientConfig',
     'company.apps.CompanyConfig',  # New company management app
     'home.apps.HomeConfig',
-    #'helpdesk.apps.HelpdeskConfig',
+    'helpdesk.apps.HelpdeskConfig',
     'hr.apps.HrConfig',
     'location.apps.LocationConfig',
     'project.apps.ProjectConfig',
