@@ -16,7 +16,7 @@ except ImportError:
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils.http import urlquote
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.conf import settings
 
 from helpdesk import settings as helpdesk_settings
