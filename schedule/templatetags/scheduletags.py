@@ -104,7 +104,7 @@ def create_event_url(context, calendar, slot):
         'MEDIA_URL': getattr(settings, 'MEDIA_URL'),
     })
     lookup_context = {
-        'calendar_slug': calendar.slug,
+        'slug': calendar.slug,
     }
     context['create_event_url'] = '%s%s' % (
         reverse('calendar_create_event', kwargs=lookup_context),
@@ -203,7 +203,7 @@ def prev_url(target, calendar, period):
         return ''
 
     return mark_safe('<a href="%s%s"><span class="glyphicon glyphicon-circle-arrow-left"></span></a>' % (
-        reverse(target, kwargs={'calendar_slug': slug}),
+        reverse(target, kwargs={'slug': slug}),
         querystring_for_date(period.prev().start)))
 
 
@@ -217,7 +217,7 @@ def next_url(target, calendar, period):
         return ''
 
     return mark_safe('<a href="%s%s"><span class="glyphicon glyphicon-circle-arrow-right"></span></a>' % (
-        reverse(target, kwargs={'calendar_slug': slug}),
+        reverse(target, kwargs={'slug': slug}),
         querystring_for_date(period.next().start)))
 
 
