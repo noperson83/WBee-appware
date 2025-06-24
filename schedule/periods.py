@@ -55,7 +55,8 @@ class Period(object):
         if point_in_time.tzinfo is not None:
             return point_in_time.astimezone(pytz.utc)
         if tzinfo is not None:
-            return tzinfo.localize(point_in_time).astimezone(pytz.utc)
+            aware = self._make_aware(point_in_time, tzinfo)
+            return aware.astimezone(pytz.utc)
         if settings.USE_TZ:
             return pytz.utc.localize(point_in_time)
         else:
@@ -72,6 +73,14 @@ class Period(object):
 
     def _get_tzinfo(self, tzinfo):
         return tzinfo if settings.USE_TZ else None
+
+    def _make_aware(self, naive_dt, tzinfo=None):
+        tz = tzinfo or self.tzinfo
+        if tz is None:
+            return naive_dt
+        if hasattr(tz, "localize"):
+            return tz.localize(naive_dt)
+        return timezone.make_aware(naive_dt, tz)
 
     def _get_sorted_occurrences(self):
         occurrences = []
@@ -198,8 +207,8 @@ class Year(Period):
         start = naive_start
         end = naive_end
         if self.tzinfo is not None:
-            local_start = self.tzinfo.localize(naive_start)
-            local_end = self.tzinfo.localize(naive_end)
+            local_start = self._make_aware(naive_start)
+            local_end = self._make_aware(naive_end)
             start = local_start.astimezone(pytz.utc)
             end = local_end.astimezone(pytz.utc)
 
@@ -269,8 +278,8 @@ class Month(Period):
         start = naive_start
         end = naive_end
         if self.tzinfo is not None:
-            local_start = self.tzinfo.localize(naive_start)
-            local_end = self.tzinfo.localize(naive_end)
+            local_start = self._make_aware(naive_start)
+            local_end = self._make_aware(naive_end)
             start = local_start.astimezone(pytz.utc)
             end = local_end.astimezone(pytz.utc)
 
@@ -336,8 +345,8 @@ class Week(Period):
         naive_end = naive_start + datetime.timedelta(days=7)
 
         if self.tzinfo is not None:
-            local_start = self.tzinfo.localize(naive_start)
-            local_end = self.tzinfo.localize(naive_end)
+            local_start = self._make_aware(naive_start)
+            local_end = self._make_aware(naive_end)
             start = local_start.astimezone(pytz.utc)
             end = local_end.astimezone(pytz.utc)
         else:
@@ -377,8 +386,8 @@ class Day(Period):
         naive_start = datetime.datetime.combine(date, datetime.time.min)
         naive_end = datetime.datetime.combine(date + datetime.timedelta(days=1), datetime.time.min)
         if self.tzinfo is not None:
-            local_start = self.tzinfo.localize(naive_start)
-            local_end = self.tzinfo.localize(naive_end)
+            local_start = self._make_aware(naive_start)
+            local_end = self._make_aware(naive_end)
             start = local_start.astimezone(pytz.utc)
             end = local_end.astimezone(pytz.utc)
         else:
