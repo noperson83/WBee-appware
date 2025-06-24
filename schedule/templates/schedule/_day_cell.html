@@ -1,5 +1,5 @@
 {% load scheduletags %}
-{% ifnotequal day.start.month month.start.month %}
+{% if day.start.month != month.start.month %}
   <td style="color:blue;" class="muted"></td>
 {% else %}
   {% if day.has_occurrences %}
@@ -13,8 +13,8 @@
     <strong>{{day.start.day}}</strong>
   </div>
   </a>
-  {% ifnotequal size "small" %}
+  {% if size != "small" %}
     {% include "schedule/_day_cell_big.html" %}
-  {% endifnotequal %}
+  {% endif %}
 </td>
-{% endifnotequal %}
+{% endif %}
