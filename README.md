@@ -77,7 +77,7 @@ Major apps included in this project are:
 - **asset** – Manage company assets and categories.
 - **client** – Customer records, addresses and contacts.
 - **company** – Core company/organization information.
-- **helpdesk** – Ticket tracking and knowledge base (disabled by default).
+- **helpdesk** – Ticket tracking and knowledge base.
 - **hr** – Human resources: workers and positions.
 - **location** – Business locations and configurable choices.
 - **material** – Inventory and materials management.
