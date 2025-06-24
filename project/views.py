@@ -2958,16 +2958,32 @@ class ProjectScheduleView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         from schedule.models import Event
+        from project.models import Project
+        from django.db.models import BooleanField, Case, Value, When
 
         context = super().get_context_data(**kwargs)
         now = timezone.now()
+
+        base_qs = Event.objects.filter(start__gte=now)
+        project_job = self.request.GET.get('project')
+        if project_job:
+            project = Project.objects.filter(job_number=project_job).first()
+            if project:
+                context['project'] = project
+                base_qs = base_qs.filter(project=project)
+
+        user = self.request.user
         events = (
-            Event.objects.filter(
-                Q(workers=self.request.user) | Q(lead=self.request.user) | Q(creator=self.request.user),
-                start__gte=now
+            base_qs.annotate(
+                is_user_event=Case(
+                    When(Q(workers=user) | Q(lead=user) | Q(creator=user), then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                )
             )
-            .select_related('project')
-            .order_by('start')[:50]
+            .select_related('project', 'calendar', 'lead')
+            .prefetch_related('workers')
+            .order_by('-is_user_event', 'start')[:50]
         )
         context['events'] = events
         return context
