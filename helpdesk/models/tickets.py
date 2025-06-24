@@ -96,7 +96,7 @@ class Ticket(models.Model):
         help_text=_('Brief description of the issue')
     )
     queue = models.ForeignKey(
-        'base.Queue',
+        'helpdesk.Queue',
         on_delete=models.CASCADE,
         related_name='tickets',
         verbose_name=_('Queue')

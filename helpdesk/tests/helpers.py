@@ -26,11 +26,8 @@ def get_user(username='helpdesk.staff',
 
 def reload_urlconf(urlconf=None):
 
-    from django.utils import six
-    if six.PY2:
-        from imp import reload
-    else:
-        from importlib import reload
+    from importlib import reload
+    import six
 
     if urlconf is None:
         from django.conf import settings

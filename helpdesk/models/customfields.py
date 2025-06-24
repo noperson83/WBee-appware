@@ -163,7 +163,7 @@ class CustomField(models.Model):
 
     # Queue Assignment
     queues = models.ManyToManyField(
-        'base.Queue',
+        'helpdesk.Queue',
         blank=True,
         help_text=_('Leave blank to use for all queues, or select specific queues')
     )
@@ -201,7 +201,7 @@ class TicketCustomFieldValue(models.Model):
     Enhanced custom field values with better data handling
     """
     ticket = models.ForeignKey(
-        'tickets.Ticket',
+        'helpdesk.Ticket',
         on_delete=models.CASCADE,
         related_name='custom_field_values',
         verbose_name=_('Ticket')
