@@ -57,7 +57,6 @@ LOCAL_APPS = [
     'client.apps.ClientConfig',
     'company.apps.CompanyConfig',  # New company management app
     'home.apps.HomeConfig',
-    'helpdesk.apps.HelpdeskConfig',
     'hr.apps.HrConfig',
     'location.apps.LocationConfig',
     'project.apps.ProjectConfig',
