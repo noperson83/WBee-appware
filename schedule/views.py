@@ -2,7 +2,12 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse
 from django.views.generic import CreateView, DetailView, ListView
 from django.shortcuts import get_object_or_404
+from django.http import Http404
+from django.utils import timezone
+import datetime
 
+from .periods import Month, weekday_names
+from .settings import GET_EVENTS_FUNC
 from .models import Event, Calendar
 from .forms import NewEventForm
 from project.models import Project
@@ -59,3 +64,42 @@ class CalendarListView(LoginRequiredMixin, ListView):
     model = Calendar
     template_name = "schedule/calendar_list.html"
     # use default context object name "object_list" for compatibility
+
+
+class MonthCalendarView(LoginRequiredMixin, DetailView):
+    """Display a monthly calendar view for a specific calendar."""
+
+    model = Calendar
+    template_name = "schedule/calendar_month.html"
+    slug_field = "slug"
+    slug_url_kwarg = "slug"
+    context_object_name = "calendar"
+
+    def _get_date(self):
+        try:
+            parts = {
+                key: int(self.request.GET.get(key))
+                for key in ["year", "month", "day", "hour", "minute", "second"]
+                if self.request.GET.get(key) is not None
+            }
+            if parts:
+                return datetime.datetime(**parts)
+        except ValueError:
+            raise Http404
+        return timezone.now()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        calendar = self.object
+        date = self._get_date()
+        events = GET_EVENTS_FUNC(self.request, calendar)
+        period = Month(events, date, tzinfo=timezone.get_current_timezone())
+        context.update(
+            {
+                "date": date,
+                "period": period,
+                "calendar": calendar,
+                "weekday_names": weekday_names,
+            }
+        )
+        return context
