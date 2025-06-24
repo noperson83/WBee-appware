@@ -16,12 +16,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # ==============================================================================
 
 # Security
-SECRET_KEY = config('SECRET_KEY', default='a4$zmm5u_$ao70cmji80*8@8oedg&+mnm)r_a9p8@+znjmv8@w')
+SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='bb.wbee.app', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
 # Google Maps API key
-GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='AIzaSyBC_8mf34uW13LKTM1fKekn_xL7w_socHE')
+GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
 
 # Application definition
 DJANGO_APPS = [
@@ -134,10 +134,18 @@ TEMPLATES = [
 #        'CONN_MAX_AGE': 600,
 #    }
 #}
-import dj_database_url
 DATABASES = {
-    'default': dj_database_url.config(default='postgres://workerbee:workerbee_secure_password_2025@localhost:5432/workerbee_db')
+    'default': dj_database_url.config()
 }
+
+import sys
+if 'pytest' in sys.argv[0]:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
 
 # ==============================================================================
 # AUTHENTICATION
