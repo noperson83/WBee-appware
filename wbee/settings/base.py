@@ -136,7 +136,7 @@ TEMPLATES = [
 #    }
 #}
 DATABASES = {
-    'default': dj_database_url.config()
+    'default': dj_database_url.parse(config('DATABASE_URL', default=''))
 }
 
 import sys
