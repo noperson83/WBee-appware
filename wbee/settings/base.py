@@ -5,23 +5,24 @@ Production-ready configuration with environment variables
 
 import os
 from pathlib import Path
-from decouple import config, Csv
+from decouple import Csv, AutoConfig
 import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+config = AutoConfig(search_path=BASE_DIR)
 
 # ==============================================================================
 # CORE SETTINGS
 # ==============================================================================
 
 # Security
-SECRET_KEY = config('SECRET_KEY', default='a4$zmm5u_$ao70cmji80*8@8oedg&+mnm)r_a9p8@+znjmv8@w')
+SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='bb.wbee.app', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
 # Google Maps API key
-GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='AIzaSyBC_8mf34uW13LKTM1fKekn_xL7w_socHE')
+GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
 
 # Application definition
 DJANGO_APPS = [
@@ -56,7 +57,7 @@ LOCAL_APPS = [
     'client.apps.ClientConfig',
     'company.apps.CompanyConfig',  # New company management app
     'home.apps.HomeConfig',
-    #'helpdesk.apps.HelpdeskConfig',
+    'helpdesk.apps.HelpdeskConfig',
     'hr.apps.HrConfig',
     'location.apps.LocationConfig',
     'project.apps.ProjectConfig',
@@ -134,10 +135,20 @@ TEMPLATES = [
 #        'CONN_MAX_AGE': 600,
 #    }
 #}
-import dj_database_url
 DATABASES = {
-    'default': dj_database_url.config(default='postgres://workerbee:workerbee_secure_password_2025@localhost:5432/workerbee_db')
+    'default': dj_database_url.parse(
+        config('DATABASE_URL', default='')
+    )
 }
+
+import sys
+if 'pytest' in sys.argv[0]:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
 
 # ==============================================================================
 # AUTHENTICATION
