@@ -5,3 +5,7 @@
 .card-body {
   color: var(--bs-card-color);
 }
+
+.card .text-dark {
+  color: var(--bs-card-color) !important;
+}
