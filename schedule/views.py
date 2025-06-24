@@ -30,6 +30,10 @@ class EventCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             project = Project.objects.filter(job_number=proj).first()
             if project:
                 initial["project"] = project
+        slug = self.kwargs.get("slug")
+        if slug:
+            calendar = get_object_or_404(Calendar, slug=slug)
+            initial["calendar"] = calendar
         return initial
 
     def get_success_url(self):
