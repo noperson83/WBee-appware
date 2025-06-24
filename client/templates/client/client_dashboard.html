@@ -129,9 +129,11 @@ Client Management Dashboard - {{ request.user.company.company_name|default:"WBEE
                         <i class="fas fa-bolt me-2"></i>Quick Actions
                     </h5>
                     <div class="d-flex flex-wrap gap-2">
+                        {% if request.user.is_staff %}
                         <a href="{% url 'client:create' %}" class="btn btn-primary quick-action-btn">
                             <i class="fas fa-plus me-1"></i>Add Client
                         </a>
+                        {% endif %}
                         <a href="{% url 'client:list' %}?status=prospect" class="btn btn-warning quick-action-btn">
                             <i class="fas fa-search me-1"></i>View Prospects
                         </a>
