@@ -16,6 +16,7 @@ from schedule.models.rules import Rule
 from hr.models import Worker
 from project.models import Project
 from material.models import Supplier
+from todo.models import Task
 
 # Shared abstract base models
 from client.models import TimeStampedModel
@@ -393,10 +394,16 @@ class Event(TimeStampedModel):
         help_text='Event lead/supervisor'
     )
     workers = models.ManyToManyField(
-        Worker, 
-        blank=True, 
-        related_name='assigned_events', 
+        Worker,
+        blank=True,
+        related_name='assigned_events',
         help_text='Assigned workers'
+    )
+    tasks = models.ManyToManyField(
+        Task,
+        blank=True,
+        related_name='events',
+        help_text='Related tasks'
     )
     required_workers = models.PositiveIntegerField(
         default=1,
