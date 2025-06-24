@@ -4,7 +4,7 @@
 
 {% block title %}Calendar Month{% endblock %}
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'calendar_list' %}">{{ calendar.name }}</a></li>
+<li class="breadcrumb-item"><a href="{% url 'schedule:calendar_list' %}">{{ calendar.name }}</a></li>
 {% endblock %}
 {% block styler %}  
   <link rel="stylesheet" href="{% static 'schedule/schedule.css' %}" type="text/css" media="screen">
