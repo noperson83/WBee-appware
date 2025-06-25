@@ -90,7 +90,8 @@ class Contact(TimeStampedModel):
     
     # Generic foreign key
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    # Use CharField so contacts can reference models with UUID primary keys
+    object_id = models.CharField(max_length=255)
     content_object = GenericForeignKey('content_type', 'object_id')
     
     is_primary = models.BooleanField(default=False)
