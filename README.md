@@ -38,6 +38,7 @@ Apply migrations and create a superuser:
 ```bash
 (venv)$ python manage.py migrate
 (venv)$ python manage.py createsuperuser
+(venv)$ python manage.py collectstatic --noinput
 ```
 
 ## Running the Project
