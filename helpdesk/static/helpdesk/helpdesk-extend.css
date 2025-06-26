@@ -74,7 +74,12 @@ Add your custom styles here
     margin-top: 20px;
     padding: 10px 0;
 }
-#helpdesk-body {padding-top: 100px;}
+#helpdesk-body {
+    /* The admin navbar has a fixed position. Reduce the top
+       offset so content appears directly below it when the menu
+       is collapsed. */
+    padding-top: 60px;
+}
 img.brand {padding-right: 30px;}
 
 div.card-body img {
