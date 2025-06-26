@@ -26,7 +26,8 @@ GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
 
 # Application definition
 DJANGO_APPS = [
-    'grappelli',  # Must be before django.contrib.admin
+    'admin_interface',  # Modern admin skin
+    'colorfield',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,6 +51,8 @@ THIRD_PARTY_APPS = [
     'crispy_forms',  # For better forms
     'crispy_bootstrap5',  # Bootstrap 5 support
     'widget_tweaks',  # Form rendering utilities
+    'django_htmx',  # HTMX support
+    'pwa',  # Progressive Web App
 ]
 
 LOCAL_APPS = [
@@ -83,6 +86,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -285,8 +289,8 @@ REST_FRAMEWORK = {
 # THIRD PARTY APP SETTINGS
 # ==============================================================================
 
-# Grappelli
-GRAPPELLI_ADMIN_TITLE = 'WBEE Universal Company Manager for the Brick Box Bros'
+# Admin Interface
+ADMIN_INTERFACE_SITE_HEADER = 'WBEE Universal Company Manager'
 
 # Easy Thumbnails
 THUMBNAIL_HIGH_RESOLUTION = True
@@ -457,4 +461,22 @@ ASSET_DEPRECIATION_ENABLED = True
 
 # Media files warning is expected in DEBUG mode
 # In production, you'll configure nginx/apache to serve media files
+
+# PWA Configuration
+PWA_APP_NAME = SITE_TITLE
+PWA_APP_DESCRIPTION = 'Offline capable WBEE manager'
+PWA_APP_THEME_COLOR = '#0d9488'
+PWA_APP_BACKGROUND_COLOR = '#ffffff'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_ORIENTATION = 'any'
+PWA_APP_START_URL = '/'
+PWA_APP_STATUS_BAR_COLOR = 'default'
+PWA_APP_ICONS = [
+    {
+        'src': '/static/home/img/favicon-96x96.png',
+        'sizes': '96x96'
+    }
+]
+PWA_SERVICE_WORKER_PATH = BASE_DIR / 'static' / 'pwa' / 'serviceworker.js'
 

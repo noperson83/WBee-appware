@@ -15,7 +15,10 @@ Pillow
 bleach
 pytest-django
 icalendar
-django-grappelli
+django-admin-interface
+django-colorfield
+django-htmx
+django-pwa
 django-filer
 whitenoise
 redis

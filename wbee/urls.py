@@ -6,8 +6,8 @@ from schedule.views import EventCreateView
 from django.contrib.staticfiles.urls import static
 from django.conf import settings
 
-admin.site.site_header = "Distribution Solutions"
-admin.site.index_title = "Database administration configuration."
+admin.site.site_header = "WBEE Universal Company Manager"
+admin.site.index_title = "Database administration"
 
 # Restrict Django admin to superusers only
 def _superuser_only(request):
@@ -16,8 +16,8 @@ def _superuser_only(request):
 admin.site.has_permission = _superuser_only
 
 urlpatterns = [
+    path("", include("pwa.urls")),
     path("", include("home.urls")),
-    path("grappelli/", include("grappelli.urls")),
     path("admin/", admin.site.urls),
     path("asset/", include("asset.urls")),
     path("client/", include("client.urls")),
