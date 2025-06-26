@@ -38,10 +38,6 @@ class BusinessConfigurationAdmin(admin.ModelAdmin):
         'updated_at',
     )
 
-    prepopulated_fields = {
-        'slug': ('name',),
-    }
-
     fieldsets = (
         ('General', {
             'fields': (
