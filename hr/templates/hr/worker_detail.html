@@ -49,7 +49,7 @@
                 </div>
 
                 <!-- Compensation (visible only with permission) -->
-                {% if request.user.has_perm('hr.view_compensation') %}
+                {% if perms.hr.view_compensation %}
                 <div class="mb-3 p-2 bg-light rounded">
                     {% if worker.current_annual_salary %}
                         <div><strong>Salary:</strong> ${{ worker.current_annual_salary|floatformat:0 }}/year</div>
