@@ -33,3 +33,13 @@ button, input[type="submit"] {
 button:hover, input[type="submit"]:hover {
     background-color: #2563eb;
 }
+
+/* Improve readability of the admin theme configuration page */
+.admin-interface .module caption {
+    background-color: #f0f0f0;
+    color: #111;
+}
+
+.admin-interface .module h2 {
+    color: #0f172a;
+}
