@@ -14,7 +14,7 @@
             {% if occurrence.event.project %}
             <tr>
                 <td class="left">Project</td>
-                <td><a style="color:black;font-weight:bold;" href="{{ occurrence.event.project.get_absolute_url }}">{{occurrence.event.project.job_name}}</a></td>
+                <td><a style="color:black;font-weight:bold;" href="{{ occurrence.event.project.get_absolute_url }}">{{occurrence.event.project.name}}</a></td>
             </tr>
             {% endif %}
             {% if occurrence.event.start_time %}

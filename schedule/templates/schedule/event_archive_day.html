@@ -59,9 +59,9 @@
             <td style="min-width:80px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ workers.get_absolute_url }}">{{ workers.first_name }} {{ workers.last_name }}</a><br> </td>
             <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ event.get_absolute_url }}">{{ event.start_time|date:'f A' }}</a> </td>
             <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ event.get_absolute_url }}">{{ event.start|date:'f A' }}</a> </td>
-            <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ event.project.get_absolute_url }}">{{ event.project.job_name|truncatechars:48 }}</a> </td>
+            <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ event.project.get_absolute_url }}">{{ event.project.name|truncatechars:48 }}</a> </td>
             <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ event.project.jobsite.google_maps_link }}">{{ event.project.jobsite.street_address }}, {{ event.project.jobsite.city }}, {{ event.project.jobsite.state }}, {{ event.project.jobsite.zipcode }}</a></td>
-            <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="{{ event.project.get_absolute_url }}">{{ event.project.job_num }}</a> </td>
+            <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="{{ event.project.get_absolute_url }}">{{ event.project.job_number }}</a> </td>
           </tr>
         {% if not forloop.last %} {% endif %}
         {% endfor %}
