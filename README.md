@@ -90,3 +90,9 @@ Major apps included in this project are:
 
 Each app lives in its own directory with `models`, `views`, templates and tests where applicable.
 
+## Business Templates
+
+The `business` app includes predefined templates for rapid deployment.  These
+templates outline common configurations so you can get started quickly.  See
+`business/templates.py` for examples such as the *beer_distribution* network.
+
