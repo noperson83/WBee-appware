@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import ModelForm
 
-from .models import Project, ScopeOfWork, ProjectMaterial
+from .models import Project, ScopeOfWork, ProjectMaterial, ProjectCategory
 
 
 class ProjectForm(ModelForm):
@@ -17,6 +17,14 @@ class ScopeOfWorkForm(ModelForm):
 
     class Meta:
         model = ScopeOfWork
+        fields = "__all__"
+
+
+class ProjectCategoryForm(ModelForm):
+    """Form for creating and editing project categories."""
+
+    class Meta:
+        model = ProjectCategory
         fields = "__all__"
 
 
