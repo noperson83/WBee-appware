@@ -203,12 +203,12 @@ class LocationDetailView(DetailView):
         return context
 
 
-class LocationCreateView(LoginRequiredMixin, CreateView):
+class LocationCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     """Create new location"""
     model = Location
     form_class = LocationForm
     template_name = 'location/location_form.html'
-    
+
     def form_valid(self, form):
         messages.success(self.request, f'Location "{form.instance.name}" created successfully!')
         return super().form_valid(form)
@@ -220,6 +220,16 @@ class LocationCreateView(LoginRequiredMixin, CreateView):
         if client_id:
             initial['client'] = client_id
         return initial
+
+    def test_func(self):
+        return self.request.user.is_staff
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context.get('form')
+        if form:
+            context['location_type_count'] = form.fields['location_type'].queryset.count()
+        return context
 
 
 class LocationUpdateView(LoginRequiredMixin, UpdateView):
@@ -280,7 +290,7 @@ def get_dynamic_choices(request):
 
 
 # Document management views
-class LocationDocumentCreateView(LoginRequiredMixin, CreateView):
+class LocationDocumentCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     """Add document to location"""
     model = LocationDocument
     form_class = LocationDocumentForm
@@ -295,6 +305,9 @@ class LocationDocumentCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('location:location-detail', kwargs={'pk': self.kwargs['location_pk']})
 
+    def test_func(self):
+        return self.request.user.is_staff
+
 
 class LocationDocumentDeleteView(LoginRequiredMixin, DeleteView):
     """Delete location document"""
@@ -306,7 +319,7 @@ class LocationDocumentDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # Note management views
-class LocationNoteCreateView(LoginRequiredMixin, CreateView):
+class LocationNoteCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     """Add note to location"""
     model = LocationNote
     form_class = LocationNoteForm
@@ -320,6 +333,9 @@ class LocationNoteCreateView(LoginRequiredMixin, CreateView):
     
     def get_success_url(self):
         return reverse('location:location-detail', kwargs={'pk': self.kwargs['location_pk']})
+
+    def test_func(self):
+        return self.request.user.is_staff
 
 
 class LocationNoteUpdateView(LoginRequiredMixin, UpdateView):
