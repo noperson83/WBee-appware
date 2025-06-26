@@ -28,7 +28,7 @@
     </div>
     
     <!-- Hidden input for form submission -->
-    <input type="hidden" name="{{ field_name|default:'business_category' }}" id="categoryInput">
+    <input type="hidden" name="{{ field_name|default:'business_category' }}" id="id_business_category">
     
     <!-- Loading State -->
     <div class="loading-state text-center py-4" id="loadingState">
@@ -388,7 +388,7 @@ class BusinessCategorySelector {
         document.querySelector(`[data-category-id="${category.id}"]`).classList.add('selected');
         
         // Update hidden input
-        document.getElementById('categoryInput').value = category.id;
+        document.getElementById('id_business_category').value = category.id;
         
         // Show selected category display
         this.updateSelectedDisplay(category);
@@ -427,7 +427,7 @@ class BusinessCategorySelector {
         });
         
         // Clear hidden input
-        document.getElementById('categoryInput').value = '';
+        document.getElementById('id_business_category').value = '';
         
         // Hide selected display and show grid
         document.getElementById('selectedCategoryDisplay').style.display = 'none';

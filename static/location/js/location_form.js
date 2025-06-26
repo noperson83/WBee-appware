@@ -27,10 +27,18 @@ function updateChoices(catId) {
 
 document.addEventListener('DOMContentLoaded', () => {
     const bc = document.getElementById('id_business_category');
-    if (!bc) return;
-    bc.addEventListener('change', e => {
-        const val = e.target.value;
-        if (val) updateChoices(val);
+    if (bc) {
+        bc.addEventListener('change', e => {
+            const val = e.target.value;
+            if (val) updateChoices(val);
+        });
+        if (bc.value) updateChoices(bc.value);
+    }
+
+    // Support dynamic business category selector widget
+    document.addEventListener('categoryChanged', e => {
+        if (e.detail && e.detail.category) {
+            updateChoices(e.detail.category.id);
+        }
     });
-    if (bc.value) updateChoices(bc.value);
 });
