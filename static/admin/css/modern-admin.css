@@ -1,0 +1,35 @@
+/* Modernized admin theme */
+body {
+    background-color: #f7f7fa;
+    font-family: "Inter", sans-serif;
+}
+
+#header {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+    border-bottom: none;
+}
+
+#header h1 a {
+    color: #fff;
+    font-weight: 600;
+}
+
+.module caption {
+    background-color: #3b82f6;
+    color: #fff;
+    font-weight: 600;
+}
+
+.module h2 {
+    color: #2563eb;
+}
+
+button, input[type="submit"] {
+    background-color: #3b82f6;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+button:hover, input[type="submit"]:hover {
+    background-color: #2563eb;
+}
