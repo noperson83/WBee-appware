@@ -39,10 +39,26 @@
           <div class="form-text">
             <a href="{% url 'admin:location_locationtype_add' %}" target="_blank">Add Location Type</a>
           </div>
+        {% elif field.name == 'status' %}
+          <div class="form-text">
+            <a href="{% url 'admin:location_configurablechoice_add' %}?choice_type=location_status" target="_blank">Add Status</a>
+          </div>
+        {% elif field.name == 'access_requirements' %}
+          <div class="form-text">
+            <a href="{% url 'admin:location_configurablechoice_add' %}?choice_type=access_requirement" target="_blank">Add Access Requirement</a>
+          </div>
+        {% elif field.name == 'work_hours' %}
+          <div class="form-text">
+            <a href="{% url 'admin:location_configurablechoice_add' %}?choice_type=work_hours" target="_blank">Add Work Hours Option</a>
+          </div>
         {% endif %}
       </div>
     {% endfor %}
     <button type="submit" class="btn btn-primary">Save</button>
   </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'location/js/location_form.js' %}"></script>
 {% endblock %}
