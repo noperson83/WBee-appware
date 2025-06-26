@@ -58,7 +58,7 @@ urlpatterns = [
     
     # AJAX endpoints
     path('ajax/location-types/', views.get_location_types, name='ajax-location-types'),
-    path('ajax/dynamic-choices/', views.get_dynamic_choices, name='ajax-dynamic-choices'),
+    path('ajax/dynamic-choices/', views.ajax_dynamic_choices, name='ajax-dynamic-choices'),
     
     # Legacy redirects (for backward compatibility)
     path('jobsite/<int:pk>/', views.legacy_jobsite_redirect, name='legacy-jobsite-redirect'),

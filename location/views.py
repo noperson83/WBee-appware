@@ -31,7 +31,7 @@ from .models import (
     LocationType,
     LocationDocument,
     LocationNote,
-    get_dynamic_choices,
+    get_dynamic_choices as model_get_dynamic_choices,
 )
 from .forms import (
     LocationForm,
@@ -276,16 +276,15 @@ def get_location_types(request):
 
 
 @login_required
-def get_dynamic_choices(request):
-    """AJAX view to get dynamic choices for a business category"""
+def ajax_dynamic_choices(request):
+    """AJAX view to fetch dynamic choices for a business category."""
     business_category_id = request.GET.get('business_category')
     choice_type = request.GET.get('choice_type')
-    
+
     choices = []
     if business_category_id and choice_type:
-        from .models import get_dynamic_choices
-        choices = get_dynamic_choices(choice_type, business_category_id)
-    
+        choices = model_get_dynamic_choices(choice_type, business_category_id)
+
     return JsonResponse({'choices': choices})
 
 
@@ -400,7 +399,7 @@ class LocationNoteListView(LoginRequiredMixin, ListView):
             followup_date__lt=context['today']
         ).count()
 
-        context['note_type_choices'] = get_dynamic_choices('note_type', location.business_category)
+        context['note_type_choices'] = model_get_dynamic_choices('note_type', location.business_category)
 
         return context
 
