@@ -30,6 +30,9 @@
   <form method="post" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     {% for field in form.visible_fields %}
+      {% if field.name == 'business_category' %}
+        {% include 'location/partials/business_category_selector.html' with field_name=field.name %}
+      {% else %}
       <div class="mb-3">
         {{ field.label_tag }}
         {{ field }}
@@ -53,6 +56,7 @@
           </div>
         {% endif %}
       </div>
+      {% endif %}
     {% endfor %}
     <button type="submit" class="btn btn-primary">Save</button>
   </form>
