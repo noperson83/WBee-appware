@@ -168,28 +168,36 @@ class LocationForm(ModelForm):
             ('units', 'Units'),
         ]
         
-        # Filter location types based on business category if editing
+        # Determine the selected business category
+        category = None
         if self.instance and self.instance.business_category:
+            category = self.instance.business_category
+        elif self.data.get('business_category'):
+            try:
+                category = BusinessCategory.objects.get(pk=self.data.get('business_category'))
+            except BusinessCategory.DoesNotExist:
+                category = None
+
+        # Filter location types based on business category
+        if category:
             self.fields['location_type'].queryset = LocationType.objects.filter(
-                business_category=self.instance.business_category
+                business_category=category
             )
         else:
             self.fields['location_type'].queryset = LocationType.objects.none()
-        
+
         # Set up dynamic choices for status, access requirements, and work hours
-        if self.instance and self.instance.business_category:
-            category = self.instance.business_category
-            
+        if category:
             # Status choices
             status_choices = get_dynamic_choices('location_status', category)
             if status_choices:
                 self.fields['status'].choices = status_choices
-            
+
             # Access requirement choices
             access_choices = get_dynamic_choices('access_requirement', category)
             if access_choices:
                 self.fields['access_requirements'].choices = access_choices
-            
+
             # Work hours choices
             work_hours_choices = get_dynamic_choices('work_hours', category)
             if work_hours_choices:
