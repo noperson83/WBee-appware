@@ -111,7 +111,7 @@
                             <td>
                                 {% if worker.position %}
                                     <div class="font-weight-bold">{{ worker.position.title }}</div>
-                                    {% if request.user.has_perm('hr.view_compensation') %}
+                                    {% if perms.hr.view_compensation %}
                                         {% if worker.current_annual_salary %}
                                             <div class="text-muted small">${{ worker.current_annual_salary|floatformat:0 }}/yr</div>
                                         {% elif worker.current_hourly_rate %}
