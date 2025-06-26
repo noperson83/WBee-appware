@@ -9,8 +9,8 @@ from django.utils import timezone
 from decimal import Decimal
 
 from .models import (
-    ProjectTemplate, Project, ScopeOfWork, ProjectMaterial, ProjectChange,
-    ProjectMilestone
+    ProjectTemplate, ProjectCategory, Project, ScopeOfWork, ProjectMaterial,
+    ProjectChange, ProjectMilestone
 )
 
 # Inline admins for related models
@@ -59,6 +59,53 @@ class ProjectMilestoneInline(admin.TabularInline):
         'is_critical', 'is_complete'
     )
     readonly_fields = ('created_at',)
+
+# Project Category Admin
+@admin.register(ProjectCategory)
+class ProjectCategoryAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'business_category',
+        'workflow_stage',
+        'billable',
+        'requires_scheduling',
+        'tracks_inventory',
+        'is_active'
+    )
+    list_filter = (
+        'business_category',
+        'workflow_stage',
+        'billable',
+        'requires_scheduling',
+        'tracks_inventory',
+        'is_active'
+    )
+    search_fields = (
+        'name',
+        'workflow_stage',
+        'business_category__name'
+    )
+    ordering = ('business_category', 'sort_order', 'name')
+    fieldsets = (
+        ('Category Info', {
+            'fields': (
+                'business_category',
+                'name',
+                'icon',
+                'color',
+                'workflow_stage',
+                'sort_order',
+                'is_active'
+            )
+        }),
+        ('Behavior', {
+            'fields': (
+                'tracks_inventory',
+                'requires_scheduling',
+                'billable'
+            )
+        })
+    )
 
 # Project Template Admin
 @admin.register(ProjectTemplate)

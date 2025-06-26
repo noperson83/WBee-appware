@@ -16,6 +16,36 @@ from hr.models import Worker
 #from todo.models import Task
 from material.models import Product
 
+class ProjectCategory(TimeStampedModel):
+    """Dynamic categories for organizing project work by business type"""
+
+    business_category = models.ForeignKey(
+        BusinessCategory,
+        on_delete=models.CASCADE,
+        related_name="project_categories",
+    )
+
+    name = models.CharField(max_length=100)
+    icon = models.CharField(max_length=50, blank=True)
+    color = models.CharField(max_length=7, default="#007bff")
+
+    tracks_inventory = models.BooleanField(default=False)
+    requires_scheduling = models.BooleanField(default=False)
+    billable = models.BooleanField(default=False)
+
+    workflow_stage = models.CharField(max_length=100, blank=True)
+    sort_order = models.PositiveIntegerField(default=100)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["business_category", "sort_order", "name"]
+        unique_together = [
+            ("business_category", "name"),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.business_category.name})"
+
 class ProjectTemplate(TimeStampedModel):
     """Templates for common project types per business category"""
     business_category = models.ForeignKey(
