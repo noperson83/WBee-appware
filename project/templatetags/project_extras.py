@@ -3,6 +3,14 @@ from django.utils.safestring import mark_safe
 
 register = template.Library()
 
+@register.simple_tag
+def category_items(project, category_slug):
+    """Return project material items for a given category"""
+    try:
+        return project.get_items_by_category(category_slug)
+    except Exception:
+        return []
+
 @register.filter
 def status_badge(status):
     """Return HTML badge for project status"""
