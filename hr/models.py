@@ -437,6 +437,9 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
             models.Index(fields=['manager']),
             models.Index(fields=['employee_id']),
         ]
+        permissions = [
+            ("view_compensation", "Can view compensation information"),
+        ]
     
     def __str__(self):
         return self.get_full_name()
