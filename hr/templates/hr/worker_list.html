@@ -111,10 +111,12 @@
                             <td>
                                 {% if worker.position %}
                                     <div class="font-weight-bold">{{ worker.position.title }}</div>
-                                    {% if worker.current_annual_salary %}
-                                        <div class="text-muted small">${{ worker.current_annual_salary|floatformat:0 }}/yr</div>
-                                    {% elif worker.current_hourly_rate %}
-                                        <div class="text-muted small">${{ worker.current_hourly_rate }}/hr</div>
+                                    {% if request.user.has_perm('hr.view_compensation') %}
+                                        {% if worker.current_annual_salary %}
+                                            <div class="text-muted small">${{ worker.current_annual_salary|floatformat:0 }}/yr</div>
+                                        {% elif worker.current_hourly_rate %}
+                                            <div class="text-muted small">${{ worker.current_hourly_rate }}/hr</div>
+                                        {% endif %}
                                     {% endif %}
                                 {% else %}
                                     <span class="text-muted">No position assigned</span>
