@@ -1,40 +1,117 @@
 {% extends "home/base.html" %}
+{% load project_extras %}
 {% block title %}Projects{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'project:dashboard' %}">Projects</a></li>
 <li class="breadcrumb-item active">List</li>
 {% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+{% endblock %}
 {% block content %}
 <div class="card shadow mb-4">
-  <div class="card-header py-3 d-flex justify-content-between">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center">
     <h6 class="m-0 font-weight-bold text-primary">Projects</h6>
-    {% if user.is_superuser or user.is_admin %}
-    <a href="{% url 'project:project-create' %}" class="btn btn-primary btn-sm">
-      <i class="fas fa-plus"></i> Add Project
-    </a>
-    {% endif %}
+    <div class="d-flex gap-2">
+      {% if user.is_superuser or user.is_admin %}
+      <a href="{% url 'project:project-create' %}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> Add Project
+      </a>
+      {% endif %}
+      <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+        <i class="fas fa-filter"></i> Filter
+      </button>
+    </div>
   </div>
-  <div class="card-body p-0">
-    <table class="table table-striped mb-0">
-      <thead>
-        <tr>
-          <th>Job Number</th>
-          <th>Name</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for project in projects %}
-        <tr>
-          <td><a href="{% url 'project:project-detail' project.job_number %}">{{ project.job_number }}</a></td>
-          <td>{{ project.name }}</td>
-          <td>{{ project.get_status_display|default:project.status }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="3" class="text-center">No projects found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div id="filterCollapse" class="collapse border-bottom p-3">
+    <form method="get" class="row g-2">
+      <div class="col-md-3">
+        <input type="text" class="form-control" name="search" placeholder="Search" value="{{ current_filters.search }}">
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" name="status">
+          <option value="">All Statuses</option>
+          {% for value,label in status_choices %}
+          <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" name="priority">
+          <option value="">All Priorities</option>
+          {% for value,label in priority_choices %}
+          <option value="{{ value }}" {% if current_filters.priority == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" name="manager">
+          <option value="">All Managers</option>
+          {% for manager in managers %}
+          <option value="{{ manager.id }}" {% if current_filters.manager == manager.id|stringformat:'s' %}selected{% endif %}>{{ manager.get_full_name|default:manager.username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <input type="date" class="form-control" name="date_from" value="{{ current_filters.date_from }}">
+      </div>
+      <div class="col-md-2">
+        <input type="date" class="form-control" name="date_to" value="{{ current_filters.date_to }}">
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter"></i> Apply</button>
+      </div>
+      <div class="col-md-2">
+        <a href="{% url 'project:project-list' %}" class="btn btn-outline-secondary w-100">Clear</a>
+      </div>
+    </form>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table id="projectTable" class="table table-striped table-bordered mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Job #</th>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Project Manager</th>
+            <th>Progress</th>
+            <th>Financial</th>
+            <th>Due Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in projects %}
+          <tr>
+            <td><a href="{% url 'project:project-detail' project.job_number %}">{{ project.job_number }}</a></td>
+            <td>{{ project.name }}</td>
+            <td>{{ project.location }}</td>
+            <td>{{ project.project_term }}</td>
+            <td>{{ project.status|status_badge }}</td>
+            <td>{{ project.project_manager.get_short_name|default_if_none:"—" }}</td>
+            <td>{{ project.percent_complete|progress_bar }}</td>
+            <td>{{ project|financial_summary }}</td>
+            <td>{{ project.due_date|date:"M d, Y"|default:"—" }}</td>
+            <td>{{ project|due_indicator }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="10" class="text-center">No projects found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script>
+$(function(){
+  $('#projectTable').DataTable();
+});
+</script>
 {% endblock %}
