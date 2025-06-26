@@ -219,6 +219,27 @@ class Company(UUIDModel, TimeStampedModel):
         related_name='subsidiaries',
         help_text='Parent company if this is a subsidiary'
     )
+
+    # Collaboration
+    primary_company = models.BooleanField(
+        default=False,
+        help_text='Main company in a collaborative deployment'
+    )
+
+    collaboration_permissions = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Permissions for cross-company collaboration'
+    )
+
+    partner_companies = models.ManyToManyField(
+        'self',
+        through='CompanyPartnership',
+        symmetrical=False,
+        related_name='partners',
+        blank=True,
+        help_text='Partner companies in collaborative deployments'
+    )
     
     # Custom fields for business-specific data
     custom_fields = models.JSONField(
@@ -300,6 +321,45 @@ class Company(UUIDModel, TimeStampedModel):
     def has_subsidiaries(self):
         """Check if this company has subsidiaries"""
         return self.subsidiaries.exists()
+
+
+class CompanyPartnership(TimeStampedModel):
+    """Junction model representing partnerships between companies."""
+
+    PARTNERSHIP_TYPES = [
+        ('strategic', 'Strategic'),
+        ('supplier', 'Supplier'),
+        ('subcontractor', 'Subcontractor'),
+        ('affiliate', 'Affiliate'),
+    ]
+
+    from_company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name='partnerships_initiated'
+    )
+    to_company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name='partnerships_received'
+    )
+
+    partnership_type = models.CharField(
+        max_length=20,
+        choices=PARTNERSHIP_TYPES,
+        default='strategic'
+    )
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+    permissions = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        unique_together = ['from_company', 'to_company']
+        ordering = ['from_company', 'to_company']
+
+    def __str__(self):
+        return f"{self.from_company} → {self.to_company} ({self.partnership_type})"
 
 class Office(UUIDModel, TimeStampedModel):
     """

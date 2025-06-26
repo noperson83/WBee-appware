@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from .models import Company, Department
+from .models import Company, Department, CompanyPartnership
 
 
 class DepartmentModelTests(TestCase):
@@ -21,3 +21,16 @@ class DepartmentModelTests(TestCase):
             self.fail("full_department_path raised RecursionError with a cycle")
 
         self.assertIn("Ops", path)
+
+
+class CompanyPartnershipTests(TestCase):
+    """Tests for company partnership relationships."""
+
+    def test_partner_companies_relation(self):
+        c1 = Company.objects.create(company_name="Alpha")
+        c2 = Company.objects.create(company_name="Beta")
+
+        CompanyPartnership.objects.create(from_company=c1, to_company=c2)
+
+        self.assertIn(c2, c1.partner_companies.all())
+        self.assertNotIn(c1, c2.partner_companies.all())

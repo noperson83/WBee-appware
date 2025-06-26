@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from django.db.models import Sum, Count
 from django.utils import timezone
 
-from .models import Company, Office, Department, CompanySettings
+from .models import Company, Office, Department, CompanySettings, CompanyPartnership
 from client.models import Address, Contact
 
 # Inline admins for related models
@@ -82,6 +82,17 @@ class SubsidiaryInline(admin.TabularInline):
         return "—"
     total_employees_display.short_description = 'Employees'
 
+class CompanyPartnershipInline(admin.TabularInline):
+    """Inline admin for company partnerships"""
+    model = CompanyPartnership
+    fk_name = 'from_company'
+    extra = 0
+    fields = (
+        'to_company', 'partnership_type', 'start_date',
+        'end_date', 'is_active'
+    )
+    readonly_fields = ('created_at', 'updated_at')
+
 # Main Company Admin
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
@@ -92,6 +103,7 @@ class CompanyAdmin(admin.ModelAdmin):
         'total_locations_display',
         'total_employees_display',
         'revenue_growth_display',
+        'primary_company',
         'is_multi_location',
         'is_active'
     )
@@ -100,6 +112,7 @@ class CompanyAdmin(admin.ModelAdmin):
         'business_type',
         'business_category',
         'is_multi_location',
+        'primary_company',
         'is_active',
         'timezone',
         'currency',
@@ -181,6 +194,7 @@ class CompanyAdmin(admin.ModelAdmin):
         ('Company Structure', {
             'fields': (
                 'is_multi_location',
+                'primary_company',
                 'parent_company',
                 'subsidiary_tree'
             ),
@@ -207,6 +221,7 @@ class CompanyAdmin(admin.ModelAdmin):
         ('Custom Data', {
             'fields': (
                 'custom_fields',
+                'collaboration_permissions',
             ),
             'classes': ('collapse',)
         }),
@@ -221,7 +236,14 @@ class CompanyAdmin(admin.ModelAdmin):
         })
     )
 
-    inlines = [AddressInline, ContactInline, OfficeInline, DepartmentInline, SubsidiaryInline]
+    inlines = [
+        AddressInline,
+        ContactInline,
+        OfficeInline,
+        DepartmentInline,
+        SubsidiaryInline,
+        CompanyPartnershipInline,
+    ]
 
     actions = ['activate_companies', 'deactivate_companies', 'setup_default_data']
 
@@ -643,3 +665,29 @@ class CompanySettingsAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         # Don't allow deletion of company settings
         return False
+
+
+@admin.register(CompanyPartnership)
+class CompanyPartnershipAdmin(admin.ModelAdmin):
+    list_display = (
+        'from_company',
+        'to_company',
+        'partnership_type',
+        'start_date',
+        'is_active',
+    )
+
+    list_filter = (
+        'partnership_type',
+        'is_active',
+    )
+
+    search_fields = (
+        'from_company__company_name',
+        'to_company__company_name',
+    )
+
+    readonly_fields = (
+        'created_at',
+        'updated_at',
+    )
