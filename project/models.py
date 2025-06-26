@@ -437,6 +437,10 @@ class Project(UUIDModel, TimeStampedModel):
     def travel_items(self):
         return self.material_items.filter(material_type='travel')
 
+    def get_items_by_category(self, category_slug):
+        """Return material items matching the given category slug"""
+        return self.material_items.filter(material_type=category_slug)
+
     # Material cost calculations
     def calculate_material_costs(self):
         """Calculate total material costs"""
