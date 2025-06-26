@@ -135,6 +135,7 @@ class CompanyAdmin(admin.ModelAdmin):
                 'company_name',
                 'legal_name',
                 'company_url',
+                'business_config',
                 'business_category',
                 'business_type'
             )

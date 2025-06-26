@@ -53,6 +53,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'business.apps.BusinessConfig',
     'asset.apps.AssetConfig',
     'client.apps.ClientConfig',
     'company.apps.CompanyConfig',  # New company management app

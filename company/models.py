@@ -61,6 +61,14 @@ class Company(UUIDModel, TimeStampedModel):
         blank=True,
         help_text='Primary business category'
     )
+
+    business_config = models.ForeignKey(
+        'business.BusinessConfiguration',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text='Deployment business configuration'
+    )
     
     BUSINESS_TYPES = [
         ('corporation', 'Corporation'),
