@@ -22,7 +22,7 @@ class AddTaskListForm(ModelForm):
         }
 
         if proj:
-            self.fields["scope"].queryset = ScopeOfWork.objects.filter(project__job_num=proj)
+            self.fields["scope"].queryset = ScopeOfWork.objects.filter(project__job_number=proj)
         else:
             self.fields["scope"].queryset = ScopeOfWork.objects.all()
         self.fields["scope"].widget.attrs = {

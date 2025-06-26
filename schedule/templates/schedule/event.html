@@ -32,7 +32,7 @@
         <div class="row">
           <div class="col-lg-6">
             <h4>
-              <a href="{{ event.project.get_absolute_url }}">{{ event.project.job_name }} : {{ event.project.job_num }}</a>
+              <a href="{{ event.project.get_absolute_url }}">{{ event.project.name }} : {{ event.project.job_number }}</a>
             </h4>
             <p class="
               {% if event.project.status == 'p' %}statusProspect
