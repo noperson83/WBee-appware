@@ -16,6 +16,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 
 from .models import Company, Office, Department, CompanySettings, setup_default_company_data
+from .forms import CompanyForm, OfficeForm, DepartmentForm
 from client.models import Client, Address, Contact
 from location.models import BusinessCategory
 
@@ -125,14 +126,7 @@ class CompanyCreateView(LoginRequiredMixin, CreateView):
     """Create a new company"""
     model = Company
     template_name = 'company/company_form.html'
-    fields = [
-        'company_name', 'legal_name', 'company_url', 'logo', 'button_image',
-        'business_category', 'business_type', 'tax_id', 'business_license',
-        'primary_contact_name', 'primary_contact_title', 'primary_phone', 
-        'primary_email', 'description', 'mission_statement', 'founded_date',
-        'timezone', 'currency', 'fiscal_year_start', 'default_payment_terms',
-        'is_multi_location', 'parent_company'
-    ]
+    form_class = CompanyForm
     
     def form_valid(self, form):
         response = super().form_valid(form)
@@ -157,15 +151,7 @@ class CompanyUpdateView(LoginRequiredMixin, UpdateView):
     """Update an existing company"""
     model = Company
     template_name = 'company/company_form.html'
-    fields = [
-        'company_name', 'legal_name', 'company_url', 'logo', 'button_image',
-        'brand_colors', 'business_category', 'business_type', 'tax_id', 
-        'business_license', 'primary_contact_name', 'primary_contact_title', 
-        'primary_phone', 'primary_email', 'description', 'mission_statement', 
-        'founded_date', 'current_year_revenue', 'previous_year_revenue',
-        'timezone', 'currency', 'fiscal_year_start', 'default_payment_terms',
-        'is_multi_location', 'parent_company', 'custom_fields'
-    ]
+    form_class = CompanyForm
     
     def form_valid(self, form):
         messages.success(
@@ -232,11 +218,7 @@ class OfficeCreateView(LoginRequiredMixin, CreateView):
     """Create a new office"""
     model = Office
     template_name = 'company/office_form.html'
-    fields = [
-        'company', 'office_name', 'office_code', 'office_type', 'description',
-        'employee_capacity', 'square_footage', 'office_manager', 'phone_number',
-        'email', 'operating_hours', 'opened_date'
-    ]
+    form_class = OfficeForm
     
     def get_initial(self):
         initial = super().get_initial()
@@ -257,11 +239,7 @@ class OfficeUpdateView(LoginRequiredMixin, UpdateView):
     """Update an office"""
     model = Office
     template_name = 'company/office_form.html'
-    fields = [
-        'office_name', 'office_code', 'office_type', 'description',
-        'employee_capacity', 'square_footage', 'office_manager', 'phone_number',
-        'email', 'operating_hours', 'opened_date', 'is_active'
-    ]
+    form_class = OfficeForm
     
     def form_valid(self, form):
         messages.success(
@@ -310,11 +288,7 @@ class DepartmentCreateView(LoginRequiredMixin, CreateView):
     """Create a new department"""
     model = Department
     template_name = 'company/department_form.html'
-    fields = [
-        'company', 'name', 'department_code', 'description', 'parent_department',
-        'department_head', 'annual_budget', 'cost_center_code', 'primary_office',
-        'is_billable'
-    ]
+    form_class = DepartmentForm
     
     def get_initial(self):
         initial = super().get_initial()
