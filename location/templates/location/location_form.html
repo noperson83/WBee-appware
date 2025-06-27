@@ -5,8 +5,6 @@
 {% block title %}{% if form.instance.pk %}Edit {{ form.instance.name }}{% else %}Add New Location{% endif %}{% endblock %}
 
 {% block breadcrumb %}
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
     <li class="breadcrumb-item"><a href="{% url 'location:location-list' %}">All Locations</a></li>
     {% if form.instance.pk %}
@@ -15,8 +13,6 @@
     {% else %}
     <li class="breadcrumb-item active" aria-current="page">Add Location</li>
     {% endif %}
-  </ol>
-</nav>
 {% endblock %}
 
 {% block content %}

@@ -13,16 +13,11 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<nav aria-label="breadcrumb" class="mb-4">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'home:index' %}">Home</a></li>
     <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
     <li class="breadcrumb-item"><a href="{{ location.get_absolute_url }}">{{ location.name }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">
       {% if form.instance.pk %}Edit Document{% else %}Upload Document{% endif %}
     </li>
-  </ol>
-</nav>
 {% endblock %}
 
 {% block content %}
