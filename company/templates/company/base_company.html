@@ -97,14 +97,9 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb breadcrumb-modern">
-        <li class="breadcrumb-item"><a href="{% url 'home:index' %}"><i class="fas fa-home"></i> Home</a></li>
-        {% block company_breadcrumb %}
-        <li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
-        {% endblock %}
-    </ol>
-</nav>
+    {% block company_breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
+    {% endblock %}
 {% endblock %}
 
 {% block content %}
