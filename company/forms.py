@@ -424,7 +424,8 @@ class ContactForm(forms.ModelForm):
         model = Contact
         fields = [
             'contact_type', 'first_name', 'last_name', 'title',
-            'phone', 'email', 'is_primary'
+            'phone', 'mobile', 'email', 'department', 'notes',
+            'is_primary'
         ]
         
         widgets = {
@@ -445,9 +446,22 @@ class ContactForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': '+1234567890'
             }),
+            'mobile': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+1234567890'
+            }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'email@company.com'
+            }),
+            'department': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Department'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Additional notes'
             }),
         }
 
@@ -509,7 +523,10 @@ CompanyContactFormSet = inlineformset_factory(
     form=ContactForm,
     extra=1,
     can_delete=True,
-    fields=['contact_type', 'first_name', 'last_name', 'title', 'phone', 'email', 'is_primary']
+    fields=[
+        'contact_type', 'first_name', 'last_name', 'title',
+        'phone', 'mobile', 'email', 'department', 'notes', 'is_primary'
+    ]
 )
 
 # Office formset for companies

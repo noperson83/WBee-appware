@@ -357,7 +357,8 @@ class ContactForm(forms.ModelForm):
         model = Contact
         fields = [
             'contact_type', 'first_name', 'last_name', 'title',
-            'phone', 'email', 'is_primary', 'is_active'
+            'phone', 'mobile', 'email', 'department', 'notes',
+            'is_primary', 'is_active'
         ]
         widgets = {
             'contact_type': forms.Select(attrs={'class': 'form-control'}),
@@ -377,9 +378,22 @@ class ContactForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': '(555) 123-4567'
             }),
+            'mobile': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '(555) 987-6543'
+            }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'email@example.com'
+            }),
+            'department': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Department'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Additional notes'
             }),
             'is_primary': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
