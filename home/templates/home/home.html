@@ -215,6 +215,16 @@
         </a>
     </div>
     <div class="col">
+        <a href="{% url 'company:list' %}" class="text-decoration-none">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-industry fa-2x mb-2 text-primary"></i>
+                    <div>Companies</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col">
         <a href="{% url 'asset:list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
                 <div class="card-body">
@@ -305,6 +315,7 @@
         <li><a class="dropdown-item" href="{% url 'project:project-list' %}"><i class="fas fa-wrench me-2 text-primary"></i>Projects</a></li>
         <li><a class="dropdown-item" href="{% url 'location:location-list' %}"><i class="fas fa-building me-2 text-secondary"></i>Locations</a></li>
         <li><a class="dropdown-item" href="{% url 'client:list' %}"><i class="fas fa-id-card me-2 text-info"></i>Clients</a></li>
+        <li><a class="dropdown-item" href="{% url 'company:list' %}"><i class="fas fa-industry me-2 text-primary"></i>Companies</a></li>
         <li><a class="dropdown-item" href="{% url 'asset:list' %}"><i class="fas fa-toolbox me-2 text-warning"></i>Assets</a></li>
         <li><a class="dropdown-item" href="{% url 'hr:worker-list' %}"><i class="fas fa-users me-2 text-success"></i>Staff</a></li>
         <li><a class="dropdown-item" href="{% url 'timecard:list' %}"><i class="fas fa-clock me-2 text-danger"></i>Time Cards</a></li>
