@@ -86,6 +86,21 @@ class Contact(TimeStampedModel):
         message="Enter a valid phone number."
     )
     phone = models.CharField(validators=[phone_regex], max_length=17, blank=True)
+    mobile = models.CharField(
+        validators=[phone_regex],
+        max_length=17,
+        blank=True,
+        help_text="Mobile phone number",
+    )
+    department = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="Department or team",
+    )
+    notes = models.TextField(
+        blank=True,
+        help_text="Additional notes about the contact",
+    )
     email = models.EmailField(blank=True)
     
     # Generic foreign key

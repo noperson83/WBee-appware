@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'hr.apps.HrConfig',
     'project.apps.ProjectConfig',
     'material.apps.MaterialConfig',
+    'business.apps.BusinessConfig',
     'todo',
 ]
 
