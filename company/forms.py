@@ -419,12 +419,12 @@ class AddressForm(forms.ModelForm):
 
 class ContactForm(forms.ModelForm):
     """Form for company contacts"""
-    
+
     class Meta:
         model = Contact
         fields = [
-            'contact_type', 'first_name', 'last_name', 'title', 'department',
-            'phone', 'mobile', 'email', 'notes', 'is_primary'
+            'contact_type', 'first_name', 'last_name', 'title',
+            'phone', 'email', 'is_primary'
         ]
         
         widgets = {
@@ -441,26 +441,13 @@ class ContactForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Job title'
             }),
-            'department': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Department'
-            }),
             'phone': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': '+1234567890'
-            }),
-            'mobile': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': '+1234567890'
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'email@company.com'
-            }),
-            'notes': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Additional notes about this contact'
             }),
         }
 
