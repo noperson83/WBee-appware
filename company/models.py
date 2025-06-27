@@ -322,6 +322,28 @@ class Company(UUIDModel, TimeStampedModel):
         """Check if this company has subsidiaries"""
         return self.subsidiaries.exists()
 
+    @property
+    def business_config_summary(self):
+        """Get summary of business configuration"""
+        if not self.business_config:
+            return None
+        return {
+            'name': self.business_config.name,
+            'deployment_type': self.business_config.get_deployment_type_display(),
+            'billing_model': self.business_config.get_billing_model_display(),
+            'collaboration_features': self.business_config.collaboration_features,
+            'is_collaborative': self.business_config.is_collaborative,
+        }
+
+    def apply_business_template(self, template_slug: str) -> bool:
+        """Apply a business template to this company"""
+        from business.models import BusinessTemplate
+        try:
+            template = BusinessTemplate.objects.get(slug=template_slug, is_active=True)
+            return template.apply_to_company(self)
+        except BusinessTemplate.DoesNotExist:
+            return False
+
 
 class CompanyPartnership(TimeStampedModel):
     """Junction model representing partnerships between companies."""
