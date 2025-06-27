@@ -505,10 +505,10 @@ class CompanySearchForm(forms.Form):
 
 # Formsets for inline editing
 from django.forms import inlineformset_factory
+from django.contrib.contenttypes.forms import generic_inlineformset_factory
 
 # Address formset for companies
-CompanyAddressFormSet = inlineformset_factory(
-    Company,
+CompanyAddressFormSet = generic_inlineformset_factory(
     Address,
     form=AddressForm,
     extra=1,
@@ -517,8 +517,7 @@ CompanyAddressFormSet = inlineformset_factory(
 )
 
 # Contact formset for companies  
-CompanyContactFormSet = inlineformset_factory(
-    Company,
+CompanyContactFormSet = generic_inlineformset_factory(
     Contact,
     form=ContactForm,
     extra=1,
