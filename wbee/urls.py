@@ -24,6 +24,7 @@ urlpatterns = [
     path("filer/", include("filer.urls")),
     path("hr/", include("hr.urls")),
     path("company/", include("company.urls")),
+    path("business/", include("business.urls")),
     path("location/", include("location.urls")),
     path('project/', include('project.urls')),
     path('material/', include('material.urls')),
