@@ -3,7 +3,11 @@
   <td style="color:blue;" class="muted"></td>
 {% else %}
   {% if day.has_occurrences %}
+    {% if size == "small" %}
+    <td style="color:blue;" class="btn-primary sched_day gradient calendr-day year-event-day">
+    {% else %}
     <td style="color:blue;" class="btn-primary sched_day gradient calendr-day">
+    {% endif %}
   {% else %}
     <td style="color:blue;">
   {% endif %}

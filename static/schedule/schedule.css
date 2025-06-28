@@ -96,3 +96,12 @@ fieldset[disabled] .btn-custom.active {
 .sched_container{background-color:none}
 .sched_container{box-sizing:border-box;border:1px solid #CECECE;box-shadow:2px 2px 5px #CCC;border-radius:3px}
 .calendarname{float:right;}
+
+/* Highlight days with events specifically in the year view */
+.year-event-day {
+  background-color: #ffe082;
+}
+
+.year-event-day:hover {
+  background-color: #ffd54f;
+}
