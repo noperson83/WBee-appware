@@ -448,6 +448,14 @@ COMPANY_WEBSITE = config('COMPANY_WEBSITE', default='https://wbee.app')
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
 
+# Mapping of job position codes to default roles used for permissions
+POSITION_ROLE_MAP = {
+    # Example mappings; customize to match your organization's positions
+    'PMGR': 'project_manager',
+    'SUPV': 'supervisor',
+    'WORK': 'worker',
+}
+
 # ==============================================================================
 # ENVIRONMENT-SPECIFIC OVERRIDES
 # ==============================================================================
