@@ -327,9 +327,7 @@
         <li><a class="dropdown-item" href="{% url 'todo:lists' %}"><i class="fas fa-tasks me-2 text-primary"></i>Todo</a></li>
         {% if request.user.is_staff %}
         <li><a class="dropdown-item" href="{% url 'asset:list' %}"><i class="fas fa-toolbox me-2 text-warning"></i>Assets</a></li>
-        {% endif %}
         <li><a class="dropdown-item" href="{% url 'receipts:list' %}"><i class="fas fa-receipt me-2 text-secondary"></i>Receipts</a></li>
-        {% if request.user.is_staff %}
         <li><a class="dropdown-item" href="{% url 'helpdesk:home' %}"><i class="fas fa-life-ring me-2 text-danger"></i>Help Desk</a></li>
         <li><a class="dropdown-item" href="{% url 'hr:worker-list' %}"><i class="fas fa-users me-2 text-success"></i>Staff</a></li>
         <li><a class="dropdown-item" href="{% url 'wip:list' %}"><i class="fas fa-balance-scale me-2 text-warning"></i>WIP</a></li>
