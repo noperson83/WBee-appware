@@ -119,10 +119,10 @@ $(document).ready(function() {
             center: 'title',
             right: 'year,month,agendaWeek,agendaDay'
         },
-        editable: {% if request.user.staff %}true{% else %}false{% endif %},
+        editable: {% if request.user.is_staff %}true{% else %}false{% endif %},
         eventLimit: true, // allow 'more' link when too many events
-        selectable: {% if request.user.staff %}true{% else %}false{% endif %}, //Allows a user to highlight multiple days or timeslots by clicking and dragging.
-        selectHelper: {% if request.user.staff %}true{% else %}false{% endif %},
+        selectable: {% if request.user.is_staff %}true{% else %}false{% endif %}, //Allows a user to highlight multiple days or timeslots by clicking and dragging.
+        selectHelper: {% if request.user.is_staff %}true{% else %}false{% endif %},
         events: "{% url 'api_occurrences' %}?calendar_slug={{calendar_slug}}",
         loading: function(bool) {
             if (bool) {

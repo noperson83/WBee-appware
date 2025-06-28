@@ -4,14 +4,14 @@
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'timecard' %}">Time card</a></li>
 <li class="breadcrumb-item active">Time card / TODAY IS {{ tadai }}</li>
-{% if request.user.staff %}
+{% if request.user.is_staff %}
 <li class="breadcrumb-item"><a href="{% url 'create-timecard' %}">add a new day</a></li>
 {% endif %}
 {% endblock %}
 
 {% block content %}
 
-{% if request.user.admin %}
+{% if request.user.is_admin %}
 <div class="col-lg-4">
   <div class="card mb-3">
     <div class="card-header" style="background-color:rgb(0, 119, 255);">

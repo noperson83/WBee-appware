@@ -3,7 +3,7 @@
 {% block title %}Time card{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'timecard' %}">Time card</a></li>
-{% if request.user.staff %}
+{% if request.user.is_staff %}
 <li class="breadcrumb-item"><a href="{% url 'create-timecard' %}">add a new day</a></li>
 {% endif %}
 {% endblock %}

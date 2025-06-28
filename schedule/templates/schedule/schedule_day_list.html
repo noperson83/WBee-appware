@@ -5,7 +5,7 @@
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'schedule:schedule' %}">Schedule</a></li>
 <li class="breadcrumb-item active"><b>{{ now|date:"F, jS o" }}</b></li>
-{% if request.user.staff %}
+{% if request.user.is_staff %}
 <li class="breadcrumb-item"><a href="{% url 'create-event' proj=dayevent.project.job_number %}">add a new event</a></li>
 {% endif %}
 {% endblock %}
