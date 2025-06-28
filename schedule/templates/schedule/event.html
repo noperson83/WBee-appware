@@ -52,15 +52,22 @@
               {% else %}statusLost
               {% endif %}">Status: {{ event.project.get_status_display|default:event.project.status }}</p>
             
-            <strong><a href="{{ event.project.jobsite.get_absolute_url }}">{{ event.project.jobsite }}</a></strong> - 
-                (<a href="{{ event.project.jobsite.job_client.get_absolute_url }}">{{ event.project.jobsite.job_client }}</a>)
-            <br> 
-            <a href="{{ event.project.jobsite.google_maps_link }}">
-              <h6>
-                {{ event.project.jobsite.street_address }}<br>
-                {{ event.project.jobsite.city }}, {{ event.project.jobsite.state }} {{ event.project.jobsite.zipcode }}
-              </h6>
-            </a>
+            {# Display associated location using the modern location model #}
+            {% with location=event.project.location %}
+              {% if location %}
+                <strong><a href="{{ location.get_absolute_url }}">{{ location }}</a></strong>
+                - (<a href="{{ location.client.get_absolute_url }}">{{ location.client }}</a>)
+                <br>
+                {% if location.primary_address %}
+                  <a href="{{ location.google_maps_url }}">
+                    <h6>
+                      {{ location.primary_address.line1 }}<br>
+                      {{ location.primary_address.city }}, {{ location.primary_address.state_province }} {{ location.primary_address.postal_code }}
+                    </h6>
+                  </a>
+                {% endif %}
+              {% endif %}
+            {% endwith %}
             {% if event.project.due_date %}
               {% if event.project.status != 'c' %}
                 <strong>Due date:</strong> {{ event.project.due_date }}

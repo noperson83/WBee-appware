@@ -56,7 +56,15 @@
             <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start_time|date:"f A" }}</a> </td>
             <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start|date:"f A" }}</a> </td>
             <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.name|truncatechars:48 }}</a> </td>
-            <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.jobsite.google_maps_link }}">{{ dayevent.project.jobsite.street_address }}, {{ dayevent.project.jobsite.city }}, {{ dayevent.project.jobsite.state }}, {{ dayevent.project.jobsite.zipcode }}</a></td>
+            {% with location=dayevent.project.location %}
+              <td style="min-width:220px;font-weight:bold;">
+                {% if location and location.primary_address %}
+                  <a style="color:black;" href="{{ location.google_maps_url }}">
+                    {{ location.primary_address.line1 }}, {{ location.primary_address.city }}, {{ location.primary_address.state_province }}, {{ location.primary_address.postal_code }}
+                  </a>
+                {% endif %}
+              </td>
+            {% endwith %}
             <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.job_number }}</a> </td>
           </tr>
         {% if not forloop.last %} {% endif %}
@@ -73,7 +81,15 @@
           <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start_time|date:"f A" }}</a> </td>
           <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start|date:"f A" }}</a> </td>
           <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.name|truncatechars:48 }}</a> </td>
-          <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.jobsite.google_maps_link }}">{{ dayevent.project.jobsite.street_address }}, {{ dayevent.project.jobsite.city }}, {{ dayevent.project.jobsite.state }}, {{ dayevent.project.jobsite.zipcode }}</a></td>
+          {% with location=dayevent.project.location %}
+            <td style="min-width:220px;font-weight:bold;">
+              {% if location and location.primary_address %}
+                <a style="color:black;" href="{{ location.google_maps_url }}">
+                  {{ location.primary_address.line1 }}, {{ location.primary_address.city }}, {{ location.primary_address.state_province }}, {{ location.primary_address.postal_code }}
+                </a>
+              {% endif %}
+            </td>
+          {% endwith %}
           <td style="min-width:64px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.job_number }}</a> </td>
           </tr>
         {% if not forloop.last %} {% endif %}

@@ -53,15 +53,21 @@
           {% else %}statusLost
           {% endif %} ">Install: {{ dayevent.project.get_status_display|default:dayevent.project.status }}</p>
         
-        <strong><a href="{{ dayevent.project.jobsite.get_absolute_url }}">{{ dayevent.project.jobsite }}</a></strong> - 
-            (<a href="{{ dayevent.project.jobsite.job_client.get_absolute_url }}">{{ dayevent.project.jobsite.job_client }}</a>)
-        <br> 
-        <a href="{{ dayevent.project.jobsite.google_maps_link }}">
-          <h6>
-            {{ dayevent.project.jobsite.street_address }}<br>
-            {{ dayevent.project.jobsite.city }}, {{ dayevent.project.jobsite.state }} {{ dayevent.project.jobsite.zipcode }}
-          </h6>
-        </a>
+        {% with location=dayevent.project.location %}
+          {% if location %}
+            <strong><a href="{{ location.get_absolute_url }}">{{ location }}</a></strong>
+            - (<a href="{{ location.client.get_absolute_url }}">{{ location.client }}</a>)
+            <br>
+            {% if location.primary_address %}
+              <a href="{{ location.google_maps_url }}">
+                <h6>
+                  {{ location.primary_address.line1 }}<br>
+                  {{ location.primary_address.city }}, {{ location.primary_address.state_province }} {{ location.primary_address.postal_code }}
+                </h6>
+              </a>
+            {% endif %}
+          {% endif %}
+        {% endwith %}
         {% if dayevent.project.status != 'c' %}
         <strong>Due date:</strong> {{dayevent.project.due_date}}{% endif %}<br>
         <strong>Date of completion:</strong> {{ dayevent.project.finished_date }}
