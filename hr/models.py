@@ -405,6 +405,13 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
             return "admin"
         if self.is_staff:
             return "staff"
+        if self.position:
+            from django.conf import settings
+            mapping = getattr(settings, 'POSITION_ROLE_MAP', {})
+            role = mapping.get(getattr(self.position, 'position_code', None)) or \
+                   mapping.get(getattr(self.position, 'title', None))
+            if role:
+                return role
         return ""
 
     @role.setter
