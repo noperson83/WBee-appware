@@ -531,3 +531,8 @@ def schedule_demo(request):
     """Simple demo view showing scheduled events snippet."""
     return render(request, "home/schedule_example.html")
 
+
+def permission_denied_view(request, exception=None):
+    """Render custom 403 page."""
+    return render(request, "403.html", status=403)
+
