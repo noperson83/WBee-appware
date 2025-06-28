@@ -40,7 +40,8 @@ $(document).ready(function() {
     function setModalProperties(type, event){
         if(type == 'edit'){
             var tYPE = '{% trans "Edit" %}';
-            var all_url = "{% url 'edit_event' calendar_slug 12345 %}".replace(/12345/, event.event_id);
+            {% url 'edit_event' calendar_slug 12345 as edit_event_base %}
+            var all_url = "{{ edit_event_base }}".replace(/12345/, event.event_id);
             if (event.existed){
                 var this_url = "{% url 'edit_occurrence' 12345 6789 %}".replace(/12345/, event.event_id).replace(/6789/, event.id);
             }
@@ -57,7 +58,8 @@ $(document).ready(function() {
         }
         else if(type == 'delete'){
             var tYPE = '{% trans "Delete" %}';
-            var all_url = "{% url 'delete_event' 12345 %}".replace(/12345/, event.event_id);
+            {% url 'delete_event' 12345 as delete_event_base %}
+            var all_url = "{{ delete_event_base }}".replace(/12345/, event.event_id);
             if (event.existed){
                 var this_url = "{% url 'cancel_occurrence' 12345 6789 %}".replace(/12345/, event.event_id).replace(/6789/, event.id);
             }
