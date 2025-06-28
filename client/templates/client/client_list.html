@@ -386,7 +386,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
                     <i class="fas fa-edit me-2"></i>Edit Client
                   </a>
                   <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="{% url 'create-jobsite-from' client=client.pk %}">
+                  <a class="dropdown-item" href="{% url 'location:location-create' %}?client={{ client.pk }}">
                     <i class="fas fa-plus me-2"></i>Add Job Site
                   </a>
                   {% endif %}
