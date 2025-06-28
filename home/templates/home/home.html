@@ -184,22 +184,13 @@
 
 <!-- Dashboard Quick Menu -->
 <div class="row row-cols-2 row-cols-md-4 row-cols-xl-6 g-3 mb-4 dashboard-menu d-none d-md-flex">
+    {% if request.user.is_staff %}
     <div class="col">
-        <a href="{% url 'project:project-list' %}" class="text-decoration-none">
+        <a href="{% url 'company:list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
                 <div class="card-body">
-                    <i class="fas fa-wrench fa-2x mb-2 text-primary"></i>
-                    <div>Projects</div>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col">
-        <a href="{% url 'location:location-list' %}" class="text-decoration-none">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <i class="fas fa-building fa-2x mb-2 text-secondary"></i>
-                    <div>Locations</div>
+                    <i class="fas fa-industry fa-2x mb-2 text-primary"></i>
+                    <div>Companies</div>
                 </div>
             </div>
         </a>
@@ -215,41 +206,22 @@
         </a>
     </div>
     <div class="col">
-        <a href="{% url 'company:list' %}" class="text-decoration-none">
+        <a href="{% url 'location:location-list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
                 <div class="card-body">
-                    <i class="fas fa-industry fa-2x mb-2 text-primary"></i>
-                    <div>Companies</div>
+                    <i class="fas fa-building fa-2x mb-2 text-secondary"></i>
+                    <div>Locations</div>
                 </div>
             </div>
         </a>
     </div>
+    {% endif %}
     <div class="col">
-        <a href="{% url 'asset:list' %}" class="text-decoration-none">
+        <a href="{% url 'project:project-list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
                 <div class="card-body">
-                    <i class="fas fa-toolbox fa-2x mb-2 text-warning"></i>
-                    <div>Assets</div>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col">
-        <a href="{% url 'hr:worker-list' %}" class="text-decoration-none">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <i class="fas fa-users fa-2x mb-2 text-success"></i>
-                    <div>Staff</div>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col">
-        <a href="{% url 'timecard:list' %}" class="text-decoration-none">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <i class="fas fa-clock fa-2x mb-2 text-danger"></i>
-                    <div>Time Cards</div>
+                    <i class="fas fa-wrench fa-2x mb-2 text-primary"></i>
+                    <div>Projects</div>
                 </div>
             </div>
         </a>
@@ -265,6 +237,16 @@
         </a>
     </div>
     <div class="col">
+        <a href="{% url 'timecard:list' %}" class="text-decoration-none">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-2x mb-2 text-danger"></i>
+                    <div>Time Cards</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col">
         <a href="{% url 'todo:lists' %}" class="text-decoration-none">
             <div class="card text-center h-100">
                 <div class="card-body">
@@ -274,12 +256,45 @@
             </div>
         </a>
     </div>
+    {% if request.user.is_staff %}
+    <div class="col">
+        <a href="{% url 'asset:list' %}" class="text-decoration-none">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-toolbox fa-2x mb-2 text-warning"></i>
+                    <div>Assets</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endif %}
     <div class="col">
         <a href="{% url 'receipts:list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
                 <div class="card-body">
                     <i class="fas fa-receipt fa-2x mb-2 text-secondary"></i>
                     <div>Receipts</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% if request.user.is_staff %}
+    <div class="col">
+        <a href="{% url 'helpdesk:home' %}" class="text-decoration-none">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-life-ring fa-2x mb-2 text-danger"></i>
+                    <div>Help Desk</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col">
+        <a href="{% url 'hr:worker-list' %}" class="text-decoration-none">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x mb-2 text-success"></i>
+                    <div>Staff</div>
                 </div>
             </div>
         </a>
@@ -294,16 +309,7 @@
             </div>
         </a>
     </div>
-    <div class="col">
-        <a href="{% url 'helpdesk:home' %}" class="text-decoration-none">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <i class="fas fa-life-ring fa-2x mb-2 text-danger"></i>
-                    <div>Help Desk</div>
-                </div>
-            </div>
-        </a>
-    </div>
+    {% endif %}
 </div>
 
 <!-- Quick Menu Dropdown for small screens -->
@@ -312,18 +318,24 @@
         Quick Menu
     </button>
     <ul class="dropdown-menu w-100" aria-labelledby="quickMenuDropdown">
-        <li><a class="dropdown-item" href="{% url 'project:project-list' %}"><i class="fas fa-wrench me-2 text-primary"></i>Projects</a></li>
-        <li><a class="dropdown-item" href="{% url 'location:location-list' %}"><i class="fas fa-building me-2 text-secondary"></i>Locations</a></li>
-        <li><a class="dropdown-item" href="{% url 'client:list' %}"><i class="fas fa-id-card me-2 text-info"></i>Clients</a></li>
+        {% if request.user.is_staff %}
         <li><a class="dropdown-item" href="{% url 'company:list' %}"><i class="fas fa-industry me-2 text-primary"></i>Companies</a></li>
-        <li><a class="dropdown-item" href="{% url 'asset:list' %}"><i class="fas fa-toolbox me-2 text-warning"></i>Assets</a></li>
-        <li><a class="dropdown-item" href="{% url 'hr:worker-list' %}"><i class="fas fa-users me-2 text-success"></i>Staff</a></li>
-        <li><a class="dropdown-item" href="{% url 'timecard:list' %}"><i class="fas fa-clock me-2 text-danger"></i>Time Cards</a></li>
+        <li><a class="dropdown-item" href="{% url 'client:list' %}"><i class="fas fa-id-card me-2 text-info"></i>Clients</a></li>
+        <li><a class="dropdown-item" href="{% url 'location:location-list' %}"><i class="fas fa-building me-2 text-secondary"></i>Locations</a></li>
+        {% endif %}
+        <li><a class="dropdown-item" href="{% url 'project:project-list' %}"><i class="fas fa-wrench me-2 text-primary"></i>Projects</a></li>
         <li><a class="dropdown-item" href="{% url 'project:project-schedule' %}"><i class="fas fa-calendar me-2 text-info"></i>Schedule</a></li>
+        <li><a class="dropdown-item" href="{% url 'timecard:list' %}"><i class="fas fa-clock me-2 text-danger"></i>Time Cards</a></li>
         <li><a class="dropdown-item" href="{% url 'todo:lists' %}"><i class="fas fa-tasks me-2 text-primary"></i>Todo</a></li>
+        {% if request.user.is_staff %}
+        <li><a class="dropdown-item" href="{% url 'asset:list' %}"><i class="fas fa-toolbox me-2 text-warning"></i>Assets</a></li>
+        {% endif %}
         <li><a class="dropdown-item" href="{% url 'receipts:list' %}"><i class="fas fa-receipt me-2 text-secondary"></i>Receipts</a></li>
-        <li><a class="dropdown-item" href="{% url 'wip:list' %}"><i class="fas fa-balance-scale me-2 text-warning"></i>WIP</a></li>
+        {% if request.user.is_staff %}
         <li><a class="dropdown-item" href="{% url 'helpdesk:home' %}"><i class="fas fa-life-ring me-2 text-danger"></i>Help Desk</a></li>
+        <li><a class="dropdown-item" href="{% url 'hr:worker-list' %}"><i class="fas fa-users me-2 text-success"></i>Staff</a></li>
+        <li><a class="dropdown-item" href="{% url 'wip:list' %}"><i class="fas fa-balance-scale me-2 text-warning"></i>WIP</a></li>
+        {% endif %}
     </ul>
 </div>
 
