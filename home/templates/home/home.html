@@ -267,7 +267,6 @@
             </div>
         </a>
     </div>
-    {% endif %}
     <div class="col">
         <a href="{% url 'receipts:list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
@@ -278,7 +277,6 @@
             </div>
         </a>
     </div>
-    {% if request.user.is_staff %}
     <div class="col">
         <a href="{% url 'helpdesk:home' %}" class="text-decoration-none">
             <div class="card text-center h-100">
