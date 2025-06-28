@@ -1,0 +1,842 @@
+{% extends 'home/base.html' %}
+
+{% block title %}<title>Dashboard</title>{% endblock %}
+{% block content %}
+
+{% if request.user.is_tech %}
+<div class="row">
+  <div class="col-lg-8">
+  <!-- Example Notifications Card-->  
+    <div class="card mb-3">
+      <div class="card-header">
+        <i class="fa fa-bell-o"></i> Scheduled events</div>
+      <div class="list-group list-group-flush small">
+       {% if project_event_list %}
+        {% for event in project_event_list %}
+        <a class="list-group-item list-group-item-action" href="{{ event.get_absolute_url }}">
+          <div class="media">
+            <div class="statusLost" style="background-color:{{ event.color_event }};">{{ event.project.job_num }}</div>
+            <div class="media-body">
+              <strong>{{ event.start|date:"N dS" }}</strong> {{ event.title }}:
+               {{ event.description|truncatechars:28 }} <strong>{{ event.project.jobsite }}</strong>.
+              <div class="text-muted smaller">{% if event.start_time %}office: {{ event.start_time }} - {% endif %}site: {{ event.start|date:"P" }}</div>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+        <a class="list-group-item list-group-item-action" href="{% url 'archive_today' %}">View full schedule...</a>
+       {% else %}
+        <p>There are no events scheduled.</p>
+       {% endif %}
+      </div>
+    </div>
+  </div>{% extends 'home/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - WBEE Manager{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block quick_actions %}
+<!-- Quick Actions Bar for Dashboard -->
+<div class="quick-actions">
+    <span class="text-muted me-2">Quick Actions:</span>
+    <a href="{% url 'project:project-create' %}" class="quick-action-btn">
+        <i class="fas fa-plus"></i> New Project
+    </a>
+    <a href="{% url 'timecard:create' %}" class="quick-action-btn">
+        <i class="fas fa-clock"></i> Clock In
+    </a>
+    <a href="{% url 'todo:lists' %}" class="quick-action-btn">
+        <i class="fas fa-tasks"></i> My Tasks
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modern Dashboard Styles */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 1200px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Stats Cards */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e1e4e8;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--accent-color);
+}
+
+.stat-card.danger::before { background: var(--danger-color); }
+.stat-card.success::before { background: var(--success-color); }
+.stat-card.warning::before { background: var(--warning-color); }
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--accent-color);
+}
+
+.stat-card.danger .stat-icon {
+    background: rgba(231, 76, 60, 0.1);
+    color: var(--danger-color);
+}
+
+.stat-card.success .stat-icon {
+    background: rgba(39, 174, 96, 0.1);
+    color: var(--success-color);
+}
+
+.stat-card.warning .stat-icon {
+    background: rgba(243, 156, 18, 0.1);
+    color: var(--warning-color);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Modern Cards */
+.dashboard-card {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e1e4e8;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.card-header {
+    background: white;
+    border-bottom: 1px solid #e1e4e8;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-header-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+}
+
+.card-header-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--accent-color);
+}
+
+.card-header-action {
+    font-size: 0.875rem;
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: normal;
+}
+
+.card-header-action:hover {
+    text-decoration: underline;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Event List */
+.event-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.event-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f3f4;
+    transition: background 0.2s ease;
+}
+
+.event-item:hover {
+    background: #f8f9fa;
+}
+
+.event-item:last-child {
+    border-bottom: none;
+}
+
+.event-badge {
+    min-width: 60px;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-align: center;
+    margin-right: 1rem;
+    background: var(--accent-color);
+    color: white;
+}
+
+.event-badge.warning { background: var(--warning-color); }
+.event-badge.success { background: var(--success-color); }
+.event-badge.danger { background: var(--danger-color); }
+.event-badge.info { background: #17a2b8; }
+
+.event-content {
+    flex: 1;
+}
+
+.event-title {
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: #212529;
+}
+
+.event-meta {
+    font-size: 0.875rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.event-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+/* Tools/Assets Sidebar */
+.tools-section {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid #e1e4e8;
+    overflow: hidden;
+}
+
+.tools-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.tools-category {
+    border-bottom: 1px solid #e1e4e8;
+}
+
+.tools-category:last-child {
+    border-bottom: none;
+}
+
+.category-header {
+    padding: 0.75rem 1.5rem;
+    background: #f8f9fa;
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #495057;
+}
+
+.tool-item {
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: background 0.2s ease;
+}
+
+.tool-item:hover {
+    background: #f8f9fa;
+}
+
+.tool-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 0.375rem;
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+}
+
+.tool-details {
+    flex: 1;
+}
+
+.tool-name {
+    font-weight: 500;
+    font-size: 0.875rem;
+    margin-bottom: 0.125rem;
+}
+
+.tool-meta {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: #6c757d;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+.empty-title {
+    font-size: 1.125rem;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.empty-text {
+    font-size: 0.875rem;
+}
+
+/* Quick Menu Grid */
+.quick-menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.menu-card {
+    background: white;
+    border: 1px solid #e1e4e8;
+    border-radius: 0.75rem;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.menu-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: inherit;
+}
+
+.menu-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--accent-color);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.menu-card:hover::before {
+    transform: translateX(0);
+}
+
+.menu-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.8;
+}
+
+.menu-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-menu {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .dashboard-grid {
+        margin-top: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Stats -->
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-box"></i>
+        </div>
+        <div class="stat-value">{{ dashboard_stats.total_assets|default:0 }}</div>
+        <div class="stat-label">Active Assets</div>
+    </div>
+    
+    <div class="stat-card success">
+        <div class="stat-icon">
+            <i class="fas fa-project-diagram"></i>
+        </div>
+        <div class="stat-value">{{ dashboard_stats.active_projects|default:0 }}</div>
+        <div class="stat-label">Active Projects</div>
+    </div>
+    
+    <div class="stat-card warning">
+        <div class="stat-icon">
+            <i class="fas fa-tasks"></i>
+        </div>
+        <div class="stat-value">{{ dashboard_stats.pending_tasks|default:0 }}</div>
+        <div class="stat-label">Pending Tasks</div>
+    </div>
+    
+    <div class="stat-card danger">
+        <div class="stat-icon">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="stat-value">{{ dashboard_stats.upcoming_events|default:0 }}</div>
+        <div class="stat-label">This Week</div>
+    </div>
+</div>
+
+<!-- Quick Access Menu -->
+<div class="quick-menu">
+    {% if request.user.is_staff %}
+    <a href="{% url 'company:list' %}" class="menu-card">
+        <div class="menu-icon text-primary"><i class="fas fa-industry"></i></div>
+        <div class="menu-label">Companies</div>
+    </a>
+    <a href="{% url 'client:list' %}" class="menu-card">
+        <div class="menu-icon text-info"><i class="fas fa-id-card"></i></div>
+        <div class="menu-label">Clients</div>
+    </a>
+    <a href="{% url 'location:location-list' %}" class="menu-card">
+        <div class="menu-icon text-secondary"><i class="fas fa-building"></i></div>
+        <div class="menu-label">Locations</div>
+    </a>
+    {% endif %}
+    <a href="{% url 'project:project-list' %}" class="menu-card">
+        <div class="menu-icon text-primary"><i class="fas fa-wrench"></i></div>
+        <div class="menu-label">Projects</div>
+    </a>
+    <a href="{% url 'project:project-schedule' %}" class="menu-card">
+        <div class="menu-icon text-info"><i class="fas fa-calendar"></i></div>
+        <div class="menu-label">Schedule</div>
+    </a>
+    <a href="{% url 'timecard:list' %}" class="menu-card">
+        <div class="menu-icon text-danger"><i class="fas fa-clock"></i></div>
+        <div class="menu-label">Time Cards</div>
+    </a>
+    <a href="{% url 'todo:lists' %}" class="menu-card">
+        <div class="menu-icon text-success"><i class="fas fa-tasks"></i></div>
+        <div class="menu-label">Todo</div>
+    </a>
+    {% if request.user.is_staff %}
+    <a href="{% url 'asset:list' %}" class="menu-card">
+        <div class="menu-icon text-warning"><i class="fas fa-toolbox"></i></div>
+        <div class="menu-label">Assets</div>
+    </a>
+    <a href="{% url 'receipts:list' %}" class="menu-card">
+        <div class="menu-icon text-secondary"><i class="fas fa-receipt"></i></div>
+        <div class="menu-label">Receipts</div>
+    </a>
+    {% endif %}
+</div>
+
+<!-- Main Dashboard Content -->
+<div class="dashboard-grid">
+    <!-- Left Column -->
+    <div class="main-content">
+        <!-- Scheduled Events -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-header-title">
+                    <div class="card-header-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <span>Scheduled Events</span>
+                </div>
+                <a href="{% url 'schedule:schedule' %}" class="card-header-action">
+                    View all <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            
+            {% if scheduled_events %}
+                <ul class="event-list">
+                    {% for event in scheduled_events %}
+                    <li class="event-item">
+                        <div class="event-badge {{ event.color_class|default:'info' }}">
+                            {{ event.job_number|default:'TBD' }}
+                        </div>
+                        <div class="event-content">
+                            <div class="event-title">{{ event.title }}</div>
+                            <div class="event-meta">
+                                <div class="event-meta-item">
+                                    <i class="far fa-calendar"></i>
+                                    {{ event.date|date:"M j, Y" }}
+                                </div>
+                                {% if event.location %}
+                                <div class="event-meta-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    {{ event.location }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="far fa-calendar"></i>
+                    </div>
+                    <div class="empty-title">No scheduled events</div>
+                    <div class="empty-text">Your upcoming events will appear here</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Projects -->
+        {% if recent_projects or worker_project_list %}
+        <div class="dashboard-card">
+            <div class="card-header">
+                <div class="card-header-title">
+                    <div class="card-header-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <span>Recent Projects</span>
+                </div>
+                <a href="{% url 'project:project-list' %}" class="card-header-action">
+                    View all <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            
+            <ul class="event-list">
+                {% for project in recent_projects|default:worker_project_list %}
+                <li class="event-item">
+                    <div class="event-badge info">
+                        {{ project.job_number|default:project.job_num|default:'—' }}
+                    </div>
+                    <div class="event-content">
+                        <div class="event-title">{{ project.name|default:"Untitled Project" }}</div>
+                        <div class="event-meta">
+                            {% if project.status %}
+                            <div class="event-meta-item">
+                                <i class="fas fa-circle-notch"></i>
+                                {{ project.status|title }}
+                            </div>
+                            {% endif %}
+                            {% if project.client %}
+                            <div class="event-meta-item">
+                                <i class="far fa-building"></i>
+                                {{ project.client }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right Column - Tools -->
+    <div class="sidebar-content">
+        <div class="tools-section">
+            <div class="tools-header">
+                <i class="fas fa-tools"></i>
+                <span>My Tools & Equipment</span>
+            </div>
+            
+            {% if tools_assigned or ladder_list or vehicle_list or tool_list %}
+                {% if tools_assigned %}
+                    {% for category in tools_assigned %}
+                    <div class="tools-category">
+                        <div class="category-header">
+                            <i class="{{ category.icon|default:'fas fa-box' }}"></i>
+                            <span>{{ category.category }}</span>
+                        </div>
+                        {% for item in category.items %}
+                        <div class="tool-item">
+                            <div class="tool-icon">
+                                <i class="{{ category.icon|default:'fas fa-box' }}"></i>
+                            </div>
+                            <div class="tool-details">
+                                <div class="tool-name">{{ item.name }}</div>
+                                <div class="tool-meta">
+                                    {% if item.asset_number %}#{{ item.asset_number }}{% endif %}
+                                    {% if item.location %} • {{ item.location }}{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Backward compatibility -->
+                    {% if ladder_list %}
+                    <div class="tools-category">
+                        <div class="category-header">
+                            <i class="fas fa-ladder"></i>
+                            <span>Ladders</span>
+                        </div>
+                        {% for item in ladder_list %}
+                        <div class="tool-item">
+                            <div class="tool-icon">
+                                <i class="fas fa-ladder"></i>
+                            </div>
+                            <div class="tool-details">
+                                <div class="tool-name">{{ item.name|default:item.asset_number }}</div>
+                                <div class="tool-meta">{{ item.manufacturer|default:"" }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle_list %}
+                    <div class="tools-category">
+                        <div class="category-header">
+                            <i class="fas fa-truck"></i>
+                            <span>Vehicles</span>
+                        </div>
+                        {% for item in vehicle_list %}
+                        <div class="tool-item">
+                            <div class="tool-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div class="tool-details">
+                                <div class="tool-name">{{ item.name|default:item.asset_number }}</div>
+                                <div class="tool-meta">{{ item.manufacturer|default:"" }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="empty-title">No tools assigned</div>
+                    <div class="empty-text">Assigned equipment will appear here</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Dashboard functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Refresh dashboard data every 5 minutes
+    setInterval(function() {
+        if (document.visibilityState === 'visible') {
+            console.log('Auto-refreshing dashboard...');
+            // Add HTMX or AJAX refresh here if needed
+        }
+    }, 300000);
+
+    // Add click handlers for event items
+    const eventItems = document.querySelectorAll('.event-item');
+    eventItems.forEach(item => {
+        item.style.cursor = 'pointer';
+        item.addEventListener('click', function() {
+            // Navigate to event detail if URL is available
+            // This would need to be implemented based on your URL structure
+        });
+    });
+});
+</script>
+{% endblock %}
+  <div class="col-lg-4">
+    <div class="card mb-3">
+      <div class="card-header" style="background-color:rgb(0, 119, 255);">
+          <b>Tools</b>
+      </div> 
+      {% if ladder_list %}
+      <div class="list-group list-group-flush small">
+      {% for ladder in ladder_list %}
+      <a class="list-group-item list-group-item-action" href="{{ ladder.get_absolute_url }}">
+        <div class="media">
+          <div class="statusLost">Ladder</div>
+          <div class="media-body">
+            <strong>{{ ladder.label }}</strong>  Location: {{ ladder.get_location_display }}
+            <div class="text-muted smaller">{{ ladder.get_size_display }} - {{ ladder.get_color_display }}</div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+      </div>
+      {% else %}
+      {% endif %}
+      {% if vehicle_list %}
+      <div class="list-group list-group-flush small"> 
+      {% for vehicle in vehicle_list %}
+      <a class="list-group-item list-group-item-action" href="{{ vehicle.get_absolute_url }}">
+        <div class="media">
+          <div class="statusLost">Vehicle</div>
+          <div class="media-body">
+            <strong>{{ vehicle.label }}</strong>  Location: {{ vehicle.make }}
+            <div class="text-muted smaller">{{ vehicle.model }} - {{ vehicle.year }}</div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+      </div>
+      {% else %}
+      {% endif %}
+      {% if fiber_list %}
+      <div class="list-group list-group-flush small"> 
+      {% for fiber in fiber_list %}
+      <a class="list-group-item list-group-item-action" href="{{ fiber.get_absolute_url }}">
+        <div class="media">
+          <div class="statusLost">Fiber</div>
+          <div class="media-body">
+            <strong>{{ fiber.label }}</strong>  Location: {{ fiber.make }}
+            <div class="text-muted smaller">{{ fiber.model }} - {{ fiber.year }}</div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+      </div>
+      {% else %}
+      {% endif %}
+      {% if power_tool_list %}
+      <div class="list-group list-group-flush small"> 
+      {% for power_tool in power_tool_list %}
+      <a class="list-group-item list-group-item-action" href="{{ power_tool.get_absolute_url }}">
+        <div class="media">
+          <div class="statusLost">Power Tool</div>
+          <div class="media-body">
+            <strong>{{ power_tool.label }}</strong>  Location: {{ power_tool.make }}
+            <div class="text-muted smaller">{{ power_tool.model }} - {{ power_tool.year }}</div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+      </div>
+      {% else %}
+      {% endif %}
+      {% if tool_list %}
+      <div class="list-group list-group-flush small"> 
+      {% for tool in tool_list %}
+      <a class="list-group-item list-group-item-action" href="{{ tool.get_absolute_url }}">
+        <div class="media">
+          <div class="statusLost">tool</div>
+          <div class="media-body">
+            <strong>{{ tool.label }}</strong>  Location: {{ tool.make }}
+            <div class="text-muted smaller">{{ tool.model }} - {{ tool.year }}</div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+      </div>
+      {% else %}
+      {% endif %}
+      {% if tester_list %}
+      <div class="list-group list-group-flush small"> 
+      {% for tester in tester_list %}
+      <a class="list-group-item list-group-item-action" href="{{ tester.get_absolute_url }}">
+        <div class="media">
+          <div class="statusLost">tester</div>
+          <div class="media-body">
+            <strong>{{ tester.label }}</strong>  Location: {{ tester.make }}
+            <div class="text-muted smaller">{{ tester.model }} - {{ tester.year }}</div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+      </div>
+      {% else %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% else %}
+ <p>You dont have permission.</p>
+{% endif %}
+
+{% endblock %}
