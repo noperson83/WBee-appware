@@ -4,7 +4,7 @@ import datetime
 
 from django import template
 from django.conf import settings
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.utils import timezone
 from django.utils.dateformat import format
 from django.utils.html import escape
@@ -91,8 +91,14 @@ def options(context, occurrence):
     if CHECK_EVENT_PERM_FUNC(occurrence.event, user) and CHECK_CALENDAR_PERM_FUNC(occurrence.event.calendar, user):
         context['edit_occurrence'] = occurrence.get_edit_url()
         context['cancel_occurrence'] = occurrence.get_cancel_url()
-        context['delete_event'] = reverse('delete_event', args=(occurrence.event.id,))
-        context['edit_event'] = reverse('edit_event', args=(occurrence.event.calendar.slug, occurrence.event.id,))
+        try:
+            context['delete_event'] = reverse('delete_event', args=(occurrence.event.id,))
+        except NoReverseMatch:
+            context['delete_event'] = ''
+        try:
+            context['edit_event'] = reverse('edit_event', args=(occurrence.event.calendar.slug, occurrence.event.id,))
+        except NoReverseMatch:
+            context['edit_event'] = ''
     else:
         context['edit_event'] = context['delete_event'] = ''
     return context

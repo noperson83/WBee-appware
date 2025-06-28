@@ -11,10 +11,16 @@
 {% block content %}
 
     {% if request.user.is_staff %}
+    {% url 'delete_event' event.id as delete_event_url %}
+    {% url 'edit_event' event.calendar.slug event.id as edit_event_url %}
 <div class="row">
   <div class="col-lg-2">
-      <a href="{% url 'delete_event' event.id %}"> <i class="fa fa-trash"></i> delete </a> -
-      <a href="{% url 'edit_event' event.calendar.slug event.id  %}"><i class="fa fa-pencil"></i> edit</a>
+      {% if delete_event_url %}
+      <a href="{{ delete_event_url }}"> <i class="fa fa-trash"></i> delete </a>{% if edit_event_url %} -{% endif %}
+      {% endif %}
+      {% if edit_event_url %}
+      <a href="{{ edit_event_url }}"><i class="fa fa-pencil"></i> edit</a>
+      {% endif %}
   </div>
 </div>
     {% endif %}
