@@ -239,7 +239,10 @@ class TaskList(TimeStampedModel):
         if not self.pk:
             return Decimal('0.00')
         return self.tasks.aggregate(
-            total=models.Sum('total_hours')
+            total=models.Sum(
+                models.F('allotted_time') * models.F('team_size'),
+                output_field=models.DecimalField(max_digits=16, decimal_places=2)
+            )
         )['total'] or Decimal('0.00')
 
     @property
