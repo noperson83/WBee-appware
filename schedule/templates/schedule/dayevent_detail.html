@@ -16,7 +16,7 @@
         <h4>
           <a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">
           <i class="fa fa-fw fa-calendar"></i> {{dayevent.day_of_event|date:"SHORT_DATE_FORMAT"}}</a><br>{{dayevent.days_of_event}}
-          {% if request.user.is_staff %}
+          {% if request.user.is_staff and request.user.role != 'staff' %}
             <div class="add_jobsite"><a href="{% url 'update-dayevent' dayevent.pk %}"> edit </a></div>
           {% else %}
           {% endif %}

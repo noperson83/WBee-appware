@@ -10,7 +10,9 @@
 <div class="card">
   <div class="card-header d-flex justify-content-between align-items-center">
     <h5 class="mb-0">My Timecards</h5>
+    {% if request.user.is_staff and request.user.role != 'staff' %}
     <a href="{% url 'timecard:create' %}" class="btn btn-sm btn-primary">Add Entry</a>
+    {% endif %}
   </div>
   <div class="card-body">
     <table id="timecardTable" class="table table-striped table-bordered">

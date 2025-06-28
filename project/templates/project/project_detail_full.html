@@ -17,7 +17,7 @@
             <h4>{{ project.name }} : {{ project.job_number }}{% if project.revision %}-{{ project.revision }}{% endif %}</h4>
           </div>
           <div class="col-lg-12">
-            {% if request.user.is_staff %}
+            {% if request.user.is_staff and request.user.role != 'staff' %}
               <a href="{% url 'project:project-pdf' project.job_number %}"><div class="add_jobsite"> Quote </div></a>&nbsp;<a href="{% url 'project:project-edit' project.job_number %}"><div class="add_jobsite"> edit </div></a>
             {% endif %}
           </div>
@@ -65,7 +65,7 @@
       <div class="card-header" style="background-color:rgb(0, 119, 255);">
           <div class"row">
             <b>Scope of work:</b>
-            {% if request.user.is_staff %}
+            {% if request.user.is_staff and request.user.role != 'staff' %}
               <a href="{% url 'project:scope-create' job_number=project.job_number %}"><div class="add_jobsite"> + add </div></a>
             {% endif %}
           </div>
@@ -101,7 +101,7 @@
   <div class="col-lg-4">
     <div class="card mb-3">
       <div class="card-header" style="background-color:rgb(0, 119, 255);"><b>Scheduled Work</b>
-        {% if request.user.is_staff %}
+        {% if request.user.is_staff and request.user.role != 'staff' %}
           <a href="{% url 'create-event' proj=project.job_number %}"><div class="add_jobsite"> + add work</div></a>
         {% endif %}
       </div>
@@ -120,7 +120,7 @@
       </div>
       <div class="card mb-3">
         <div class="card-header"><b>Devices</b>
-          {% if request.user.is_staff %}
+          {% if request.user.is_staff and request.user.role != 'staff' %}
             <a href="{% url 'project:device-create' job_number=project.job_number %}"><div class="add_jobsite"> + add</div></a>
           {% endif %}
         </div>
@@ -142,7 +142,7 @@
 
       <div class="card mb-3">
         <div class="card-header"><b>Hardware</b>
-          {% if request.user.is_staff %}
+          {% if request.user.is_staff and request.user.role != 'staff' %}
             <a href="{% url 'project:hardware-create' job_number=project.job_number %}"><div class="add_jobsite"> + add</div></a>
           {% endif %}
         </div>
@@ -166,7 +166,7 @@
       </div>
       <div class="card mb-3">
         <div class="card-header"><b>Software</b>
-          {% if request.user.is_staff %}
+          {% if request.user.is_staff and request.user.role != 'staff' %}
             <a href="{% url 'project:software-create' job_number=project.job_number %}"><div class="add_jobsite"> + add</div></a>
           {% endif %}
         </div>
@@ -190,7 +190,7 @@
       </div>
       <div class="card mb-3">
         <div class="card-header"><b>License</b>
-          {% if request.user.is_staff %}
+          {% if request.user.is_staff and request.user.role != 'staff' %}
             <a href="{% url 'project:license-create' job_number=project.job_number %}"><div class="add_jobsite"> + add</div></a>
           {% endif %}
         </div>
@@ -214,7 +214,7 @@
       </div>
       <div class="card mb-3">
         <div class="card-header"><b>Travel</b>
-          {% if request.user.is_staff %}
+          {% if request.user.is_staff and request.user.role != 'staff' %}
             <a href="{% url 'project:travel-create' job_number=project.job_number %}"><div class="add_jobsite"> + add</div></a>
           {% endif %}
         </div>

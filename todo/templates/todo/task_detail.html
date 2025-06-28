@@ -92,7 +92,7 @@
   <div class="col-lg-4">
     <div class="card mb-3">
       <div class="card-header"><b>Devices</b>
-        {% if request.user.is_staff %}
+        {% if request.user.is_staff and request.user.role != 'staff' %}
           <a href="{% url 'project:device-create' job_number=task.task_list.scope.project.job_number %}"><div class="add_jobsite"> + add</div></a>
         {% else %}
         {% endif %}
@@ -121,7 +121,7 @@
   <div class="col-lg-4">
     <div class="card mb-3">
       <div class="card-header"><b>Hardware</b> - <a href="">details</a>
-        {% if request.user.is_staff %}
+        {% if request.user.is_staff and request.user.role != 'staff' %}
           <a href="{% url 'project:hardware-create' job_number=task.task_list.scope.project.job_number %}"><div class="add_jobsite"> + add</div></a>
         {% else %}
         {% endif %}
@@ -149,7 +149,7 @@
   <div class="col-lg-4">
     <div class="card mb-3">
       <div class="card-header"><b>Software</b> - <a href="">details</a>
-        {% if request.user.is_staff %}
+        {% if request.user.is_staff and request.user.role != 'staff' %}
           <a href="{% url 'project:software-create' job_number=task.task_list.scope.project.job_number %}"><div class="add_jobsite"> + add</div></a>
         {% else %}
         {% endif %}
@@ -177,7 +177,7 @@
   <div class="col-lg-4">
     <div class="card mb-3">
       <div class="card-header"><b>License</b> - <a href="">details</a>
-        {% if request.user.is_staff %}
+        {% if request.user.is_staff and request.user.role != 'staff' %}
           <a href="{% url 'project:license-create' job_number=task.task_list.scope.project.job_number %}"><div class="add_jobsite"> + add</div></a>
         {% else %}
         {% endif %}
@@ -205,7 +205,7 @@
   <div class="col-lg-4">
     <div class="card mb-3">
       <div class="card-header"><b>Travel</b>
-        {% if request.user.is_staff %}
+        {% if request.user.is_staff and request.user.role != 'staff' %}
           <a href="{% url 'project:travel-create' job_number=task.task_list.scope.project.job_number %}"><div class="add_jobsite"> + add</div></a>
         {% else %}
         {% endif %}

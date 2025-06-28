@@ -519,6 +519,9 @@ class ProjectDetailView(ProjectAccessMixin, DetailView):
             permissions.update({
                 'can_edit': user in project.team_members.all(),
             })
+        elif user.role == 'staff':
+            # allow viewing only
+            pass
         elif user.role == 'client':
             permissions.update({
                 'can_view_financials': True,

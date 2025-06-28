@@ -35,6 +35,8 @@ class ProjectAccessMixin(UserPassesTestMixin):
                 )
             elif user.role == "worker":
                 return user in project.team_members.all()
+            elif user.role == "staff":
+                return True
             elif user.role == "client":
                 return hasattr(user, "client") and project.location.client == user.client
 
