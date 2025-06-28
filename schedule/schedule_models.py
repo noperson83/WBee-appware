@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.contrib.contenttypes import fields
 from django.contrib.contenttypes.models import ContentType
 from django.template.defaultfilters import slugify
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
@@ -899,3 +899,21 @@ class Occurrence(TimeStampedModel):
         # just link back to the related event detail page.
 
         return reverse('schedule:event-detail', args=[self.event.id])
+
+    def get_edit_url(self):
+        """Return URL to edit this occurrence, if configured."""
+        if not self.pk:
+            return ''
+        try:
+            return reverse('edit_occurrence', args=[self.event.id, self.id])
+        except NoReverseMatch:
+            return ''
+
+    def get_cancel_url(self):
+        """Return URL to cancel this occurrence, if configured."""
+        if not self.pk:
+            return ''
+        try:
+            return reverse('cancel_occurrence', args=[self.event.id, self.id])
+        except NoReverseMatch:
+            return ''
