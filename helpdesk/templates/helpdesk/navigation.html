@@ -17,7 +17,7 @@
             {% if helpdesk_settings.HELPDESK_NAVIGATION_ENABLED and user.is_authenticated or user.is_staff %}
             <ul class="nav navbar-top-links navbar-right">
                 <li>
-                    <a href="{% url 'index' %}"><i class="fa fa-dashboard fa-fw"></i> <span class="nav-text">{% trans "Dashboard" %}</span></a>
+                    <a href="{% url 'home:index' %}"><i class="fa fa-dashboard fa-fw"></i> <span class="nav-text">{% trans "Dashboard" %}</span></a>
                 </li>
                 <li>
                     <a href="{% url 'helpdesk:list' %}"><i class="fa fa-tasks fa-fw"></i> <span class="nav-text">{% trans "Tickets" %}</span></a>
