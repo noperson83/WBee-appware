@@ -589,10 +589,10 @@ def update_ticket(request, ticket_id, public=False):
 
         if (not reassigned or
                 (reassigned and
-                    ticket.assigned_to.usersettings_helpdesk.settings.get(
+                    ticket.assigned_to.helpdesk_settings.settings.get(
                         'email_on_ticket_assign', False))) or \
             (not reassigned and
-                ticket.assigned_to.usersettings_helpdesk.settings.get(
+                ticket.assigned_to.helpdesk_settings.settings.get(
                     'email_on_ticket_change', False)):
             send_templated_mail(
                 template_staff,
@@ -933,7 +933,7 @@ def ticket_list(request):
     return render(request, 'helpdesk/ticket_list.html', dict(
         context,
         tickets=ticket_qs,
-        default_tickets_per_page=request.user.usersettings_helpdesk.settings.get('tickets_per_page') or 25,
+        default_tickets_per_page=request.user.helpdesk_settings.settings.get('tickets_per_page') or 25,
         user_choices=User.objects.filter(is_active=True, is_staff=True),
         queue_choices=user_queues,
         status_choices=Ticket.STATUS_CHOICES,
@@ -986,7 +986,7 @@ def create_ticket(request):
                 return HttpResponseRedirect(reverse('helpdesk:dashboard'))
     else:
         initial_data = {}
-        if request.user.usersettings_helpdesk.settings.get('use_email_as_submitter', False) and request.user.email:
+        if request.user.helpdesk_settings.settings.get('use_email_as_submitter', False) and request.user.email:
             initial_data['submitter_email'] = request.user.email
         if 'queue' in request.GET:
             initial_data['queue'] = request.GET['queue']
@@ -1329,7 +1329,7 @@ def delete_saved_query(request, id):
 
 @staff_member_required
 def user_settings(request):
-    s = request.user.usersettings_helpdesk
+    s = request.user.helpdesk_settings
     if request.POST:
         form = UserSettingsForm(request.POST)
         if form.is_valid():
