@@ -5,12 +5,17 @@ class ProjectAccessMixin(UserPassesTestMixin):
     """Object-level access checks for Project views."""
 
     def test_func(self):
+        user = self.request.user
+
+        # Allow all active users to view pages with safe methods
+        if self.request.method in ("GET", "HEAD", "OPTIONS"):
+            return user.is_authenticated and user.is_active
+
         if not hasattr(self, "get_object"):
-            return self.request.user.is_authenticated
+            return user.is_authenticated
 
         try:
             project = self.get_object()
-            user = self.request.user
 
             if user.is_superuser:
                 return True
