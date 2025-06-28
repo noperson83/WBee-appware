@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-{% if request.user.staff %}
+{% if request.user.is_staff %}
   <div style="font-weight:bold;">
   Employee : {{ request.user }} {{ form.non_field_errors }} {{ form.management_form }}
     <form style="background-color:rgb(217, 237, 248);"  class="table-responsive form-control" method="post">{% csrf_token %}

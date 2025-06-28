@@ -5,7 +5,7 @@
 <li class="breadcrumb-item"><a href="{% url 'timecard' %}">Time card</a></li>
 {% endblock %}
 
-{% block content %}{% if request.user.staff %}
+{% block content %}{% if request.user.is_staff %}
 <div class="col-lg-6">
   <div class="card mb-3">
     <div class="card-header" style="background-color:rgb(0, 119, 255);">
