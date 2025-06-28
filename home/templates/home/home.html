@@ -194,6 +194,7 @@
             </div>
         </a>
     </div>
+    {% if request.user.is_staff %}
     <div class="col">
         <a href="{% url 'location:location-list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
@@ -204,6 +205,8 @@
             </div>
         </a>
     </div>
+    {% endif %}
+    {% if request.user.is_staff %}
     <div class="col">
         <a href="{% url 'client:list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
@@ -214,6 +217,8 @@
             </div>
         </a>
     </div>
+    {% endif %}
+    {% if request.user.is_staff %}
     <div class="col">
         <a href="{% url 'company:list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
@@ -224,6 +229,8 @@
             </div>
         </a>
     </div>
+    {% endif %}
+    {% if request.user.is_staff %}
     <div class="col">
         <a href="{% url 'asset:list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
@@ -234,6 +241,8 @@
             </div>
         </a>
     </div>
+    {% endif %}
+    {% if request.user.is_staff %}
     <div class="col">
         <a href="{% url 'hr:worker-list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
@@ -244,6 +253,7 @@
             </div>
         </a>
     </div>
+    {% endif %}
     <div class="col">
         <a href="{% url 'timecard:list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
@@ -284,6 +294,7 @@
             </div>
         </a>
     </div>
+    {% if request.user.is_staff %}
     <div class="col">
         <a href="{% url 'wip:list' %}" class="text-decoration-none">
             <div class="card text-center h-100">
@@ -294,6 +305,8 @@
             </div>
         </a>
     </div>
+    {% endif %}
+    {% if request.user.is_staff %}
     <div class="col">
         <a href="{% url 'helpdesk:home' %}" class="text-decoration-none">
             <div class="card text-center h-100">
@@ -304,6 +317,7 @@
             </div>
         </a>
     </div>
+    {% endif %}
 </div>
 
 <!-- Quick Menu Dropdown for small screens -->
@@ -313,17 +327,21 @@
     </button>
     <ul class="dropdown-menu w-100" aria-labelledby="quickMenuDropdown">
         <li><a class="dropdown-item" href="{% url 'project:project-list' %}"><i class="fas fa-wrench me-2 text-primary"></i>Projects</a></li>
+        {% if request.user.is_staff %}
         <li><a class="dropdown-item" href="{% url 'location:location-list' %}"><i class="fas fa-building me-2 text-secondary"></i>Locations</a></li>
         <li><a class="dropdown-item" href="{% url 'client:list' %}"><i class="fas fa-id-card me-2 text-info"></i>Clients</a></li>
         <li><a class="dropdown-item" href="{% url 'company:list' %}"><i class="fas fa-industry me-2 text-primary"></i>Companies</a></li>
         <li><a class="dropdown-item" href="{% url 'asset:list' %}"><i class="fas fa-toolbox me-2 text-warning"></i>Assets</a></li>
         <li><a class="dropdown-item" href="{% url 'hr:worker-list' %}"><i class="fas fa-users me-2 text-success"></i>Staff</a></li>
+        {% endif %}
         <li><a class="dropdown-item" href="{% url 'timecard:list' %}"><i class="fas fa-clock me-2 text-danger"></i>Time Cards</a></li>
         <li><a class="dropdown-item" href="{% url 'project:project-schedule' %}"><i class="fas fa-calendar me-2 text-info"></i>Schedule</a></li>
         <li><a class="dropdown-item" href="{% url 'todo:lists' %}"><i class="fas fa-tasks me-2 text-primary"></i>Todo</a></li>
         <li><a class="dropdown-item" href="{% url 'receipts:list' %}"><i class="fas fa-receipt me-2 text-secondary"></i>Receipts</a></li>
+        {% if request.user.is_staff %}
         <li><a class="dropdown-item" href="{% url 'wip:list' %}"><i class="fas fa-balance-scale me-2 text-warning"></i>WIP</a></li>
         <li><a class="dropdown-item" href="{% url 'helpdesk:home' %}"><i class="fas fa-life-ring me-2 text-danger"></i>Help Desk</a></li>
+        {% endif %}
     </ul>
 </div>
 
