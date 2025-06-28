@@ -3,6 +3,9 @@
 {% load scheduletags i18n %}
 
 {% block title %}{{ calendar.name }} - Year{% endblock %}
+{% block styler %}
+  <link rel="stylesheet" href="{% static 'schedule/schedule.css' %}" type="text/css" media="screen">
+{% endblock %}
 {% block content %}
 
 <div class="tablewrapper">
