@@ -13,7 +13,8 @@ def staff_check(user):
     """
 
     if hasattr(settings, "TODO_STAFF_ONLY") and settings.TODO_STAFF_ONLY:
-        return user.is_staff
+        # Allow access to staff and active workers
+        return user.is_staff or user.is_active
     else:
         # If unset or False, allow all logged in users
         return True
