@@ -10,7 +10,7 @@
 
 {% block content %}
 
-    {% if request.user.is_staff and request.user.role != 'staff' %}
+    {% if request.user.is_staff %}
 <div class="row">
   <div class="col-lg-2">
       <a href="{% url 'delete_event' event.id %}"> <i class="fa fa-trash"></i> delete </a> -
