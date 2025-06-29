@@ -1,12 +1,12 @@
 {% extends "company/base_company.html" %}
 {% load static %}
 
-{% block page_title %}{% if form.instance.pk %}Edit Company{% else %}Create Company{% endif %}{% endblock %}
+{% block page_title %}{% if not form.instance._state.adding %}Edit Company{% else %}Create Company{% endif %}{% endblock %}
 
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
     <li class="breadcrumb-item"><a href="{% url 'location:location-list' %}">All Locations</a></li>
-    {% if form.instance.pk %}
+    {% if not form.instance._state.adding %}
         {% if form.instance.name %}
             <li class="breadcrumb-item"><a href="{{ form.instance.get_absolute_url }}">{{ form.instance.name }}</a></li>
         {% else %}
@@ -24,11 +24,11 @@
         <div class="row align-items-center">
             <div class="col-md-8">
                 <h1 class="mb-0">
-                    <i class="fas fa-{% if form.instance.pk %}edit{% else %}plus{% endif %}"></i>
-                    {% if form.instance.pk %}Edit Company{% else %}Create New Company{% endif %}
+                    <i class="fas fa-{% if not form.instance._state.adding %}edit{% else %}plus{% endif %}"></i>
+                    {% if not form.instance._state.adding %}Edit Company{% else %}Create New Company{% endif %}
                 </h1>
                 <p class="mb-0 mt-2">
-                    {% if form.instance.pk %}
+                    {% if not form.instance._state.adding %}
                         Update {{ form.instance.company_name }}'s information
                     {% else %}
                         Add a new company to your organization
@@ -36,7 +36,7 @@
                 </p>
             </div>
             <div class="col-md-4 text-end">
-                {% if form.instance.pk %}
+                {% if not form.instance._state.adding %}
                     <a href="{% url 'company:detail' form.instance.pk %}" class="btn btn-outline-light">
                         <i class="fas fa-arrow-left"></i> Back to Company
                     </a>
@@ -402,11 +402,11 @@
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-save"></i> 
-                            {% if form.instance.pk %}Update Company{% else %}Create Company{% endif %}
+                            <i class="fas fa-save"></i>
+                            {% if not form.instance._state.adding %}Update Company{% else %}Create Company{% endif %}
                         </button>
-                        
-                        {% if form.instance.pk %}
+
+                        {% if not form.instance._state.adding %}
                             <a href="{% url 'company:detail' form.instance.pk %}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times"></i> Cancel
                             </a>
@@ -415,10 +415,10 @@
                                 <i class="fas fa-times"></i> Cancel
                             </a>
                         {% endif %}
-                        
-                        {% if form.instance.pk and user.is_superuser %}
+
+                        {% if not form.instance._state.adding and user.is_superuser %}
                             <hr>
-                            <button type="button" class="btn btn-outline-danger" 
+                            <button type="button" class="btn btn-outline-danger"
                                     onclick="CompanyUtils.confirmDelete('{{ form.instance.company_name }}', '{% url 'company:delete' form.instance.pk %}')">
                                 <i class="fas fa-trash"></i> Delete Company
                             </button>
@@ -450,7 +450,7 @@
                             <i class="fas fa-check-circle text-success"></i>
                             <strong>Description:</strong> Keep it concise but informative for better search results
                         </li>
-                        {% if not form.instance.pk %}
+                        {% if form.instance._state.adding %}
                         <li class="mb-0">
                             <i class="fas fa-info-circle text-info"></i>
                             <strong>After Creation:</strong> You can add offices, departments, and additional contacts
