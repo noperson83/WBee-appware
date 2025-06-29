@@ -1,0 +1,26 @@
+{% extends "business/base_business.html" %}
+
+{% block business_title %}Business Templates{% endblock %}
+
+{% block business_breadcrumb %}
+<li class="breadcrumb-item active">Templates</li>
+{% endblock %}
+
+{% block business_content %}
+<h1 class="mb-4">Business Templates</h1>
+<div class="row row-cols-1 row-cols-md-2 g-4">
+    {% for template in templates %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ template.name }}</h5>
+                <p>{{ template.description }}</p>
+                <a href="{% url 'business:template-detail' template.slug %}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>No templates found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

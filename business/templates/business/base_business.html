@@ -1,0 +1,15 @@
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}{% block business_title %}Business Management{% endblock %}{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url 'business:dashboard' %}">Business</a></li>
+    {% block business_breadcrumb %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    {% block business_content %}{% endblock %}
+</div>
+{% endblock %}

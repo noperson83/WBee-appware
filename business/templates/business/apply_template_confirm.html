@@ -1,0 +1,18 @@
+{% extends "business/base_business.html" %}
+
+{% block business_title %}Apply Template{% endblock %}
+
+{% block business_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'business:template-list' %}">Templates</a></li>
+<li class="breadcrumb-item active">Apply Template</li>
+{% endblock %}
+
+{% block business_content %}
+<h1 class="mb-4">Apply {{ template.name }} to {{ company.company_name }}</h1>
+<form method="post">
+    {% csrf_token %}
+    <p>Are you sure you want to apply this template to {{ company.company_name }}?</p>
+    <button type="submit" class="btn btn-primary">Apply Template</button>
+    <a href="{% url 'company:detail' company.id %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

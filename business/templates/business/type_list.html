@@ -1,0 +1,26 @@
+{% extends "business/base_business.html" %}
+
+{% block business_title %}Business Types{% endblock %}
+
+{% block business_breadcrumb %}
+<li class="breadcrumb-item active">Business Types</li>
+{% endblock %}
+
+{% block business_content %}
+<h1 class="mb-4">Business Types</h1>
+<div class="row row-cols-1 row-cols-md-2 g-4">
+    {% for bt in business_types %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ bt.icon }} {{ bt.name }}</h5>
+                <p>{{ bt.description }}</p>
+                <a href="{% url 'business:type-detail' bt.slug %}" class="stretched-link"></a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p>No business types found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

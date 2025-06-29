@@ -1,0 +1,31 @@
+{% extends "business/base_business.html" %}
+
+{% block business_title %}{{ config.name }}{% endblock %}
+
+{% block business_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'business:config-list' %}">Configurations</a></li>
+<li class="breadcrumb-item active">{{ config.name }}</li>
+{% endblock %}
+
+{% block business_content %}
+<h1 class="mb-4">{{ config.name }}</h1>
+<p>{{ config.description }}</p>
+
+<h3>Project Categories</h3>
+<ul class="list-group mb-4">
+    {% for cat in project_categories %}
+    <li class="list-group-item">{{ cat.name }}</li>
+    {% empty %}
+    <li class="list-group-item">No categories configured.</li>
+    {% endfor %}
+</ul>
+
+<h3>Companies Using This Configuration</h3>
+<ul class="list-group">
+    {% for company in companies %}
+    <li class="list-group-item">{{ company.company_name }}</li>
+    {% empty %}
+    <li class="list-group-item">No companies.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

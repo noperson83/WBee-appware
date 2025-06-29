@@ -1,0 +1,33 @@
+{% extends "business/base_business.html" %}
+
+{% block business_title %}Business Configurations{% endblock %}
+
+{% block business_breadcrumb %}
+<li class="breadcrumb-item active">Configurations</li>
+{% endblock %}
+
+{% block business_content %}
+<h1 class="mb-4">Business Configurations</h1>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Deployment</th>
+            <th>Billing</th>
+            <th>Companies</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for config in configurations %}
+        <tr>
+            <td><a href="{% url 'business:config-detail' config.slug %}">{{ config.name }}</a></td>
+            <td>{{ config.get_deployment_type_display }}</td>
+            <td>{{ config.get_billing_model_display }}</td>
+            <td>{{ config.companies_count }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center">No configurations found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

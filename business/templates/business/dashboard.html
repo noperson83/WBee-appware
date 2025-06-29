@@ -1,0 +1,40 @@
+{% extends "business/base_business.html" %}
+
+{% block business_title %}Business Dashboard{% endblock %}
+
+{% block business_breadcrumb %}
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block business_content %}
+<h1 class="mb-4">Business Dashboard</h1>
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Configurations</h5>
+                <p class="display-6">{{ total_configurations }}</p>
+                <a href="{% url 'business:config-list' %}" class="btn btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Business Types</h5>
+                <p class="display-6">{{ total_business_types }}</p>
+                <a href="{% url 'business:type-list' %}" class="btn btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">Templates</h5>
+                <p class="display-6">{{ total_templates }}</p>
+                <a href="{% url 'business:template-list' %}" class="btn btn-primary">View</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
