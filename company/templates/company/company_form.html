@@ -7,9 +7,11 @@
     <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
     <li class="breadcrumb-item"><a href="{% url 'location:location-list' %}">All Locations</a></li>
     {% if form.instance.pk %}
-        <li class="breadcrumb-item"><a href="{{ form.instance.get_absolute_url }}">
-            {{ form.instance.name|default:"Unnamed Location" }}
-        </a></li>
+        {% if form.instance.name %}
+            <li class="breadcrumb-item"><a href="{{ form.instance.get_absolute_url }}">{{ form.instance.name }}</a></li>
+        {% else %}
+            <li class="breadcrumb-item"><a href="{{ form.instance.get_absolute_url }}">Location #{{ form.instance.pk }}</a></li>
+        {% endif %}
         <li class="breadcrumb-item active" aria-current="page">Edit</li>
     {% else %}
         <li class="breadcrumb-item active" aria-current="page">Add Location</li>
