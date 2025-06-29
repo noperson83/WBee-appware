@@ -284,10 +284,12 @@
                 transform: translateY(-100%);
                 transition: transform 0.3s ease;
                 box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                display: none;
             }
 
             .header-nav.show {
                 transform: translateY(0);
+                display: flex;
             }
 
             .header-nav-item {
@@ -389,21 +391,21 @@
                 </a>
                 
                 <ul class="header-nav" id="headerNav">
-                    <li class="header-nav-item">
-                        <a class="header-nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}" 
-                           href="{% url 'home:index' %}">
-                            Dashboard
-                        </a>
-                    </li>
                     {% if request.user.is_staff %}
-                    <li class="header-nav-item">
-                        <a class="header-nav-link" href="{% url 'project:project-list' %}">Projects</a>
-                    </li>
                     <li class="header-nav-item">
                         <a class="header-nav-link" href="{% url 'asset:list' %}">Assets</a>
                     </li>
                     <li class="header-nav-item">
-                        <a class="header-nav-link" href="{% url 'client:list' %}">Clients</a>
+                        <a class="header-nav-link" href="{% url 'business:dashboard' %}">Business</a>
+                    </li>
+                    <li class="header-nav-item">
+                        <a class="header-nav-link" href="{% url 'company:list' %}">Companies</a>
+                    </li>
+                    <li class="header-nav-item">
+                        <a class="header-nav-link" href="{% url 'helpdesk:dashboard' %}">Helpdesk</a>
+                    </li>
+                    <li class="header-nav-item">
+                        <a class="header-nav-link" href="{% url 'wip:list' %}">WIP</a>
                     </li>
                     {% endif %}
                 </ul>
