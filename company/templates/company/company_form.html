@@ -3,14 +3,17 @@
 
 {% block page_title %}{% if form.instance.pk %}Edit Company{% else %}Create Company{% endif %}{% endblock %}
 
-{% block company_breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'company:list' %}">Companies</a></li>
-{% if form.instance.pk %}
-    <li class="breadcrumb-item"><a href="{% url 'company:detail' form.instance.pk %}">{{ form.instance.company_name }}</a></li>
-    <li class="breadcrumb-item active">Edit</li>
-{% else %}
-    <li class="breadcrumb-item active">Create</li>
-{% endif %}
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'location:location-list' %}">All Locations</a></li>
+    {% if form.instance.pk %}
+        <li class="breadcrumb-item"><a href="{{ form.instance.get_absolute_url }}">
+            {{ form.instance.name|default:"Unnamed Location" }}
+        </a></li>
+        <li class="breadcrumb-item active" aria-current="page">Edit</li>
+    {% else %}
+        <li class="breadcrumb-item active" aria-current="page">Add Location</li>
+    {% endif %}
 {% endblock %}
 
 {% block company_content %}
