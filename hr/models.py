@@ -470,6 +470,15 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
         if self.preferred_name:
             return f"{self.preferred_name} {self.last_name}"
         return self.get_full_name()
+
+    # ------------------------------------------------------------------
+    # Compatibility helpers
+    # ------------------------------------------------------------------
+
+    @property
+    def username(self):
+        """Alias for the user identifier used in templates and legacy code."""
+        return self.email
     
     # Permission methods (required by Django)
     def has_perm(self, perm, obj=None):
