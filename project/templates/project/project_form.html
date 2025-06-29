@@ -1,5 +1,11 @@
 {% extends "home/base.html" %}
+{% load static %}
 {% block title %}{% if form.instance.pk %}Edit Project{% else %}New Project{% endif %}{% endblock %}
+{% block extra_js %}
+{{ form.media }}
+<script src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
+<script src="{% static 'admin/js/popup_response.js' %}"></script>
+{% endblock %}
 {% block breadcrumb %}
 <li class="breadcrumb-item"><a href="{% url 'project:dashboard' %}">Projects</a></li>
 <li class="breadcrumb-item"><a href="{% url 'project:project-list' %}">List</a></li>
@@ -21,7 +27,18 @@
       <div class="card-body">
         <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
-          {{ form.as_p }}
+          {% for field in form %}
+          <div class="mb-3">
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.help_text %}
+            <div class="form-text">{{ field.help_text }}</div>
+            {% endif %}
+            {% for error in field.errors %}
+            <div class="text-danger">{{ error }}</div>
+            {% endfor %}
+          </div>
+          {% endfor %}
           <div class="text-end">
             <button type="submit" class="btn btn-primary">Save</button>
           </div>

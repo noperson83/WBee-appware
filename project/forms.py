@@ -1,10 +1,34 @@
 from django import forms
 from django.forms import ModelForm
+from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
+from django.contrib.admin.sites import site
+from django.core.exceptions import FieldDoesNotExist
 
 from .models import Project, ScopeOfWork, ProjectMaterial, ProjectCategory
 
 
-class ProjectForm(ModelForm):
+class AdminWidgetsMixin:
+    """Mixin that adds admin-style add/change controls to related fields."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, form_field in self.fields.items():
+            try:
+                model_field = self._meta.model._meta.get_field(field_name)
+            except FieldDoesNotExist:
+                continue
+            rel = getattr(model_field, "remote_field", None)
+            if rel:
+                form_field.widget = RelatedFieldWidgetWrapper(
+                    form_field.widget,
+                    rel,
+                    site,
+                    can_add_related=True,
+                    can_change_related=True,
+                )
+
+
+class ProjectForm(AdminWidgetsMixin, ModelForm):
     """Simplified form for creating and updating projects."""
 
     class Meta:
@@ -12,7 +36,7 @@ class ProjectForm(ModelForm):
         fields = "__all__"
 
 
-class ScopeOfWorkForm(ModelForm):
+class ScopeOfWorkForm(AdminWidgetsMixin, ModelForm):
     """Basic form for scope of work items."""
 
     class Meta:
@@ -20,7 +44,7 @@ class ScopeOfWorkForm(ModelForm):
         fields = "__all__"
 
 
-class ProjectCategoryForm(ModelForm):
+class ProjectCategoryForm(AdminWidgetsMixin, ModelForm):
     """Form for creating and editing project categories."""
 
     class Meta:
@@ -28,7 +52,7 @@ class ProjectCategoryForm(ModelForm):
         fields = "__all__"
 
 
-class MaterialForm(ModelForm):
+class MaterialForm(AdminWidgetsMixin, ModelForm):
     """Generic form for project material items."""
 
     def __init__(self, proj=None, material_type=None, *args, **kwargs):
@@ -68,7 +92,7 @@ class TravelForm(MaterialForm):
         super().__init__(proj=proj, material_type="travel", *args, **kwargs)
 
 
-class ProjectStatusForm(ModelForm):
+class ProjectStatusForm(AdminWidgetsMixin, ModelForm):
     """Form for updating a project's status only."""
 
     class Meta:
