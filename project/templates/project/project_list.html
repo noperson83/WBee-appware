@@ -48,7 +48,7 @@
         <select class="form-select" name="manager">
           <option value="">All Managers</option>
           {% for manager in managers %}
-          <option value="{{ manager.id }}" {% if current_filters.manager == manager.id|stringformat:'s' %}selected{% endif %}>{{ manager.get_full_name|default:manager.username }}</option>
+          <option value="{{ manager.id }}" {% if current_filters.manager == manager.id|stringformat:'s' %}selected{% endif %}>{{ manager.get_full_name|default:manager.email }}</option>
           {% endfor %}
         </select>
       </div>

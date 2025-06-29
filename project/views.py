@@ -682,9 +682,9 @@ class ProjectUpdateView(ProjectAccessMixin, ProjectPermissionMixin, AjaxResponse
                     project=self.object,
                     change_type='modification',
                     description=f"Project updated: {change_description}",
-                    requested_by=self.request.user.username,
+                    requested_by=self.request.user.get_full_name(),
                     is_approved=True,  # Auto-approve for authorized users
-                    approved_by=self.request.user.username,
+                    approved_by=self.request.user.get_full_name(),
                     approved_date=timezone.now().date()
                 )
             
@@ -755,10 +755,10 @@ class ProjectDeleteView(ProjectAccessMixin, ProjectPermissionMixin, DeleteView):
         ProjectChange.objects.create(
             project=project,
             change_type='deletion',
-            description=f'Project deleted by {request.user.username}',
-            requested_by=request.user.username,
+            description=f'Project deleted by {request.user.get_full_name()}',
+            requested_by=request.user.get_full_name(),
             is_approved=True,
-            approved_by=request.user.username,
+            approved_by=request.user.get_full_name(),
             approved_date=timezone.now().date()
         )
         
@@ -858,9 +858,9 @@ class ProjectMarkCompleteView(ProjectAccessMixin, View):
             project=project,
             change_type="status",
             description=f"Status changed from {old_status} to complete",
-            requested_by=request.user.username,
+            requested_by=request.user.get_full_name(),
             is_approved=True,
-            approved_by=request.user.username,
+            approved_by=request.user.get_full_name(),
             approved_date=timezone.now().date(),
         )
         messages.success(request, f'Project "{project.name}" marked as complete.')
@@ -882,9 +882,9 @@ class ProjectReopenView(ProjectAccessMixin, View):
             project=project,
             change_type="status",
             description=f"Status changed from {old_status} to active",
-            requested_by=request.user.username,
+            requested_by=request.user.get_full_name(),
             is_approved=True,
-            approved_by=request.user.username,
+            approved_by=request.user.get_full_name(),
             approved_date=timezone.now().date(),
         )
         messages.success(request, f'Project "{project.name}" reopened.')
@@ -1904,7 +1904,7 @@ class ProjectChangeCreateView(ProjectAccessMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.project = self.project
-        form.instance.requested_by = self.request.user.username
+        form.instance.requested_by = self.request.user.get_full_name()
         return super().form_valid(form)
     
     def get_success_url(self):
@@ -1923,7 +1923,7 @@ class ProjectChangeApproveView(ProjectAccessMixin, View):
         action = request.POST.get('action')
         if action == 'approve':
             change.is_approved = True
-            change.approved_by = request.user.username
+            change.approved_by = request.user.get_full_name()
             change.approved_date = timezone.now().date()
             change.save()
             
