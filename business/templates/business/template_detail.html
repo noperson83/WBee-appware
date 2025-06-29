@@ -1,0 +1,23 @@
+{% extends "business/base_business.html" %}
+
+{% block business_title %}{{ template.name }}{% endblock %}
+
+{% block business_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'business:template-list' %}">Templates</a></li>
+<li class="breadcrumb-item active">{{ template.name }}</li>
+{% endblock %}
+
+{% block business_content %}
+<h1 class="mb-4">{{ template.name }}</h1>
+<p>{{ template.description }}</p>
+
+<h3>Categories</h3>
+<ul class="list-group mb-4">
+    {% for cat in categories %}
+    <li class="list-group-item">{{ cat.name }}</li>
+    {% empty %}
+    <li class="list-group-item">No categories defined.</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

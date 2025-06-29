@@ -1,0 +1,26 @@
+{% extends "business/base_business.html" %}
+
+{% block business_title %}Business Setup - Step 2{% endblock %}
+
+{% block business_breadcrumb %}
+<li class="breadcrumb-item active">Setup Step 2</li>
+{% endblock %}
+
+{% block business_content %}
+<h1 class="mb-4">Choose Configuration</h1>
+<ul class="list-group mb-4">
+    {% for config in configurations %}
+    <li class="list-group-item">
+        <a href="{% url 'business:setup-wizard' %}?step=3&amp;business_type={{ business_type.slug }}&amp;config={{ config.slug }}">{{ config.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+<h2 class="mt-4">Or Select a Template</h2>
+<ul class="list-group">
+    {% for t in templates %}
+    <li class="list-group-item">
+        <a href="{% url 'business:setup-wizard' %}?step=3&amp;business_type={{ business_type.slug }}&amp;template={{ t.slug }}">{{ t.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}

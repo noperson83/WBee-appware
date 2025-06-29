@@ -1,0 +1,22 @@
+{% extends "business/base_business.html" %}
+
+{% block business_title %}{{ business_type.name }}{% endblock %}
+
+{% block business_breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'business:type-list' %}">Business Types</a></li>
+<li class="breadcrumb-item active">{{ business_type.name }}</li>
+{% endblock %}
+
+{% block business_content %}
+<h1 class="mb-4">{{ business_type.icon }} {{ business_type.name }}</h1>
+<p>{{ business_type.description }}</p>
+
+<h3>Project Categories</h3>
+<ul class="list-group mb-4">
+    {% for cat in project_categories %}
+    <li class="list-group-item">{{ cat.name }}</li>
+    {% empty %}
+    <li class="list-group-item">No categories defined.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

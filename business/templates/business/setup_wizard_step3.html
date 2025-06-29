@@ -1,0 +1,19 @@
+{% extends "business/base_business.html" %}
+
+{% block business_title %}Business Setup - Step 3{% endblock %}
+
+{% block business_breadcrumb %}
+<li class="breadcrumb-item active">Setup Step 3</li>
+{% endblock %}
+
+{% block business_content %}
+<h1 class="mb-4">Review Selection</h1>
+{% if template %}
+<h3>Template: {{ template.name }}</h3>
+<p>{{ template.description }}</p>
+{% endif %}
+{% if config %}
+<h3>Configuration: {{ config.name }}</h3>
+<p>{{ config.description }}</p>
+{% endif %}
+{% endblock %}
