@@ -2,12 +2,12 @@
 {% load static %}
 {% load widget_tweaks %}
 
-{% block title %}{% if form.instance.pk %}Edit {{ form.instance.name }}{% else %}Add New Location{% endif %}{% endblock %}
+{% block title %}{% if not form.instance._state.adding %}Edit {{ form.instance.name }}{% else %}Add New Location{% endif %}{% endblock %}
 
 {% block breadcrumb %}
     <li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
     <li class="breadcrumb-item"><a href="{% url 'location:location-list' %}">All Locations</a></li>
-    {% if form.instance.pk %}
+    {% if not form.instance._state.adding %}
     <li class="breadcrumb-item"><a href="{{ form.instance.get_absolute_url }}">{{ form.instance.name }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">Edit</li>
     {% else %}
@@ -17,7 +17,7 @@
 
 {% block content %}
 <div class="container">
-  <h1 class="mb-4">{% if form.instance.pk %}Edit {{ form.instance.name }}{% else %}Add New Location{% endif %}</h1>
+  <h1 class="mb-4">{% if not form.instance._state.adding %}Edit {{ form.instance.name }}{% else %}Add New Location{% endif %}</h1>
 
   {% if form.errors %}
   <div class="alert alert-danger">Please correct the errors below.</div>
