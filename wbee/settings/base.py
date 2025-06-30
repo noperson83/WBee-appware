@@ -26,8 +26,7 @@ GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY', default='')
 
 # Application definition
 DJANGO_APPS = [
-    'admin_interface',  # Modern admin skin
-    'colorfield',
+    # Removed 'admin_interface' and 'colorfield' for a simpler admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
