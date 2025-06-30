@@ -37,6 +37,11 @@ urlpatterns = [
     path('wip/', include('wip.urls')),
 ]
 
+# Include Django debug toolbar URLs in development
+if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
+    import debug_toolbar
+    urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns
+
 # Add Django site authentication urls (for login, logout, password management)
 urlpatterns += [
     path("accounts/", include("django.contrib.auth.urls")),
