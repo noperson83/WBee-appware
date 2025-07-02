@@ -148,7 +148,9 @@
         <div class="row align-items-center">
             <div class="col-md-8">
                 <div class="d-flex align-items-center">
-                    {% if company.logo %}
+                    {% if company.button_image %}
+                        <img src="{{ company.button_image.url }}" alt="{{ company.company_name }}" class="logo-preview me-3" style="max-width: 60px; max-height: 45px;">
+                    {% elif company.logo %}
                         <img src="{{ company.logo.url }}" alt="{{ company.company_name }}" class="logo-preview me-3" style="max-width: 60px; max-height: 45px;">
                     {% else %}
                         <i class="fas fa-chart-bar fa-2x me-3"></i>

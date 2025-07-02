@@ -392,7 +392,9 @@
                 </button>
                 
                 <a href="{% url 'home:index' %}" class="header-brand">
-                    {% if request.user.company.logo %}
+                    {% if request.user.company.button_image %}
+                        <img src="{{ request.user.company.button_image.url }}" alt="{{ request.user.company.company_name }}">
+                    {% elif request.user.company.logo %}
                         <img src="{{ request.user.company.logo.url }}" alt="{{ request.user.company.company_name }}">
                     {% else %}
                         <i class="fas fa-home"></i>
