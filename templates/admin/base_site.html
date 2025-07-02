@@ -4,3 +4,8 @@
     {{ block.super }}
     {# Removed custom modern-admin.css for a clean slate #}
 {% endblock %}
+
+{% block extrabody %}
+    {{ block.super }}
+    <script src="{% static 'admin/js/nav_sidebar_fix.js' %}"></script>
+{% endblock %}
