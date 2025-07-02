@@ -74,6 +74,12 @@
             font-size: 1.5rem;
         }
 
+        .header-brand img {
+            height: 40px;
+            width: auto;
+            margin-right: 0.75rem;
+        }
+
         /* Navigation */
         .header-nav {
             display: flex;
@@ -386,8 +392,12 @@
                 </button>
                 
                 <a href="{% url 'home:index' %}" class="header-brand">
-                    <i class="fas fa-home"></i>
-                    WBEE Manager
+                    {% if request.user.company.logo %}
+                        <img src="{{ request.user.company.logo.url }}" alt="{{ request.user.company.company_name }}">
+                    {% else %}
+                        <i class="fas fa-home"></i>
+                        WBEE Manager
+                    {% endif %}
                 </a>
                 
                 <ul class="header-nav" id="headerNav">
