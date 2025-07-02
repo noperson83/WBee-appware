@@ -154,7 +154,9 @@ class WorkerUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
         'emergency_contact_relationship', 'date_of_birth', 'gender',
         'position', 'office', 'department', 'manager', 'employment_status',
         'date_of_hire', 'current_hourly_rate', 'current_annual_salary',
-        'bio', 'skills', 'profile_picture', 'resume', 'roles', 'is_active'
+        'bio', 'skills', 'profile_picture', 'resume', 'roles',
+        'groups', 'user_permissions',
+        'is_active', 'is_staff', 'is_admin', 'is_superuser'
     ]
     
     def form_valid(self, form):

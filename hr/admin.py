@@ -25,7 +25,18 @@ class WorkerCreationForm(forms.ModelForm):
 
     class Meta:
         model = Worker
-        fields = ('email', 'first_name', 'last_name')
+        fields = (
+            'email',
+            'first_name',
+            'last_name',
+            'is_active',
+            'is_staff',
+            'is_admin',
+            'is_superuser',
+            'groups',
+            'user_permissions',
+            'roles',
+        )
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -52,7 +63,19 @@ class WorkerChangeForm(forms.ModelForm):
 
     class Meta:
         model = Worker
-        fields = ('email', 'password', 'first_name', 'last_name', 'is_active', 'is_admin')
+        fields = (
+            'email',
+            'password',
+            'first_name',
+            'last_name',
+            'is_active',
+            'is_staff',
+            'is_admin',
+            'is_superuser',
+            'groups',
+            'user_permissions',
+            'roles',
+        )
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
@@ -76,7 +99,7 @@ class TimeoffInline(admin.TabularInline):
 @admin.register(Worker)
 class WorkerAdmin(BaseUserAdmin):
     # Override inherited filter_horizontal from BaseUserAdmin
-    filter_horizontal = ()  # Empty tuple - Worker model doesn't have groups/permissions
+    filter_horizontal = ('groups', 'user_permissions')
     
     # The forms to add and change worker instances
     form = WorkerChangeForm
@@ -175,7 +198,6 @@ class WorkerAdmin(BaseUserAdmin):
         ('Professional Information', {
             'fields': (
                 'skills',
-                'roles'
             ),
             'classes': ('collapse',)
         }),
@@ -191,7 +213,10 @@ class WorkerAdmin(BaseUserAdmin):
                 'is_active',
                 'is_staff',
                 'is_admin',
-                'is_superuser'
+                'is_superuser',
+                'roles',
+                'groups',
+                'user_permissions'
             )
         }),
         ('Time Off', {
@@ -219,13 +244,24 @@ class WorkerAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'first_name', 'last_name', 'password1', 'password2'),
+            'fields': (
+                'email',
+                'first_name',
+                'last_name',
+                'password1',
+                'password2',
+                'is_active',
+                'is_staff',
+                'is_admin',
+                'is_superuser',
+                'roles',
+                'groups',
+                'user_permissions',
+            ),
         }),
     )
 
-    # Note: Worker model doesn't have groups/user_permissions fields
-    # If you need these, your Worker model should extend User model
-    # filter_horizontal = ('groups', 'user_permissions',)
+    # Allow assignment of groups and explicit permissions
 
     actions = [
         'activate_workers',
