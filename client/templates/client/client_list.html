@@ -241,37 +241,52 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
       </div>
     </div>
     <div class="col-md-4">
-      <div class="quick-search">
-        <i class="fas fa-search search-icon"></i>
-        <input type="text" class="form-control" id="clientSearch" placeholder="Search clients by name, contact, or location...">
-      </div>
+      <form method="get" id="searchForm">
+        <div class="quick-search">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" class="form-control" name="search" id="clientSearch" value="{{ search_query }}" placeholder="Search clients by name, contact, or location...">
+          <input type="hidden" name="status" value="{{ status_filter }}">
+          <input type="hidden" name="business_type" value="{{ business_type_filter }}">
+          <input type="hidden" name="order_by" value="{{ order_by }}">
+        </div>
+      </form>
     </div>
   </div>
 
   <!-- Filter Tabs -->
   <ul class="nav nav-tabs filter-tabs" role="tablist">
     <li class="nav-item">
-      <a class="nav-link {% if not status_filter or status_filter == 'all' %}active{% endif %}" href="#" data-filter="all">
+      <a class="nav-link {% if not status_filter or status_filter == 'all' %}active{% endif %}"
+         href="?{% if search_query %}search={{ search_query|urlencode }}&amp;{% endif %}{% if business_type_filter %}business_type={{ business_type_filter }}&amp;{% endif %}{% if order_by %}order_by={{ order_by }}&amp;{% endif %}status=all"
+         data-filter="all">
         <i class="fas fa-list me-1"></i>All Clients
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link {% if status_filter == 'active' %}active{% endif %}" href="#" data-filter="active">
+      <a class="nav-link {% if status_filter == 'active' %}active{% endif %}"
+         href="?{% if search_query %}search={{ search_query|urlencode }}&amp;{% endif %}{% if business_type_filter %}business_type={{ business_type_filter }}&amp;{% endif %}{% if order_by %}order_by={{ order_by }}&amp;{% endif %}status=active"
+         data-filter="active">
         <span class="status-indicator status-active"></span>Active
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link {% if status_filter == 'prospect' %}active{% endif %}" href="#" data-filter="prospect">
+      <a class="nav-link {% if status_filter == 'prospect' %}active{% endif %}"
+         href="?{% if search_query %}search={{ search_query|urlencode }}&amp;{% endif %}{% if business_type_filter %}business_type={{ business_type_filter }}&amp;{% endif %}{% if order_by %}order_by={{ order_by }}&amp;{% endif %}status=prospect"
+         data-filter="prospect">
         <span class="status-indicator status-prospect"></span>Prospects
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link {% if status_filter == 'top' %}active{% endif %}" href="#" data-filter="top">
+      <a class="nav-link {% if status_filter == 'top' %}active{% endif %}"
+         href="?{% if search_query %}search={{ search_query|urlencode }}&amp;{% endif %}{% if business_type_filter %}business_type={{ business_type_filter }}&amp;{% endif %}{% if order_by %}order_by={{ order_by }}&amp;{% endif %}status=top"
+         data-filter="top">
         <i class="fas fa-star text-warning me-1"></i>Top Clients
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link {% if status_filter == 'inactive' %}active{% endif %}" href="#" data-filter="inactive">
+      <a class="nav-link {% if status_filter == 'inactive' %}active{% endif %}"
+         href="?{% if search_query %}search={{ search_query|urlencode }}&amp;{% endif %}{% if business_type_filter %}business_type={{ business_type_filter }}&amp;{% endif %}{% if order_by %}order_by={{ order_by }}&amp;{% endif %}status=inactive"
+         data-filter="inactive">
         <span class="status-indicator status-inactive"></span>Inactive
       </a>
     </li>
