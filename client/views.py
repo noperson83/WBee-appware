@@ -107,7 +107,7 @@ class ClientListView(LoginRequiredMixin, generic.ListView):
         
         # Status filter
         status_filter = self.request.GET.get('status')
-        if status_filter:
+        if status_filter and status_filter != 'all':
             queryset = queryset.filter(status=status_filter)
         
         # Business type filter
@@ -129,16 +129,17 @@ class ClientListView(LoginRequiredMixin, generic.ListView):
         
         # Calculate counts for stats
         all_clients = Client.objects.all()
+        status_param = self.request.GET.get('status', '')
         context.update({
             'search_query': self.request.GET.get('search', ''),
-            'status_filter': self.request.GET.get('status', ''),
+            'status_filter': status_param if status_param != 'all' else '',
             'business_type_filter': self.request.GET.get('business_type', ''),
             'order_by': self.request.GET.get('order_by', 'company_name'),
             'status_choices': Client.CLIENT_STATUS,
             'business_type_choices': Client.BUSINESS_TYPES,
             'current_filters': {
                 'search': self.request.GET.get('search', ''),
-                'status': self.request.GET.get('status', ''),
+                'status': status_param if status_param != 'all' else '',
                 'business_type': self.request.GET.get('business_type', ''),
             },
             # Additional stats for template
