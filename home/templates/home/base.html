@@ -391,7 +391,7 @@
                 </a>
                 
                 <ul class="header-nav" id="headerNav">
-                    {% if request.user.is_staff %}
+                    {% if request.user.is_admin %}
                     <li class="header-nav-item">
                         <a class="header-nav-link" href="{% url 'asset:list' %}">Assets</a>
                     </li>
@@ -433,7 +433,7 @@
                             <li><a class="dropdown-item" href="#">
                                 <i class="fas fa-user-cog me-2"></i>Settings
                             </a></li>
-                            {% if user.is_admin %}
+                            {% if user.is_staff %}
                             <li><a class="dropdown-item" href="{% url 'admin:index' %}">
                                 <i class="fas fa-tools me-2"></i>Admin
                             </a></li>
