@@ -269,7 +269,8 @@ class Company(UUIDModel, TimeStampedModel):
         return self.company_name
     
     def get_absolute_url(self):
-        return reverse('company-detail', args=[str(self.id)])
+        """Return the canonical URL for this company."""
+        return reverse("company:detail", kwargs={"pk": self.pk})
     
     @property
     def primary_address(self):
