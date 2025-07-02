@@ -414,6 +414,58 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
                 return role
         return ""
 
+    # ------------------------------------------------------------------
+    # Convenience role accessors
+    # ------------------------------------------------------------------
+    def has_role(self, role_name):
+        """Return True if the worker has the given role assigned."""
+        if not role_name:
+            return False
+        return role_name in self.roles or self.role == role_name
+
+    @property
+    def is_employee(self):
+        """Generic employee role used for most workers."""
+        return (
+            self.has_role("employee")
+            or self.has_role("worker")
+            or self.has_role("field_worker")
+        )
+
+    @property
+    def is_supervisor(self):
+        """Supervisor or team lead role."""
+        return (
+            self.has_role("supervisor")
+            or self.has_role("team_lead")
+            or self.has_role("field_supervisor")
+        )
+
+    @property
+    def is_project_manager(self):
+        return self.has_role("project_manager")
+
+    @property
+    def is_office_manager(self):
+        return self.has_role("office_manager") or self.has_role("dispatcher")
+
+    @property
+    def is_client(self):
+        return self.has_role("client") or self.has_role("customer")
+
+    @property
+    def is_accountant(self):
+        return self.has_role("accountant") or self.has_role("bookkeeper")
+
+    @property
+    def is_owner(self):
+        return (
+            self.is_superuser
+            or self.is_admin
+            or self.has_role("owner")
+            or self.has_role("super_admin")
+        )
+
     @role.setter
     def role(self, value):
         """Set the primary role while keeping the roles list in sync."""
