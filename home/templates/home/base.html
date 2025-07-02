@@ -433,6 +433,11 @@
                             <li><a class="dropdown-item" href="#">
                                 <i class="fas fa-user-cog me-2"></i>Settings
                             </a></li>
+                            {% if user.is_admin %}
+                            <li><a class="dropdown-item" href="{% url 'admin:index' %}">
+                                <i class="fas fa-tools me-2"></i>Admin
+                            </a></li>
+                            {% endif %}
                             <li><a class="dropdown-item" href="{% url 'home:contact' %}">
                                 <i class="fas fa-envelope me-2"></i>Contact Support
                             </a></li>
