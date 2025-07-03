@@ -38,6 +38,11 @@
                 {% if worker.position %}
                     <h6 class="text-muted">{{ worker.position.title }}</h6>
                 {% endif %}
+                {% if worker.role %}
+                    <div class="mb-2">
+                        <span class="badge badge-info">{{ worker.role }}</span>
+                    </div>
+                {% endif %}
                 
                 <!-- Employment Status -->
                 <div class="mb-3">
