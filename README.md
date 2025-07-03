@@ -38,7 +38,14 @@ Apply migrations and create a superuser:
 ```bash
 (venv)$ python manage.py migrate
 (venv)$ python manage.py createsuperuser
+
 (venv)$ python manage.py collectstatic --noinput
+```
+
+When pulling updates that add new models or fields, run migrations again:
+
+```bash
+(venv)$ python manage.py migrate
 ```
 
 ## Running the Project
