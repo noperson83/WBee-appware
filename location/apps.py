@@ -54,7 +54,7 @@ class LocationConfig(AppConfig):
         
         try:
             # Check if migrations have been applied
-            with connection.cursor():
+            with connection.cursor() as cursor:
                 # Check if our main tables exist
                 tables = connection.introspection.table_names()
                 required_tables = [
@@ -64,9 +64,18 @@ class LocationConfig(AppConfig):
                 ]
 
                 if all(table in tables for table in required_tables):
-                    # Safe to create default data
-                    from .models import create_default_business_categories
-                    create_default_business_categories()
+                    # Ensure required columns exist (for new installations)
+                    columns = [
+                        col.name
+                        for col in connection.introspection.get_table_description(
+                            cursor, 'location_businesscategory'
+                        )
+                    ]
+
+                    if 'client_nickname' in columns:
+                        # Safe to create default data
+                        from .models import create_default_business_categories
+                        create_default_business_categories()
 
         except Exception:
             # During migrations or initial setup, database might not be ready
