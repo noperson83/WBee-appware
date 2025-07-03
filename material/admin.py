@@ -11,8 +11,8 @@ from decimal import Decimal
 from datetime import date, timedelta
 
 from .models import (
-    Supplier, Manufacturer, ProductCategory, Product, 
-    ProductSupplier, InventoryTransaction
+    Supplier, Manufacturer, ProductCategory, Product,
+    ProductSupplier, InventoryTransaction, MaterialLifecycleEvent
 )
 from client.models import Address, Contact
 
@@ -890,3 +890,20 @@ class InventoryTransactionAdmin(admin.ModelAdmin):
             return f"${obj.total_value:,.2f}"
         return "—"
     value_display.short_description = 'Value'
+
+
+@admin.register(MaterialLifecycleEvent)
+class MaterialLifecycleEventAdmin(admin.ModelAdmin):
+    list_display = (
+        'created_at',
+        'product',
+        'event_type',
+        'performed_by',
+    )
+    list_filter = ('event_type', 'created_at')
+    search_fields = (
+        'product__sku',
+        'product__name',
+        'details',
+    )
+    readonly_fields = ('created_at', 'updated_at')
