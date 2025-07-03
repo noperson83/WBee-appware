@@ -1,5 +1,6 @@
 {% extends 'home/base.html' %}
 {% load static %}
+{% load terminology_tags %}
 
 {% block title %}Dashboard - WBEE Manager{% endblock %}
 
@@ -453,16 +454,16 @@
     </a>
     <a href="{% url 'client:list' %}" class="menu-card">
         <div class="menu-icon text-info"><i class="fas fa-id-card"></i></div>
-        <div class="menu-label">Clients</div>
+        <div class="menu-label">{% term 'client' plural=True %}</div>
     </a>
     <a href="{% url 'location:location-list' %}" class="menu-card">
         <div class="menu-icon text-secondary"><i class="fas fa-building"></i></div>
-        <div class="menu-label">Locations</div>
+        <div class="menu-label">{% term 'location' plural=True %}</div>
     </a>
     {% endif %}
     <a href="{% url 'project:project-list' %}" class="menu-card">
         <div class="menu-icon text-primary"><i class="fas fa-wrench"></i></div>
-        <div class="menu-label">Projects</div>
+        <div class="menu-label">{% term 'project' plural=True %}</div>
     </a>
     <a href="{% url 'project:project-schedule' %}" class="menu-card">
         <div class="menu-icon text-info"><i class="fas fa-calendar"></i></div>

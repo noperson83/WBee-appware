@@ -119,6 +119,7 @@ TEMPLATES = [
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
                 'wbee.context_processors.site_title.site_title',
+                'wbee.context_processors.terminology.terminology',
             ],
             'debug': DEBUG,
         },

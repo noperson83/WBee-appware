@@ -1,8 +1,9 @@
 {% extends "home/base.html" %}
 {% load static %}
 {% load humanize %}
+{% load terminology_tags %}
 
-{% block title %}Locations{% endblock %}
+{% block title %}{% term 'location' plural=True %}{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'location/css/list.css' %}" rel="stylesheet">
@@ -11,8 +12,8 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">Locations</a></li>
-<li class="breadcrumb-item active" aria-current="page">All Locations</li>
+<li class="breadcrumb-item"><a href="{% url 'location:dashboard' %}">{% term 'location' plural=True %}</a></li>
+<li class="breadcrumb-item active" aria-current="page">All {% term 'location' plural=True %}</li>
 {% endblock %}
 
 {% block content %}
@@ -22,11 +23,11 @@
     <div>
       <h1 class="h3 mb-0 text-gray-800">
         <i class="fas fa-map-marker-alt text-primary me-2"></i>
-        Locations
+        {% term 'location' plural=True %}
       </h1>
       <p class="text-muted mb-0">
         {% if locations %}
-          Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} locations
+          Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} {% term 'location' plural=True %}
         {% else %}
           No locations found
         {% endif %}
@@ -34,7 +35,7 @@
     </div>
     <div class="btn-group" role="group">
       <a href="{% url 'location:location-create' %}" class="btn btn-primary">
-        <i class="fas fa-plus me-1"></i> Add Location
+        <i class="fas fa-plus me-1"></i> Add {% term 'location' %}
       </a>
       <div class="btn-group" role="group">
         <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
@@ -365,7 +366,7 @@
     <div class="col-12">
       <div class="text-center py-5">
         <i class="fas fa-map-marker-alt fa-4x text-gray-300 mb-4"></i>
-        <h4 class="text-gray-600">No Locations Found</h4>
+        <h4 class="text-gray-600">No {% term 'location' plural=True %} Found</h4>
         {% if current_filters.search or current_filters.business_category or current_filters.status %}
         <p class="text-muted mb-4">Try adjusting your search criteria or filters.</p>
         <a href="{% url 'location:location-list' %}" class="btn btn-outline-primary me-2">
@@ -375,7 +376,7 @@
         <p class="text-muted mb-4">Get started by creating your first location.</p>
         {% endif %}
         <a href="{% url 'location:location-create' %}" class="btn btn-primary">
-          <i class="fas fa-plus me-1"></i> Add Location
+          <i class="fas fa-plus me-1"></i> Add {% term 'location' %}
         </a>
       </div>
     </div>
