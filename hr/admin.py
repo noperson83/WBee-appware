@@ -46,6 +46,11 @@ class WorkerCreationForm(forms.ModelForm):
     fields, plus a repeated password."""
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+    roles = forms.MultipleChoiceField(
+        choices=RoleFilter.ROLE_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     class Meta:
         model = Worker
@@ -84,6 +89,11 @@ class WorkerChangeForm(forms.ModelForm):
     password hash display field.
     """
     password = ReadOnlyPasswordHashField()
+    roles = forms.MultipleChoiceField(
+        choices=RoleFilter.ROLE_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     class Meta:
         model = Worker

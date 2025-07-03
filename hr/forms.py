@@ -3,9 +3,28 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
 from .models import Worker
 
+# Standard role options used across the admin. Keeping this list here
+# allows the forms and the admin interface to share the same choices.
+ROLE_CHOICES = [
+    ("admin", "Admin"),
+    ("staff", "Staff"),
+    ("supervisor", "Supervisor"),
+    ("project_manager", "Project Manager"),
+    ("employee", "Employee"),
+    ("client", "Client"),
+    ("accountant", "Accountant"),
+    ("owner", "Owner"),
+]
+
 class RegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, required=False)
     password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput, required=False)
+    # Present roles as a set of checkboxes for easier selection
+    roles = forms.MultipleChoiceField(
+        choices=ROLE_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple
+    )
 
     class Meta:
         model = Worker
@@ -41,6 +60,11 @@ class WorkerAdminCreationForm(forms.ModelForm):
     fields, plus a repeated password."""
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput)
+    roles = forms.MultipleChoiceField(
+        choices=ROLE_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     class Meta:
         model = Worker
