@@ -6,6 +6,7 @@ def terminology(request):
     defaults = {
         'client_plural': 'Clients',
         'client_singular': 'Client',
+        'client_synonyms': [],
         'location_plural': 'Locations',
         'location_singular': 'Location',
         'project_plural': 'Projects',
@@ -22,6 +23,7 @@ def terminology(request):
         defaults.update({
             'client_plural': category.client_term,
             'client_singular': category.client_term_singular,
+            'client_synonyms': category.client_synonyms,
             'location_plural': category.location_term,
             'location_singular': category.location_term_singular,
             'project_plural': category.project_term,

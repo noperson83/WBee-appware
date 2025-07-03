@@ -64,6 +64,7 @@ class BusinessCategoryAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'project_terminology',
+        'client_nickname',
         'icon_display',
         'color_display',
         'location_count',
@@ -91,6 +92,15 @@ class BusinessCategoryAdmin(admin.ModelAdmin):
                 'project_nickname_singular'
             ),
             'description': 'Customize what "Projects" are called in this business type'
+        }),
+        ('Client Terminology', {
+            'fields': (
+                'client_nickname',
+                'client_nickname_singular',
+                'client_nickname_options'
+            ),
+            'description': 'Alternate names for clients',
+            'classes': ('collapse',)
         }),
         ('Visual Settings', {
             'fields': (
