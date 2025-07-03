@@ -61,6 +61,11 @@ class BusinessCategory(TimeStampedModel):
         default='Material',
         help_text='Singular material term'
     )
+    client_nickname_options = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Optional alternate names for clients (Bar, Restaurant, etc.)'
+    )
     material_type_nicknames = models.JSONField(
         default=dict,
         blank=True,
@@ -92,6 +97,10 @@ class BusinessCategory(TimeStampedModel):
     @property
     def client_term_singular(self):
         return self.client_nickname_singular
+
+    @property
+    def client_synonyms(self):
+        return self.client_nickname_options
 
     @property
     def location_term(self):
@@ -612,7 +621,10 @@ def create_default_business_categories():
             'icon': 'fas fa-truck',
             'color': '#27ae60',
             'project_nickname': 'Deliveries',
-            'project_nickname_singular': 'Delivery'
+            'project_nickname_singular': 'Delivery',
+            'client_nickname': 'Distribution Contracts',
+            'client_nickname_singular': 'Distribution Contract',
+            'client_nickname_options': ['Bar', 'Restaurant', 'Casino']
         }
     )[0]
     
