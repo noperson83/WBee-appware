@@ -159,6 +159,10 @@ if 'pytest' in sys.argv[0]:
 # ==============================================================================
 
 AUTH_USER_MODEL = 'hr.Worker'
+AUTHENTICATION_BACKENDS = [
+    'hr.backends.EmployeeAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -177,7 +181,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-LOGIN_URL = '/admin/login/'
+LOGIN_URL = '/accounts/login/'
 
 # ==============================================================================
 # INTERNATIONALIZATION
