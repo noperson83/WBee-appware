@@ -16,6 +16,30 @@ from .models import (
     WorkerClearance, WorkerCertification, PerformanceReview
 )
 
+# Simple filter for worker roles
+class RoleFilter(admin.SimpleListFilter):
+    title = 'role'
+    parameter_name = 'role'
+
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('staff', 'Staff'),
+        ('supervisor', 'Supervisor'),
+        ('project_manager', 'Project Manager'),
+        ('employee', 'Employee'),
+        ('client', 'Client'),
+        ('accountant', 'Accountant'),
+        ('owner', 'Owner'),
+    ]
+
+    def lookups(self, request, model_admin):
+        return self.ROLE_CHOICES
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(roles__contains=[self.value()])
+        return queryset
+
 # Custom forms for Worker
 class WorkerCreationForm(forms.ModelForm):
     """A form for creating new workers. Includes all the required
@@ -110,6 +134,7 @@ class WorkerAdmin(BaseUserAdmin):
         'full_name_display',
         'employee_id',
         'position_display',
+        'primary_role',
         'compensation_display',
         'department_display',
         'hire_date_display',
@@ -121,6 +146,7 @@ class WorkerAdmin(BaseUserAdmin):
         'is_staff',
         'is_admin',
         'is_active',
+        RoleFilter,
         'date_of_hire',
         'department',
         'office',
@@ -148,7 +174,8 @@ class WorkerAdmin(BaseUserAdmin):
         'timeoff_summary',
         'profile_image_preview',
         'resume_preview',
-        'worker_statistics'
+        'worker_statistics',
+        'primary_role'
     )
 
     date_hierarchy = 'date_of_hire'
@@ -214,6 +241,7 @@ class WorkerAdmin(BaseUserAdmin):
                 'is_staff',
                 'is_admin',
                 'is_superuser',
+                'primary_role',
                 'roles',
                 'groups',
                 'user_permissions'
@@ -300,6 +328,11 @@ class WorkerAdmin(BaseUserAdmin):
                 return obj.position.title
         return "No position assigned"
     position_display.short_description = 'Position'
+
+    def primary_role(self, obj):
+        """Display the worker's primary role"""
+        return obj.role or "-"
+    primary_role.short_description = 'Role'
 
     def compensation_display(self, obj):
         salary = obj.current_annual_salary

@@ -4,12 +4,21 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from .models import Worker
 
 class RegisterForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput)
-    password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput)
+    password = forms.CharField(widget=forms.PasswordInput, required=False)
+    password2 = forms.CharField(label='Confirm password', widget=forms.PasswordInput, required=False)
 
     class Meta:
         model = Worker
-        fields = ('email',)
+        fields = [
+            'email', 'first_name', 'last_name', 'middle_name', 'preferred_name',
+            'phone_number', 'emergency_contact_name', 'emergency_contact_phone',
+            'emergency_contact_relationship', 'date_of_birth', 'gender',
+            'position', 'office', 'department', 'manager', 'employment_status',
+            'date_of_hire', 'current_hourly_rate', 'current_annual_salary',
+            'bio', 'skills', 'profile_picture', 'resume', 'roles',
+            'groups', 'user_permissions', 'is_active', 'is_staff', 'is_admin',
+            'is_superuser'
+        ]
 
     def clean_email(self):
         email = self.cleaned_data.get('email')

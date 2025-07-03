@@ -307,6 +307,9 @@
                         <label for="{{ form.roles.id_for_label }}" class="font-weight-bold">Business Roles</label>
                         {{ form.roles }}
                         <small class="form-text text-muted">Business-specific roles (JSON format)</small>
+                        {% if form.instance and form.instance.role %}
+                            <small class="form-text text-muted">Primary role: {{ form.instance.role }}</small>
+                        {% endif %}
                     </div>
 
                     <!-- System Settings Section -->
