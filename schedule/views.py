@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
 from django.shortcuts import get_object_or_404, redirect
 from django.http import Http404
 from django.utils import timezone
@@ -46,6 +46,21 @@ class EventDetailView(LoginRequiredMixin, DetailView):
     model = Event
     template_name = "schedule/event.html"
     context_object_name = "event"
+
+
+class EventUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Allow staff to edit an existing event."""
+
+    model = Event
+    form_class = NewEventForm
+    template_name = "schedule/event_form.html"
+
+    def test_func(self):
+        event = self.get_object()
+        return self.request.user.is_staff or event.can_edit(self.request.user)
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()
 
 
 class CalendarDetailView(LoginRequiredMixin, DetailView):

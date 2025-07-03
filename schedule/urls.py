@@ -11,6 +11,11 @@ urlpatterns = [
     path("<int:calendar_id>/ical/", CalendarICalendar(), name="calendar-ical"),
     path("events/<int:pk>/", views.EventDetailView.as_view(), name="event-detail"),
     path(
+        "calendars/<slug:slug>/events/<int:pk>/edit/",
+        views.EventUpdateView.as_view(),
+        name="edit_event",
+    ),
+    path(
         "occurrence/<int:pk>/",
         views.OccurrenceDetailView.as_view(),
         name="occurrence-detail",

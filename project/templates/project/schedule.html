@@ -8,7 +8,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="h3 mb-0">My Schedule</h1>
-  <a href="{% url 'create-event' proj=0 %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Event</a>
+  <a href="{% url 'create-event' proj=0 %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Event</a>
 </div>
 <div class="table-responsive">
   <table class="table table-striped">
@@ -19,6 +19,7 @@
         <th>Project</th>
         <th>Location</th>
         <th>Lead</th>
+        <th class="text-end"></th>
       </tr>
     </thead>
     <tbody>
@@ -29,6 +30,9 @@
         <td>{% if e.project %}<a href="{% url 'project:project-detail' e.project.job_number %}">{{ e.project.name }}</a>{% else %}-{% endif %}</td>
         <td>{% if e.project %}<a href="{{ e.project.location.get_absolute_url }}">{{ e.project.location.name }}</a>{% else %}{{ e.location|default:"" }}{% endif %}</td>
         <td>{% if e.lead %}<a href="{{ e.lead.get_absolute_url }}">{{ e.lead.get_full_name }}</a>{% else %}-{% endif %}</td>
+        <td class="text-end">
+          <a href="{% url 'schedule:edit_event' e.calendar.slug e.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+        </td>
       </tr>
       {% empty %}
       <tr>
