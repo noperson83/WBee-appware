@@ -1,15 +1,16 @@
 {% extends "home/base.html" %}
 {% load static %}
+{% load terminology_tags %}
 
 {% block title %}
-Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
+{% term 'client' plural=True %} Directory - {{ request.user.company.company_name|default:"WBEE" }}
 {% endblock %}
 
 {% block breadcrumb %}
 <li class="breadcrumb-item">
-  <a href="{% url 'client:dashboard' %}">Client Management</a>
+  <a href="{% url 'client:dashboard' %}">{% term 'client' plural=True %} Management</a>
 </li>
-<li class="breadcrumb-item active">Client Directory</li>
+<li class="breadcrumb-item active">{% term 'client' plural=True %} Directory</li>
 {% endblock %}
 
 {% block styler %}
@@ -163,11 +164,11 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
       <div class="d-flex justify-content-between align-items-start">
         <div>
           <h1 class="h2 mb-1">
-            <i class="fas fa-users text-primary me-2"></i>Client Directory
+            <i class="fas fa-users text-primary me-2"></i>{% term 'client' plural=True %} Directory
           </h1>
           <p class="text-muted mb-0">
             Manage and view all your business relationships
-            <span class="badge badge-secondary ms-2">{{ client_list|length }} clients</span>
+            <span class="badge badge-secondary ms-2">{{ client_list|length }} {% term 'client' plural=True %}</span>
           </p>
         </div>
         <div class="d-flex gap-2">
@@ -181,7 +182,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
           </div>
           {% if request.user.is_staff %}
           <a href="{% url 'client:create' %}" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i>Add Client
+            <i class="fas fa-plus me-1"></i>Add {% term 'client' %}
           </a>
           {% endif %}
           <div class="dropdown">
@@ -210,7 +211,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
           <div class="card stats-card h-100">
             <div class="card-body text-center p-3">
               <h4 class="mb-1">{{ client_list|length }}</h4>
-              <small>Total Clients</small>
+              <small>Total {% term 'client' plural=True %}</small>
             </div>
           </div>
         </div>
@@ -244,7 +245,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
       <form method="get" id="searchForm">
         <div class="quick-search">
           <i class="fas fa-search search-icon"></i>
-          <input type="text" class="form-control" name="search" id="clientSearch" value="{{ search_query }}" placeholder="Search clients by name, contact, or location...">
+          <input type="text" class="form-control" name="search" id="clientSearch" value="{{ search_query }}" placeholder="Search {% term 'client' plural=True %} by name, contact, or location...">
           <input type="hidden" name="status" value="{{ status_filter }}">
           <input type="hidden" name="business_type" value="{{ business_type_filter }}">
           <input type="hidden" name="order_by" value="{{ order_by }}">
@@ -259,7 +260,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
       <a class="nav-link {% if not status_filter or status_filter == 'all' %}active{% endif %}"
          href="?{% if search_query %}search={{ search_query|urlencode }}&amp;{% endif %}{% if business_type_filter %}business_type={{ business_type_filter }}&amp;{% endif %}{% if order_by %}order_by={{ order_by }}&amp;{% endif %}status=all"
          data-filter="all">
-        <i class="fas fa-list me-1"></i>All Clients
+        <i class="fas fa-list me-1"></i>All {% term 'client' plural=True %}
       </a>
     </li>
     <li class="nav-item">
@@ -280,7 +281,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
       <a class="nav-link {% if status_filter == 'top' %}active{% endif %}"
          href="?{% if search_query %}search={{ search_query|urlencode }}&amp;{% endif %}{% if business_type_filter %}business_type={{ business_type_filter }}&amp;{% endif %}{% if order_by %}order_by={{ order_by }}&amp;{% endif %}status=top"
          data-filter="top">
-        <i class="fas fa-star text-warning me-1"></i>Top Clients
+        <i class="fas fa-star text-warning me-1"></i>Top {% term 'client' plural=True %}
       </a>
     </li>
     <li class="nav-item">
@@ -398,7 +399,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
                   </a>
                   {% if request.user.is_staff %}
                   <a class="dropdown-item" href="{% url 'client:update' client.id %}">
-                    <i class="fas fa-edit me-2"></i>Edit Client
+                    <i class="fas fa-edit me-2"></i>Edit {% term 'client' %}
                   </a>
                   <div class="dropdown-divider"></div>
                   <a class="dropdown-item" href="{% url 'location:location-create' %}?client={{ client.pk }}">
@@ -415,11 +416,11 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
       <div class="col-12">
         <div class="text-center py-5">
           <i class="fas fa-users text-muted" style="font-size: 4rem;"></i>
-          <h4 class="text-muted mt-3">No clients found</h4>
-          <p class="text-muted">Start by adding your first client to the system.</p>
+          <h4 class="text-muted mt-3">No {% term 'client' plural=True %} found</h4>
+          <p class="text-muted">Start by adding your first {% term 'client' %} to the system.</p>
           {% if request.user.is_staff %}
           <a href="{% url 'client:create' %}" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i>Add Your First Client
+            <i class="fas fa-plus me-1"></i>Add Your First {% term 'client' %}
           </a>
           {% endif %}
         </div>
@@ -436,7 +437,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
           <table class="table table-hover mb-0" id="clientsTable">
             <thead class="bg-light">
               <tr>
-                <th class="border-0">Client</th>
+                <th class="border-0">{% term 'client' %}</th>
                 <th class="border-0">Contact</th>
                 <th class="border-0">Phone</th>
                 <th class="border-0">Location</th>
@@ -546,7 +547,7 @@ Client Directory - {{ request.user.company.company_name|default:"WBEE" }}
   </div>
 </div>
 {% if request.user.is_staff %}
-<a href="{% url 'client:create' %}" class="btn btn-primary rounded-circle add-client-btn" title="Add Client">
+<a href="{% url 'client:create' %}" class="btn btn-primary rounded-circle add-client-btn" title="Add {% term 'client' %}">
   <i class="fas fa-plus"></i>
 </a>
 {% endif %}

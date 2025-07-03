@@ -25,9 +25,46 @@ class BusinessCategory(TimeStampedModel):
         help_text='What to call "Projects" in this business (Jobs, Deliveries, Cases, Events, etc.)'
     )
     project_nickname_singular = models.CharField(
-        max_length=50, 
+        max_length=50,
         default='Project',
         help_text='Singular form (Job, Delivery, Case, Event, etc.)'
+    )
+
+    # New universal terminology fields
+    client_nickname = models.CharField(
+        max_length=50,
+        default='Clients',
+        help_text='Plural term for clients (Bars, Customers, etc.)'
+    )
+    client_nickname_singular = models.CharField(
+        max_length=50,
+        default='Client',
+        help_text='Singular client term'
+    )
+    location_nickname = models.CharField(
+        max_length=50,
+        default='Locations',
+        help_text='Plural term for locations (Venues, Sites, etc.)'
+    )
+    location_nickname_singular = models.CharField(
+        max_length=50,
+        default='Location',
+        help_text='Singular location term'
+    )
+    material_nickname = models.CharField(
+        max_length=50,
+        default='Materials',
+        help_text='Plural term for materials/inventory'
+    )
+    material_nickname_singular = models.CharField(
+        max_length=50,
+        default='Material',
+        help_text='Singular material term'
+    )
+    material_type_nicknames = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Nicknames for material types (device, hardware, etc.)'
     )
     
     class Meta:
@@ -46,6 +83,34 @@ class BusinessCategory(TimeStampedModel):
     def project_term_singular(self):
         """Get the singular project terminology"""
         return self.project_nickname_singular
+
+    @property
+    def client_term(self):
+        """Plural client terminology"""
+        return self.client_nickname
+
+    @property
+    def client_term_singular(self):
+        return self.client_nickname_singular
+
+    @property
+    def location_term(self):
+        return self.location_nickname
+
+    @property
+    def location_term_singular(self):
+        return self.location_nickname_singular
+
+    @property
+    def material_term(self):
+        return self.material_nickname
+
+    @property
+    def material_term_singular(self):
+        return self.material_nickname_singular
+
+    def get_material_type_term(self, slug):
+        return self.material_type_nicknames.get(slug, slug.title())
 
 class ConfigurableChoice(TimeStampedModel):
     """Dynamic choices for any field across the system"""

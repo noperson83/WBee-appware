@@ -327,6 +327,23 @@ class Project(UUIDModel, TimeStampedModel):
         if self.business_category:
             return self.business_category.project_term
         return "Projects"
+
+    @property
+    def material_term(self):
+        if self.business_category:
+            return self.business_category.material_term
+        return "Materials"
+
+    @property
+    def material_term_singular(self):
+        if self.business_category:
+            return self.business_category.material_term_singular
+        return "Material"
+
+    def get_material_type_term(self, slug):
+        if self.business_category:
+            return self.business_category.get_material_type_term(slug)
+        return slug.title()
     
     # Dynamic choice methods
     def get_available_statuses(self):
