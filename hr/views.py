@@ -148,16 +148,9 @@ class WorkerUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Worker
     template_name = 'hr/worker_form.html'
     permission_required = 'hr.change_worker'
-    fields = [
-        'first_name', 'last_name', 'middle_name', 'preferred_name',
-        'phone_number', 'emergency_contact_name', 'emergency_contact_phone',
-        'emergency_contact_relationship', 'date_of_birth', 'gender',
-        'position', 'office', 'department', 'manager', 'employment_status',
-        'date_of_hire', 'current_hourly_rate', 'current_annual_salary',
-        'bio', 'skills', 'profile_picture', 'resume', 'roles',
-        'groups', 'user_permissions',
-        'is_active', 'is_staff', 'is_admin', 'is_superuser'
-    ]
+    # Use the same form as creation so the roles field is rendered with
+    # checkboxes instead of a plain text area.
+    form_class = RegisterForm
     
     def form_valid(self, form):
         messages.success(self.request, 'Worker updated successfully!')
