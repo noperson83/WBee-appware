@@ -202,9 +202,9 @@ class ClientAdmin(admin.ModelAdmin):
         """Display number of projects across all locations"""
         try:
             from project.models import Project
-            count = Project.objects.filter(location__client=obj).count()  # Updated relationship
+            count = Project.objects.filter(locations__client=obj).count()  # Updated relationship
             if count > 0:
-                url = reverse('admin:project_project_changelist') + f'?location__client__id__exact={obj.id}'
+            url = reverse('admin:project_project_changelist') + f'?locations__client__id__exact={obj.id}'
                 return format_html('<a href="{}">{} projects</a>', url, count)
             return "0 projects"
         except:
@@ -225,7 +225,7 @@ class ClientAdmin(admin.ModelAdmin):
         """Display quick client statistics"""
         try:
             from project.models import Project
-            projects = Project.objects.filter(location__client=obj)  # Updated relationship
+            projects = Project.objects.filter(locations__client=obj)  # Updated relationship
             
             stats = {
                 'total_projects': projects.count(),
