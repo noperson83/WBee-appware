@@ -56,7 +56,7 @@
             <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start_time|date:"f A" }}</a> </td>
             <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start|date:"f A" }}</a> </td>
             <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.name|truncatechars:48 }}</a> </td>
-            {% with location=dayevent.project.location %}
+            {% with location=dayevent.project.primary_location %}
               <td style="min-width:220px;font-weight:bold;">
                 {% if location and location.primary_address %}
                   <a style="color:black;" href="{{ location.google_maps_url }}">
@@ -81,7 +81,7 @@
           <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start_time|date:"f A" }}</a> </td>
           <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ dayevent.get_absolute_url }}">{{ dayevent.start|date:"f A" }}</a> </td>
           <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ dayevent.project.get_absolute_url }}">{{ dayevent.project.name|truncatechars:48 }}</a> </td>
-          {% with location=dayevent.project.location %}
+          {% with location=dayevent.project.primary_location %}
             <td style="min-width:220px;font-weight:bold;">
               {% if location and location.primary_address %}
                 <a style="color:black;" href="{{ location.google_maps_url }}">

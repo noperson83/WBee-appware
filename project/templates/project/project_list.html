@@ -88,7 +88,7 @@
           <tr>
             <td><a href="{% url 'project:project-detail' project.job_number %}">{{ project.job_number }}</a></td>
             <td>{{ project.name }}</td>
-            <td>{{ project.location }}</td>
+            <td>{{ project.primary_location }}</td>
             <td>{{ project.project_term }}</td>
             <td>{{ project.status|status_badge }}</td>
             <td>{{ project.project_manager.get_short_name|default_if_none:"—" }}</td>

@@ -60,7 +60,7 @@
             <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ event.get_absolute_url }}">{{ event.start_time|date:'f A' }}</a> </td>
             <td style="min-width:92px;font-weight:bold;"><a style="color:black;font-weight:bold;" href="{{ event.get_absolute_url }}">{{ event.start|date:'f A' }}</a> </td>
             <td style="min-width:220px;font-weight:bold;"><a style="color:black;" href="{{ event.project.get_absolute_url }}">{{ event.project.name|truncatechars:48 }}</a> </td>
-            {% with location=event.project.location %}
+            {% with location=event.project.primary_location %}
               <td style="min-width:220px;font-weight:bold;">
                 {% if location and location.primary_address %}
                   <a style="color:black;" href="{{ location.google_maps_url }}">

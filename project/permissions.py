@@ -43,7 +43,10 @@ class ProjectAccessMixin(UserPassesTestMixin):
             elif user.role == "staff":
                 return True
             elif user.role == "client":
-                return hasattr(user, "client") and project.location.client == user.client
+                return (
+                    hasattr(user, "client")
+                    and project.primary_location.client == user.client
+                )
 
             return False
         except (AttributeError, TypeError):
