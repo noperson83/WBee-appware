@@ -10,6 +10,7 @@ from .periods import Day, Week, Month, Year, weekday_names
 from .settings import GET_EVENTS_FUNC
 from .models import Event, Calendar, Occurrence
 from .forms import NewEventForm
+from django.contrib.contenttypes.models import ContentType
 from project.models import Project
 
 
@@ -34,6 +35,14 @@ class EventCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         if slug:
             calendar = get_object_or_404(Calendar, slug=slug)
             initial["calendar"] = calendar
+        ct = self.request.GET.get("ct")
+        obj_id = self.request.GET.get("obj")
+        if ct and obj_id:
+            try:
+                initial["related_content_type"] = ContentType.objects.get(pk=ct)
+                initial["related_object_id"] = obj_id
+            except ContentType.DoesNotExist:
+                pass
         return initial
 
     def get_success_url(self):
