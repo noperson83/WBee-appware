@@ -9,8 +9,14 @@ from django.db.models import Sum, Count
 from django.utils import timezone
 
 from .models import (
-    Client, Address, Contact, FinancialPeriod, 
-    Revenue, WIPReport, ProjectFinancials
+    Client,
+    Address,
+    Contact,
+    FinancialPeriod,
+    Revenue,
+    WIPReport,
+    ProjectFinancials,
+    ServiceLocation,
 )
 
 # Inline admins for related models
@@ -290,6 +296,22 @@ class AddressAdmin(admin.ModelAdmin):
     def full_address(self, obj):
         return f"{obj.line1}, {obj.city}, {obj.state_province} {obj.postal_code}"
     full_address.short_description = 'Address'
+
+
+@admin.register(ServiceLocation)
+class ServiceLocationAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'client',
+        'city',
+        'state_province',
+    )
+    search_fields = (
+        'name',
+        'city',
+        'state_province',
+        'client__company_name',
+    )
 
 # Contact Admin
 @admin.register(Contact)

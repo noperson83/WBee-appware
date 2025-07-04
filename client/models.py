@@ -228,6 +228,30 @@ class Client(UUIDModel, TimeStampedModel):
         """Get billing address"""
         return self.addresses.filter(label='billing', is_active=True).first()
 
+
+class ServiceLocation(UUIDModel, TimeStampedModel):
+    """Simple service location tied to a client."""
+
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        related_name="service_locations",
+    )
+    name = models.CharField(max_length=200, help_text="Location name")
+    line1 = models.CharField(max_length=200)
+    line2 = models.CharField(max_length=200, blank=True)
+    city = models.CharField(max_length=100)
+    state_province = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=2, default="US")
+
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} - {self.city}"
+
 # Financial Schema Models
 class FinancialPeriod(TimeStampedModel):
     """Define fiscal periods for reporting"""

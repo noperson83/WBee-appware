@@ -170,7 +170,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_display = (
         'job_number',
         'name',
-        'location',
+        'display_locations',
         'business_term_display',
         'status_badge',
         'project_manager',
@@ -183,7 +183,7 @@ class ProjectAdmin(admin.ModelAdmin):
     list_filter = (
         'status',
         'priority',
-        'location__business_category',
+        # filtering by business category is not supported without a direct field
         'project_manager',
         'start_date',
         'due_date',
@@ -194,8 +194,8 @@ class ProjectAdmin(admin.ModelAdmin):
         'job_number',
         'name',
         'description',
-        'location__name',
-        'location__client__company_name',
+        'service_locations__name',
+        'service_locations__client__company_name',
         'project_manager__first_name',
         'project_manager__last_name'
     )
@@ -224,7 +224,7 @@ class ProjectAdmin(admin.ModelAdmin):
                 'job_number',
                 'revision',
                 'name',
-                'location',
+                'service_locations',
                 'template',
                 'status',
                 'priority'
@@ -321,11 +321,15 @@ class ProjectAdmin(admin.ModelAdmin):
     inlines = [ScopeOfWorkInline, ProjectMaterialInline, ProjectChangeInline, ProjectMilestoneInline]
 
     actions = [
-        'mark_complete', 
-        'calculate_material_costs', 
+        'mark_complete',
+        'calculate_material_costs',
         'update_progress',
         'generate_invoices'
     ]
+
+    def display_locations(self, obj):
+        return ", ".join(obj.service_locations.values_list('name', flat=True))
+    display_locations.short_description = 'Service Locations'
 
     # Custom display methods
     def business_term_display(self, obj):
@@ -512,8 +516,11 @@ class ProjectAdmin(admin.ModelAdmin):
             html = "<table style='font-size: 12px;'>"
             html += f"<tr><td><strong>Business Type:</strong></td><td>{obj.business_category.name if obj.business_category else 'Not set'}</td></tr>"
             html += f"<tr><td><strong>Project Term:</strong></td><td>{obj.project_term}</td></tr>"
-            html += f"<tr><td><strong>Client:</strong></td><td>{obj.location.client.company_name}</td></tr>"
-            html += f"<tr><td><strong>Location:</strong></td><td>{obj.location.name}</td></tr>"
+            loc = obj.service_locations.first()
+            client_name = loc.client.company_name if loc else 'N/A'
+            loc_name = loc.name if loc else 'N/A'
+            html += f"<tr><td><strong>Client:</strong></td><td>{client_name}</td></tr>"
+            html += f"<tr><td><strong>Location:</strong></td><td>{loc_name}</td></tr>"
             html += f"<tr><td><strong>Scope Items:</strong></td><td>{obj.scope_items.count()}</td></tr>"
             html += f"<tr><td><strong>Changes:</strong></td><td>{obj.changes.count()}</td></tr>"
             html += f"<tr><td><strong>Milestones:</strong></td><td>{obj.milestones.count()}</td></tr>"
@@ -583,7 +590,6 @@ class ScopeOfWorkAdmin(admin.ModelAdmin):
     )
     
     list_filter = (
-        'project__location__business_category',
         'phase',
         'percent_complete',
         'priority'

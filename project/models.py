@@ -11,7 +11,7 @@ from datetime import date, timedelta
 
 # Import from your modernized apps
 from client.models import TimeStampedModel, UUIDModel
-from location.models import Location, BusinessCategory, ConfigurableChoice, get_dynamic_choices
+from location.models import BusinessCategory, ConfigurableChoice, get_dynamic_choices
 from hr.models import Worker
 #from todo.models import Task
 from material.models import Product
@@ -92,11 +92,11 @@ class Project(UUIDModel, TimeStampedModel):
     )
     
     # Relationships
-    location = models.ForeignKey(
-        Location, 
-        on_delete=models.CASCADE, 
+    service_locations = models.ManyToManyField(
+        'client.ServiceLocation',
         related_name='projects',
-        help_text='Location where this project takes place'
+        blank=True,
+        help_text='Locations serviced by this project'
     )
     
     template = models.ForeignKey(
@@ -294,7 +294,6 @@ class Project(UUIDModel, TimeStampedModel):
     class Meta:
         ordering = ['-job_number']
         indexes = [
-            models.Index(fields=['location', 'status']),
             models.Index(fields=['status', 'due_date']),
             models.Index(fields=['project_manager', 'status']),
             models.Index(fields=['job_number']),
@@ -302,7 +301,9 @@ class Project(UUIDModel, TimeStampedModel):
         ]
     
     def __str__(self):
-        return f"{self.job_number} - {self.name} ({self.location.name})"
+        loc = self.service_locations.first()
+        loc_name = loc.name if loc else "No Location"
+        return f"{self.job_number} - {self.name} ({loc_name})"
     
     def get_absolute_url(self):
         """Return the URL for this project detail view."""
@@ -311,8 +312,11 @@ class Project(UUIDModel, TimeStampedModel):
     # Business-specific terminology
     @property
     def business_category(self):
-        """Get business category from location"""
-        return self.location.business_category if self.location else None
+        """Get business category from the first service location if available"""
+        loc = self.service_locations.first()
+        if loc and hasattr(loc.client, "business_category"):
+            return loc.client.business_category
+        return None
     
     @property
     def project_term(self):
