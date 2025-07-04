@@ -338,7 +338,19 @@ class Location(UUIDModel, TimeStampedModel):
     parking_available = models.BooleanField(default=True, help_text='Parking available for team')
     loading_access = models.BooleanField(default=False, help_text='Loading/equipment access')
     storage_available = models.BooleanField(default=False, help_text='On-site storage available')
-    
+    delivery_restrictions = models.TextField(
+        blank=True,
+        help_text='Any delivery restrictions or scheduling notes'
+    )
+    storage_limitations = models.TextField(
+        blank=True,
+        help_text='Limitations on materials storage at the site'
+    )
+    environmental_conditions = models.TextField(
+        blank=True,
+        help_text='Notable environmental conditions (temperature, humidity, etc.)'
+    )
+
     # Custom fields for ultimate flexibility
     custom_fields = models.JSONField(default=dict, blank=True, help_text='Custom location data')
     

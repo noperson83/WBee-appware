@@ -310,6 +310,9 @@ class LocationAdmin(admin.ModelAdmin):
                 'access_requirements',
                 'work_hours',
                 'special_requirements',
+                'delivery_restrictions',
+                'storage_limitations',
+                'environmental_conditions',
                 ('parking_available', 'loading_access', 'storage_available')
             ),
             'classes': ('collapse',)

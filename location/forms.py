@@ -21,9 +21,10 @@ class LocationForm(ModelForm):
             'project_start_date', 'estimated_completion',
             'facility_size', 'facility_size_unit', 'capacity',
             'existing_systems', 'access_requirements', 'work_hours',
-            'special_requirements', 'emergency_contact_info',
-            'parking_available', 'loading_access', 'storage_available',
-            'custom_fields'
+            'special_requirements', 'delivery_restrictions',
+            'storage_limitations', 'environmental_conditions',
+            'emergency_contact_info', 'parking_available', 'loading_access',
+            'storage_available', 'custom_fields'
         ]
         
         widgets = {
@@ -129,6 +130,21 @@ class LocationForm(ModelForm):
                 'class': 'form-control',
                 'rows': 3,
                 'placeholder': 'Special safety, access, or work requirements'
+            }),
+            'delivery_restrictions': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Delivery restrictions or scheduling notes'
+            }),
+            'storage_limitations': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Limitations on materials storage'
+            }),
+            'environmental_conditions': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Notable environmental conditions'
             }),
             'emergency_contact_info': forms.Textarea(attrs={
                 'class': 'form-control',
