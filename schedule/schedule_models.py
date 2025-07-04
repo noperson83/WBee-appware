@@ -534,6 +534,27 @@ class Event(TimeStampedModel):
         blank=True,
         help_text='Synchronization status with external systems'
     )
+
+    # Generic association with other objects (e.g. Trip or Receipt)
+    related_content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to=(
+            models.Q(app_label="travel", model="trip")
+            | models.Q(app_label="receipts", model="receipt")
+        ),
+        help_text="Linked object type (Trip or Receipt)",
+    )
+    related_object_id = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="ID of the linked object",
+    )
+    related_object = fields.GenericForeignKey(
+        "related_content_type", "related_object_id"
+    )
     
     objects = EventManager()
 
@@ -546,6 +567,7 @@ class Event(TimeStampedModel):
             models.Index(fields=['calendar', 'start']),
             models.Index(fields=['project', 'start']),
             models.Index(fields=['status', 'start']),
+            models.Index(fields=['related_content_type', 'related_object_id']),
         ]
 
     def __str__(self):

@@ -5,6 +5,8 @@ from django.forms import ModelForm
 from django.utils.translation import gettext_lazy as _
 
 from schedule.models import Event, Occurrence
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
 from todo.models import Task
 from schedule.widgets import ColorInput
 
@@ -36,6 +38,15 @@ class NewEventForm(ModelForm):
         widget=forms.SelectMultiple(attrs={"class": "custom-select mb-3"}),
         label=_("Tasks"),
     )
+    related_content_type = forms.ModelChoiceField(
+        queryset=ContentType.objects.filter(
+            models.Q(app_label="travel", model="trip")
+            | models.Q(app_label="receipts", model="receipt")
+        ),
+        required=False,
+        widget=forms.HiddenInput,
+    )
+    related_object_id = forms.IntegerField(required=False, widget=forms.HiddenInput)
 
     def clean(self):
         if 'end' in self.cleaned_data and 'start' in self.cleaned_data:
@@ -62,7 +73,27 @@ class NewEventForm(ModelForm):
     
     class Meta:
         model = Event
-        fields = ['project', 'lead', 'workers', 'tasks', 'text', 'equip', 'details', 'start_time', 'start', 'end', 'title', 'description', 'creator', 'rule', 'end_recurring_period', 'calendar', 'color_event']
+        fields = [
+            'project',
+            'lead',
+            'workers',
+            'tasks',
+            'text',
+            'equip',
+            'details',
+            'start_time',
+            'start',
+            'end',
+            'title',
+            'description',
+            'creator',
+            'rule',
+            'end_recurring_period',
+            'calendar',
+            'color_event',
+            'related_content_type',
+            'related_object_id',
+        ]
         exclude = []
         
 
