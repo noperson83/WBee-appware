@@ -100,7 +100,12 @@ def load_scheduled_events(user):
         
         upcoming_events = (
             Event.objects.filter(
-                Q(workers=user) | Q(lead=user) | Q(creator=user),
+                Q(workers=user) |
+                Q(lead=user) |
+                Q(creator=user) |
+                Q(project__team_members=user) |
+                Q(project__team_leads=user) |
+                Q(project__project_manager=user),
                 start__gte=timezone.now(),
                 start__lte=timezone.now() + timedelta(days=30)
             )
@@ -191,9 +196,15 @@ def load_recent_projects(user):
     try:
         from project.models import Project
         
-        user_projects = Project.objects.filter(
-            workers=user
-        ).order_by('-updated_at')[:5]
+        user_projects = (
+            Project.objects.filter(
+                Q(team_members=user) |
+                Q(team_leads=user) |
+                Q(project_manager=user)
+            )
+            .distinct()
+            .order_by('-updated_at')[:5]
+        )
         
         for project in user_projects:
             projects.append({
@@ -224,11 +235,20 @@ def load_calendar_events(user):
         start_of_month = today.replace(day=1)
         end_of_month = (start_of_month + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         
-        monthly_events = Event.objects.filter(
-            workers=user,
-            start__date__gte=start_of_month,
-            start__date__lte=end_of_month
-        ).order_by('start')
+        monthly_events = (
+            Event.objects.filter(
+                Q(workers=user) |
+                Q(lead=user) |
+                Q(creator=user) |
+                Q(project__team_members=user) |
+                Q(project__team_leads=user) |
+                Q(project__project_manager=user),
+                start__date__gte=start_of_month,
+                start__date__lte=end_of_month
+            )
+            .distinct()
+            .order_by('start')
+        )
         
         for event in monthly_events:
             events.append({
@@ -285,7 +305,15 @@ def load_dashboard_stats(user):
     
     try:
         from asset.models import Asset
-        stats['total_assets'] = Asset.objects.filter(assigned_worker=user, is_active=True).count()
+        stats['total_assets'] = (
+            Asset.objects.filter(
+                Q(assigned_worker=user) |
+                Q(assignments__assigned_to_worker=user, assignments__is_active=True),
+                is_active=True
+            )
+            .distinct()
+            .count()
+        )
     except (ImportError, AttributeError):
         pass
 
@@ -300,17 +328,33 @@ def load_dashboard_stats(user):
     
     try:
         from project.models import Project
-        stats['active_projects'] = Project.objects.filter(workers=user, status__in=['active', 'planning']).count()
+        stats['active_projects'] = (
+            Project.objects.filter(
+                Q(team_members=user) | Q(team_leads=user) | Q(project_manager=user),
+                status__in=['active', 'planning']
+            )
+            .distinct()
+            .count()
+        )
     except (ImportError, AttributeError):
         pass
     
     try:
         from schedule.models import Event
-        stats['upcoming_events'] = Event.objects.filter(
-            workers=user,
-            start__gte=timezone.now(),
-            start__lte=timezone.now() + timedelta(days=7)
-        ).count()
+        stats['upcoming_events'] = (
+            Event.objects.filter(
+                Q(workers=user) |
+                Q(lead=user) |
+                Q(creator=user) |
+                Q(project__team_members=user) |
+                Q(project__team_leads=user) |
+                Q(project__project_manager=user),
+                start__gte=timezone.now(),
+                start__lte=timezone.now() + timedelta(days=7)
+            )
+            .distinct()
+            .count()
+        )
     except (ImportError, AttributeError):
         pass
     
@@ -365,16 +409,30 @@ def load_backward_compatibility_data(user):
     
     try:
         from project.models import Project
-        data['worker_project_list'] = Project.objects.filter(workers=user)[:10]
+        data['worker_project_list'] = (
+            Project.objects.filter(
+                Q(team_members=user) | Q(team_leads=user) | Q(project_manager=user)
+            )
+            .distinct()[:10]
+        )
     except (ImportError, AttributeError):
         pass
     
     try:
         from schedule.models import Event
-        data['project_event_list'] = Event.objects.filter(
-            workers=user,
-            start__gte=timezone.now()
-        ).order_by('start')[:10]
+        data['project_event_list'] = (
+            Event.objects.filter(
+                Q(workers=user) |
+                Q(lead=user) |
+                Q(creator=user) |
+                Q(project__team_members=user) |
+                Q(project__team_leads=user) |
+                Q(project__project_manager=user),
+                start__gte=timezone.now()
+            )
+            .distinct()
+            .order_by('start')[:10]
+        )
     except (ImportError, AttributeError):
         pass
     
