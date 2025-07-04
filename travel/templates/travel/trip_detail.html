@@ -1,0 +1,25 @@
+{% extends "home/base.html" %}
+
+{% block title %}Trip Detail{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Trip to {{ trip.destination }}</h1>
+    <ul>
+        <li><strong>Traveler:</strong> {{ trip.traveler }}</li>
+        <li><strong>Project:</strong> {{ trip.project }}</li>
+        <li><strong>Start:</strong> {{ trip.start_date }}</li>
+        <li><strong>End:</strong> {{ trip.end_date }}</li>
+        <li><strong>Purpose:</strong> {{ trip.purpose }}</li>
+    </ul>
+
+    <h3>Itinerary</h3>
+    <ul>
+        {% for item in trip.items.all %}
+        <li>{{ item.date }} - {{ item.description }}</li>
+        {% empty %}
+        <li>No items.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
