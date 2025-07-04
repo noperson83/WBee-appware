@@ -80,6 +80,22 @@ class Receipt(TimeStampedModel):
         related_name="receipts",
         help_text="Type of purchase made",
     )
+    service_location = models.ForeignKey(
+        "client.ServiceLocation",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="receipts",
+        help_text="Service location for this expense",
+    )
+    trip = models.ForeignKey(
+        "travel.Trip",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="expense_receipts",
+        help_text="Trip this receipt is associated with",
+    )
 
     # Purchase details
     description = models.TextField(
@@ -137,6 +153,8 @@ class Receipt(TimeStampedModel):
             models.Index(fields=["project"]),
             models.Index(fields=["worker"]),
             models.Index(fields=["purchase_type"]),
+            models.Index(fields=["service_location"]),
+            models.Index(fields=["trip"]),
         ]
 
     def __str__(self):

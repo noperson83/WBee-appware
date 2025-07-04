@@ -69,6 +69,8 @@ class ReceiptAdmin(admin.ModelAdmin, ReceiptImageMixin):
         'project_link',
         'worker_name',
         'purchase_type',
+        'service_location',
+        'trip',
         'total_amount',
         'is_reimbursed',
         'receipt_image_preview',
@@ -81,6 +83,8 @@ class ReceiptAdmin(admin.ModelAdmin, ReceiptImageMixin):
         'date_of_purchase',
         ('project', admin.RelatedOnlyFieldListFilter),
         ('worker', admin.RelatedOnlyFieldListFilter),
+        ('service_location', admin.RelatedOnlyFieldListFilter),
+        ('trip', admin.RelatedOnlyFieldListFilter),
         'created_at',
     ]
     
@@ -92,6 +96,8 @@ class ReceiptAdmin(admin.ModelAdmin, ReceiptImageMixin):
         'project__name',
         'worker__first_name',
         'worker__last_name',
+        'service_location__name',
+        'trip__destination',
     ]
     
     date_hierarchy = 'date_of_purchase'
@@ -103,6 +109,7 @@ class ReceiptAdmin(admin.ModelAdmin, ReceiptImageMixin):
             'fields': (
                 ('date_of_purchase', 'company_name'),
                 ('project', 'worker'),
+                ('service_location', 'trip'),
                 'purchase_type',
                 'total_amount',
                 'description',
@@ -222,7 +229,11 @@ class ReceiptAdmin(admin.ModelAdmin, ReceiptImageMixin):
     def get_queryset(self, request):
         """Optimize queryset with select_related for better performance."""
         return super().get_queryset(request).select_related(
-            'project', 'worker', 'purchase_type'
+            'project',
+            'worker',
+            'purchase_type',
+            'service_location',
+            'trip',
         )
     
     def changelist_view(self, request, extra_context=None):
