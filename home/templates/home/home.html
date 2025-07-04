@@ -461,7 +461,8 @@
         <div class="menu-label">{% term 'location' plural=True %}</div>
     </a>
     {% endif %}
-    <a href="{% url 'project:project-list' %}" class="menu-card">
+    <!-- Quick link to project list between locations and events -->
+    <a href="{% url 'project:project-list' %}" class="menu-card" id="project-list-card">
         <div class="menu-icon text-primary"><i class="fas fa-wrench"></i></div>
         <div class="menu-label">{% term 'project' plural=True %}</div>
     </a>

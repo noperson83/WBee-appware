@@ -110,6 +110,7 @@ def load_scheduled_events(user):
                 start__lte=timezone.now() + timedelta(days=30)
             )
             .select_related('project')
+            .distinct()
             .order_by('start')[:5]
         )
         
