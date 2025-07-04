@@ -398,9 +398,17 @@ class Task(TimeStampedModel):
         on_delete=models.SET_NULL,
         help_text='User assigned to complete this task'
     )
+    prepared_for_by = models.ForeignKey(
+        Worker,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tasks_prepared_for",
+        help_text='Worker who prepared this task for others'
+    )
     position = models.ForeignKey(
-        JobPosition, 
-        on_delete=models.SET_NULL, 
+        JobPosition,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="required_for_tasks", 
