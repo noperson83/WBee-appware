@@ -17,8 +17,10 @@ def terminology(request):
 
     user = getattr(request, 'user', None)
     category = None
+    config = None
     if user and hasattr(user, 'company') and user.company:
         category = getattr(user.company, 'business_category', None)
+        config = getattr(user.company, 'business_config', None)
     if category:
         defaults.update({
             'client_plural': category.client_term,
@@ -34,4 +36,11 @@ def terminology(request):
         if category.material_type_nicknames:
             for key, name in category.material_type_nicknames.items():
                 defaults[f'material_{key}_term'] = name
+    if config:
+        aliases = {
+            f"{a.app_label}.{a.model}.{a.field}": a.alias
+            for a in config.terminology_aliases.all()
+        }
+        if aliases:
+            defaults['aliases'] = aliases
     return {'TERMINOLOGY': defaults}

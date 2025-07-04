@@ -319,3 +319,24 @@ class BusinessTemplate(models.Model):
         self.save(update_fields=['usage_count'])
 
         return True
+
+
+class TerminologyAlias(TimeStampedModel):
+    """Custom terminology overrides per BusinessConfiguration."""
+
+    business_config = models.ForeignKey(
+        BusinessConfiguration,
+        on_delete=models.CASCADE,
+        related_name="terminology_aliases",
+    )
+    app_label = models.CharField(max_length=50)
+    model = models.CharField(max_length=50)
+    field = models.CharField(max_length=50)
+    alias = models.CharField(max_length=100)
+
+    class Meta:
+        unique_together = ["business_config", "app_label", "model", "field"]
+        ordering = ["app_label", "model", "field"]
+
+    def __str__(self):
+        return f"{self.business_config}: {self.app_label}.{self.model}.{self.field} -> {self.alias}"
