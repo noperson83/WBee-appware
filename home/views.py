@@ -288,6 +288,15 @@ def load_dashboard_stats(user):
         stats['total_assets'] = Asset.objects.filter(assigned_worker=user, is_active=True).count()
     except (ImportError, AttributeError):
         pass
+
+    try:
+        from todo.models import Task
+        stats['pending_tasks'] = Task.objects.filter(
+            assigned_to=user,
+            status__in=['todo', 'in_progress', 'review', 'blocked']
+        ).count()
+    except (ImportError, AttributeError):
+        pass
     
     try:
         from project.models import Project
