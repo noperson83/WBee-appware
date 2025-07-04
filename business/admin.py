@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import BusinessConfiguration
+from .models import BusinessConfiguration, TerminologyAlias
+
+
+class TerminologyAliasInline(admin.TabularInline):
+    model = TerminologyAlias
+    extra = 0
 
 
 @admin.register(BusinessConfiguration)
@@ -76,3 +81,12 @@ class BusinessConfigurationAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
     )
+
+    inlines = [TerminologyAliasInline]
+
+
+@admin.register(TerminologyAlias)
+class TerminologyAliasAdmin(admin.ModelAdmin):
+    list_display = ('business_config', 'app_label', 'model', 'field', 'alias')
+    list_filter = ('business_config', 'app_label')
+    search_fields = ('app_label', 'model', 'field', 'alias')
