@@ -1,7 +1,7 @@
 from location.models import BusinessCategory
 from company.models import Company
 from hr.models import Worker
-from wbee.context_processors import terminology
+from wbee.context_processors.terminology import terminology
 
 
 def test_client_synonyms_in_context(db):
