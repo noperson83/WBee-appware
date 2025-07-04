@@ -401,11 +401,11 @@ class LocationAdmin(admin.ModelAdmin):
         """Display number of projects with business-specific terminology"""
         try:
             from project.models import Project
-            count = Project.objects.filter(location=obj).count()
+            count = Project.objects.filter(locations=obj).count()
             term = obj.project_term.lower() if count != 1 else obj.project_term_singular.lower()
             
             if count > 0:
-                url = reverse('admin:project_project_changelist') + f'?location__id__exact={obj.id}'
+                url = reverse('admin:project_project_changelist') + f'?locations__id__exact={obj.id}'
                 return format_html('<a href="{}">{} {}</a>', url, count, term)
             return f"0 {term}"
         except:
@@ -446,7 +446,7 @@ class LocationAdmin(admin.ModelAdmin):
         """Display quick location statistics"""
         try:
             from project.models import Project
-            projects = Project.objects.filter(location=obj)
+            projects = Project.objects.filter(locations=obj)
             
             stats = {
                 'total_projects': projects.count(),

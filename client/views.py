@@ -242,7 +242,7 @@ class ClientDetailView(LoginRequiredMixin, generic.DetailView):
             # Compute from project contracts associated with this client
             from project.models import Project
             projects = Project.objects.filter(
-                location__client=client,
+                locations__client=client,
                 contract_value__isnull=False
             )
             if projects.exists():
@@ -690,7 +690,7 @@ class ClientEffortListView(LoginRequiredMixin, generic.ListView):
     def get_queryset(self):
         self.client = get_object_or_404(Client, pk=self.kwargs["pk"])
         return (
-            WIPItem.objects.filter(project__location__client=self.client)
+            WIPItem.objects.filter(project__locations__client=self.client)
             .select_related("project", "assigned_to")
             .order_by("-created_at")
         )

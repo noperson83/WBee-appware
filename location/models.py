@@ -462,7 +462,7 @@ class Location(UUIDModel, TimeStampedModel):
         try:
             from project.models import Project  # Avoid circular import
             total = Project.objects.filter(
-                location=self
+                locations=self
             ).aggregate(
                 total=models.Sum('contract_value')
             )['total'] or Decimal('0.00')
@@ -477,7 +477,7 @@ class Location(UUIDModel, TimeStampedModel):
         """Get summary of project statuses at this location"""
         try:
             from project.models import Project
-            return Project.objects.filter(location=self).values('status').annotate(
+            return Project.objects.filter(locations=self).values('status').annotate(
                 count=models.Count('status')
             )
         except ImportError:

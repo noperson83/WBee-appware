@@ -62,7 +62,7 @@ def location_dashboard(request):
     try:
         from project.models import Project
         total_contract_value = Project.objects.filter(
-            location__in=locations
+            locations__in=locations
         ).aggregate(total=Sum('contract_value'))['total'] or 0
     except ImportError:
         total_contract_value = 0
@@ -178,7 +178,7 @@ class LocationDetailView(DetailView):
         try:
             from project.models import Project
             context['projects'] = Project.objects.filter(
-                location=location
+                locations=location
             ).order_by('-created_at')
             context['active_projects_count'] = context['projects'].exclude(
                 status__in=['c', 'm', 'l']

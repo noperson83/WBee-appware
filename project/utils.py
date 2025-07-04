@@ -13,7 +13,7 @@ def generate_job_number(business_category: Optional["BusinessCategory"] = None) 
     """
     qs = Project.objects.all()
     if business_category:
-        qs = qs.filter(location__business_category=business_category)
+        qs = qs.filter(locations__business_category=business_category)
 
     last_project = qs.order_by("-job_number").first()
     last_number = 0
