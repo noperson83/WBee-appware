@@ -12,6 +12,7 @@ from .models import (
     ProjectTemplate, ProjectCategory, Project, ScopeOfWork, ProjectMaterial,
     ProjectChange, ProjectMilestone
 )
+from material.models import MaterialLifecycle
 
 # Inline admins for related models
 class ScopeOfWorkInline(admin.TabularInline):
@@ -707,3 +708,25 @@ class ProjectMilestoneAdmin(admin.ModelAdmin):
         else:
             return format_html('<span style="color: #007bff;">⏳ Pending</span>')
     status_indicator.short_description = 'Status'
+
+
+class MaterialLifecycleInline(admin.TabularInline):
+    model = MaterialLifecycle
+    extra = 0
+    readonly_fields = (
+        'ordered_at', 'received_at', 'stored_at', 'prepared_at', 'fabricated_at',
+        'assembled_at', 'inspected_at', 'tested_at', 'repaired_at',
+        'refurbished_at', 'shipped_at', 'delivered_at', 'staged_at',
+        'installed_at', 'billed_at', 'paid_at', 'warranted_at',
+        'created_at', 'updated_at'
+    )
+
+
+@admin.register(ProjectMaterial)
+class ProjectMaterialAdmin(admin.ModelAdmin):
+    list_display = (
+        'project', 'product', 'material_type', 'quantity', 'unit_cost',
+        'status', 'delivered_date', 'installed_date'
+    )
+    readonly_fields = ('created_at', 'updated_at')
+    inlines = [MaterialLifecycleInline]

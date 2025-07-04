@@ -3,7 +3,8 @@
 from django.db import models
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.fields import GenericRelation, GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from decimal import Decimal
 import uuid
 
@@ -548,6 +549,56 @@ class InventoryTransaction(TimeStampedModel):
     
     def __str__(self):
         return f"{self.transaction_type} - {self.product.name} ({self.quantity})"
+
+
+class MaterialLifecycle(TimeStampedModel):
+    """Track lifecycle events for material items used on projects."""
+
+    project_material = models.ForeignKey(
+        "project.ProjectMaterial",
+        on_delete=models.CASCADE,
+        related_name="lifecycle_events",
+    )
+    purchased_from = models.ForeignKey(
+        Supplier, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    ordered_at = models.DateTimeField(null=True, blank=True)
+    received_at = models.DateTimeField(null=True, blank=True)
+    stored_at = models.DateTimeField(null=True, blank=True)
+    prepared_at = models.DateTimeField(null=True, blank=True)
+    fabricated_at = models.DateTimeField(null=True, blank=True)
+    assembled_at = models.DateTimeField(null=True, blank=True)
+    inspected_at = models.DateTimeField(null=True, blank=True)
+    tested_at = models.DateTimeField(null=True, blank=True)
+    repaired_at = models.DateTimeField(null=True, blank=True)
+    refurbished_at = models.DateTimeField(null=True, blank=True)
+    shipped_at = models.DateTimeField(null=True, blank=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
+    staged_at = models.DateTimeField(null=True, blank=True)
+    installed_at = models.DateTimeField(null=True, blank=True)
+    billed_at = models.DateTimeField(null=True, blank=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    warranted_at = models.DateTimeField(null=True, blank=True)
+
+    prepared_by = models.ForeignKey(
+        "hr.Worker", on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    prepared_for_content_type = models.ForeignKey(
+        ContentType, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    prepared_for_object_id = models.CharField(max_length=255, null=True, blank=True)
+    prepared_for = GenericForeignKey("prepared_for_content_type", "prepared_for_object_id")
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["project_material", "purchased_from"]),
+        ]
+
+    def __str__(self):
+        return f"Lifecycle for {self.project_material}"
 
 # Default data creation functions
 def create_default_product_categories():
