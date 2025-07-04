@@ -142,6 +142,8 @@ class CompanyAdmin(admin.ModelAdmin):
         'updated_at'
     )
 
+    filter_horizontal = ('business_apps',)
+
     fieldsets = (
         ('Company Information', {
             'fields': (
@@ -205,7 +207,8 @@ class CompanyAdmin(admin.ModelAdmin):
                 'timezone',
                 'currency',
                 'fiscal_year_start',
-                'default_payment_terms'
+                'default_payment_terms',
+                'business_apps'
             ),
             'classes': ('collapse',)
         }),
