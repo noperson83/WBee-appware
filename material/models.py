@@ -549,6 +549,38 @@ class InventoryTransaction(TimeStampedModel):
     def __str__(self):
         return f"{self.transaction_type} - {self.product.name} ({self.quantity})"
 
+
+class MaterialLifecycleEvent(TimeStampedModel):
+    """Detailed lifecycle events for products"""
+    EVENT_TYPES = [
+        ("purchased", "Purchased From"),
+        ("created", "Created With"),
+        ("prepared", "Prepared For By"),
+        ("repaired", "Repaired"),
+        ("installed", "Installed"),
+    ]
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="lifecycle_events",
+    )
+    event_type = models.CharField(max_length=20, choices=EVENT_TYPES)
+    details = models.TextField(blank=True)
+    performed_by = models.ForeignKey(
+        "hr.Worker",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="material_events",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.get_event_type_display()} - {self.product.name}"
+
 # Default data creation functions
 def create_default_product_categories():
     """Create default product categories for different business types"""
