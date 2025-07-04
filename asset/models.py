@@ -10,7 +10,12 @@ from django.utils.text import slugify
 
 # Import from your modernized apps
 from client.models import TimeStampedModel, UUIDModel
-from location.models import BusinessCategory, ConfigurableChoice, get_dynamic_choices
+from location.models import (
+    BusinessCategory,
+    ConfigurableChoice,
+    get_dynamic_choices,
+    Location,
+)
 from company.models import Company, Office, Department
 from hr.models import Worker, JobPosition
 from project.models import Project
@@ -214,6 +219,14 @@ class Asset(UUIDModel, TimeStampedModel):
         blank=True,
         related_name="project_assets",
         help_text="Project currently using this asset",
+    )
+
+    projects = models.ManyToManyField(
+        Project,
+        through="AssetAssignment",
+        through_fields=("asset", "assigned_to_project"),
+        related_name="assets",
+        blank=True,
     )
 
     # Dynamic status and location (configurable per business)
@@ -477,9 +490,19 @@ class AssetAssignment(TimeStampedModel):
         Office, on_delete=models.CASCADE, null=True, blank=True
     )
 
+    assigned_location = models.ForeignKey(
+        Location,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="asset_assignments",
+    )
+
     # Assignment period
     start_date = models.DateField(default=date.today)
     end_date = models.DateField(null=True, blank=True)
+
+    status = models.CharField(max_length=20, default="active")
 
     # Assignment details
     purpose = models.CharField(max_length=200, blank=True)

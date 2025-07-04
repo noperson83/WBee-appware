@@ -501,6 +501,11 @@ class Project(UUIDModel, TimeStampedModel):
     def travel_items(self):
         return self.material_items.filter(material_type="travel")
 
+    @property
+    def allocated_assets(self):
+        """Return assets assigned to this project via assignments"""
+        return self.assets.all()
+
     def get_items_by_category(self, category_slug):
         """Return material items matching the given category slug"""
         return self.material_items.filter(material_type=category_slug)

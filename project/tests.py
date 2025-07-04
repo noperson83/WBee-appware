@@ -44,3 +44,27 @@ class ProjectLocationTests(TestCase):
         project.locations.add(loc1, loc2)
         self.assertEqual(project.primary_location, loc1)
         self.assertEqual(project.locations.count(), 2)
+
+
+class ProjectAssetTests(TestCase):
+    def test_allocated_assets_property(self):
+        from location.models import BusinessCategory
+        from company.models import Company
+        from asset.models import Asset, AssetCategory, AssetAssignment
+
+        bc = BusinessCategory.objects.create(name="BC")
+        company = Company.objects.create(
+            company_name="Co", primary_contact_name="PC", business_category=bc
+        )
+        category = AssetCategory.objects.create(business_category=bc, name="Tool")
+        asset = Asset.objects.create(
+            asset_number="A1",
+            name="Asset1",
+            category=category,
+            asset_type="tool",
+            company=company,
+        )
+        project = Project.objects.create(job_number="P1", name="Proj")
+        AssetAssignment.objects.create(asset=asset, assigned_to_project=project)
+
+        self.assertEqual(list(project.allocated_assets), [asset])
