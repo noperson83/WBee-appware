@@ -28,7 +28,7 @@
         <td><a href="{% url 'schedule:day_calendar' e.calendar.slug %}{% querystring_for_date e.start 3 %}">{{ e.start|date:"M d, Y g:i A" }}</a></td>
         <td><a href="{{ e.get_absolute_url }}">{{ e.title }}</a></td>
         <td>{% if e.project %}<a href="{% url 'project:project-detail' e.project.job_number %}">{{ e.project.name }}</a>{% else %}-{% endif %}</td>
-        <td>{% if e.project %}<a href="{{ e.project.location.get_absolute_url }}">{{ e.project.location.name }}</a>{% else %}{{ e.location|default:"" }}{% endif %}</td>
+        <td>{% if e.project %}<a href="{{ e.project.primary_location.get_absolute_url }}">{{ e.project.primary_location.name }}</a>{% else %}{{ e.location|default:"" }}{% endif %}</td>
         <td>{% if e.lead %}<a href="{{ e.lead.get_absolute_url }}">{{ e.lead.get_full_name }}</a>{% else %}-{% endif %}</td>
         <td class="text-end">
           <a href="{% url 'schedule:edit_event' e.calendar.slug e.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>

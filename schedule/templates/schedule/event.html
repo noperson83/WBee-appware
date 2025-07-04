@@ -53,7 +53,7 @@
               {% endif %}">Status: {{ event.project.get_status_display|default:event.project.status }}</p>
             
             {# Display associated location using the modern location model #}
-            {% with location=event.project.location %}
+            {% with location=event.project.primary_location %}
               {% if location %}
                 <strong><a href="{{ location.get_absolute_url }}">{{ location }}</a></strong>
                 - (<a href="{{ location.client.get_absolute_url }}">{{ location.client }}</a>)

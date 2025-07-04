@@ -37,17 +37,17 @@
       </div>
       <div class="card-body" style="background-color:rgb(217, 237, 248);">
         <div style="float:left">
-          <strong><a href="{{ project.location.get_absolute_url }}">
-              {{ project.location }}</a></strong> -
-            (<a href="{{ project.location.client.get_absolute_url }}">
-              {{ project.location.client }}</a>)
+          <strong><a href="{{ project.primary_location.get_absolute_url }}">
+              {{ project.primary_location }}</a></strong> -
+            (<a href="{{ project.primary_location.client.get_absolute_url }}">
+              {{ project.primary_location.client }}</a>)
             <br>
-          <a href="{{ project.location.google_maps_url }}">
-            <h6>{{ project.location.primary_address.line1 }}<br>
-            {{ project.location.primary_address.city }}, {{ project.location.primary_address.state_province }} {{ project.location.primary_address.postal_code }}</h6>
+          <a href="{{ project.primary_location.google_maps_url }}">
+            <h6>{{ project.primary_location.primary_address.line1 }}<br>
+            {{ project.primary_location.primary_address.city }}, {{ project.primary_location.primary_address.state_province }} {{ project.primary_location.primary_address.postal_code }}</h6>
           </a>
         </div>
-        {% if project.location.latitude and project.location.longitude %}<div id="map" style="width:100%;height:320px"></div>{% endif %}
+        {% if project.primary_location.latitude and project.primary_location.longitude %}<div id="map" style="width:100%;height:320px"></div>{% endif %}
         <div style="float:left">
               <strong>Date Requested:</strong> {{ project.date_requested }}<br>
               <strong>Due date:</strong> {{ project.due_date }}<br>
@@ -251,7 +251,7 @@
 </div>
 <script>
   function myMap() {
-    var myCenter = new google.maps.LatLng({{ project.location.latitude }}, {{ project.location.longitude }});
+    var myCenter = new google.maps.LatLng({{ project.primary_location.latitude }}, {{ project.primary_location.longitude }});
     var mapCanvas = document.getElementById("map");
     var mapOptions = {center: myCenter, zoom: 16,
       styles: [

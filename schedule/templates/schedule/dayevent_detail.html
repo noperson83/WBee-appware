@@ -53,7 +53,7 @@
           {% else %}statusLost
           {% endif %} ">Install: {{ dayevent.project.get_status_display|default:dayevent.project.status }}</p>
         
-        {% with location=dayevent.project.location %}
+        {% with location=dayevent.project.primary_location %}
           {% if location %}
             <strong><a href="{{ location.get_absolute_url }}">{{ location }}</a></strong>
             - (<a href="{{ location.client.get_absolute_url }}">{{ location.client }}</a>)
