@@ -204,10 +204,12 @@ class ClientAdmin(admin.ModelAdmin):
             from project.models import Project
             count = Project.objects.filter(locations__client=obj).count()  # Updated relationship
             if count > 0:
-            url = reverse('admin:project_project_changelist') + f'?locations__client__id__exact={obj.id}'
+                url = reverse('admin:project_project_changelist') + (
+                    f'?locations__client__id__exact={obj.id}'
+                )
                 return format_html('<a href="{}">{} projects</a>', url, count)
             return "0 projects"
-        except:
+        except Exception:
             return "—"
     project_count.short_description = 'Projects'
 
