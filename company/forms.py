@@ -22,7 +22,7 @@ class CompanyForm(forms.ModelForm):
             'primary_phone', 'primary_email', 'description', 'mission_statement', 
             'founded_date', 'current_year_revenue', 'previous_year_revenue',
             'timezone', 'currency', 'fiscal_year_start', 'default_payment_terms',
-            'is_multi_location', 'parent_company', 'custom_fields'
+            'business_apps', 'is_multi_location', 'parent_company', 'custom_fields'
         ]
         
         widgets = {
@@ -99,6 +99,7 @@ class CompanyForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Net 30'
             }),
+            'business_apps': forms.SelectMultiple(attrs={'class': 'form-select'}),
             'parent_company': forms.Select(attrs={'class': 'form-control'}),
             'custom_fields': forms.Textarea(attrs={
                 'class': 'form-control',
@@ -113,6 +114,8 @@ class CompanyForm(forms.ModelForm):
         # Make certain fields required
         self.fields['company_name'].required = True
         self.fields['primary_contact_name'].required = True
+
+        self.fields['business_apps'].required = False
         
         # Filter parent company choices (exclude self)
         if self.instance.pk:
@@ -126,6 +129,7 @@ class CompanyForm(forms.ModelForm):
         self.fields['fiscal_year_start'].help_text = 'Month number (1=January, 4=April, etc.)'
         self.fields['brand_colors'].help_text = 'JSON format: {"primary": "#color", "secondary": "#color"}'
         self.fields['custom_fields'].help_text = 'JSON format for additional company data'
+        self.fields['business_apps'].help_text = 'Select which applications are active for this company'
     
     def clean_founded_date(self):
         """Validate founded date is not in the future"""

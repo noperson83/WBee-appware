@@ -6,10 +6,34 @@ from django.core.validators import RegexValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from decimal import Decimal
 import uuid
+from django.apps import apps
 
 # Import from your modernized client app
 from client.models import Address, Contact, TimeStampedModel, UUIDModel
 from location.models import BusinessCategory
+
+
+class BusinessApplication(models.Model):
+    """Installed Django applications that can be enabled per company."""
+
+    label = models.CharField(
+        max_length=100,
+        unique=True,
+        help_text="Django app label",
+    )
+    name = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Human readable name",
+    )
+
+    class Meta:
+        ordering = ["label"]
+        verbose_name = "Business Application"
+        verbose_name_plural = "Business Applications"
+
+    def __str__(self):
+        return self.name or self.label
 
 class Company(UUIDModel, TimeStampedModel):
     """
@@ -203,6 +227,13 @@ class Company(UUIDModel, TimeStampedModel):
         max_length=50,
         default='Net 30',
         help_text='Default payment terms for invoices'
+    )
+
+    business_apps = models.ManyToManyField(
+        BusinessApplication,
+        blank=True,
+        related_name='companies',
+        help_text='Installed applications enabled for this company'
     )
     
     # Multi-location/subsidiary support
