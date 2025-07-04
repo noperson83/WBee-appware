@@ -28,6 +28,7 @@ class ReceiptCreateView(LoginRequiredMixin, CreateView):
     model = Receipt
     fields = [
         'date_of_purchase', 'company_name', 'project', 'worker',
+        'service_location', 'trip',
         'purchase_type', 'description', 'total_amount', 'currency',
         'is_tax_deductible', 'receipt_image', 'notes',
         'is_reimbursed', 'reimbursement_date'
@@ -40,6 +41,7 @@ class ReceiptUpdateView(LoginRequiredMixin, UpdateView):
     model = Receipt
     fields = [
         'date_of_purchase', 'company_name', 'project', 'worker',
+        'service_location', 'trip',
         'purchase_type', 'description', 'total_amount', 'currency',
         'is_tax_deductible', 'receipt_image', 'notes',
         'is_reimbursed', 'reimbursement_date'

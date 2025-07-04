@@ -67,6 +67,7 @@ LOCAL_APPS = [
     'material.apps.MaterialConfig',
     'schedule.apps.ScheduleConfig',
     'timecard.apps.TimecardConfig',
+    'travel.apps.TravelConfig',
     'helpdesk.apps.HelpdeskConfig',
     'todo',
     'wip.apps.WipConfig',

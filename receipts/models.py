@@ -4,6 +4,8 @@ from django.core.validators import MinValueValidator
 from decimal import Decimal
 from hr.models import Worker
 from project.models import Project
+from client.models import ServiceLocation
+from travel.models import Trip
 
 # Shared abstract base models
 from client.models import TimeStampedModel
@@ -74,6 +76,22 @@ class Receipt(TimeStampedModel):
         related_name="receipts",
         help_text="Employee who made the purchase",
     )
+    service_location = models.ForeignKey(
+        ServiceLocation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="receipts",
+        help_text="Service location for this expense",
+    )
+    trip = models.ForeignKey(
+        Trip,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="receipts",
+        help_text="Trip this expense is part of",
+    )
     purchase_type = models.ForeignKey(
         PurchaseType,
         on_delete=models.PROTECT,
@@ -136,6 +154,8 @@ class Receipt(TimeStampedModel):
             models.Index(fields=["date_of_purchase"]),
             models.Index(fields=["project"]),
             models.Index(fields=["worker"]),
+            models.Index(fields=["service_location"]),
+            models.Index(fields=["trip"]),
             models.Index(fields=["purchase_type"]),
         ]
 
