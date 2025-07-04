@@ -64,6 +64,7 @@ LOCAL_APPS = [
     'location.apps.LocationConfig',
     'project.apps.ProjectConfig',
     'receipts.apps.ReceiptsConfig',
+    'travel.apps.TravelConfig',
     'material.apps.MaterialConfig',
     'schedule.apps.ScheduleConfig',
     'timecard.apps.TimecardConfig',

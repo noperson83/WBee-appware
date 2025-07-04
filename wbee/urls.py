@@ -29,6 +29,7 @@ urlpatterns = [
     path('project/', include('project.urls')),
     path('material/', include('material.urls')),
     path('receipts/', include('receipts.urls')),
+    path('travel/', include('travel.urls')),
     path('create-event/<str:proj>/', EventCreateView.as_view(), name='create-event'),
     path("schedule/", include("schedule.urls")),
     path('timecard/', include('timecard.urls')),

@@ -1,0 +1,34 @@
+{% extends "home/base.html" %}
+
+{% block title %}Trips{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Trips</h1>
+    <a class="btn btn-primary mb-3" href="{% url 'travel:trip-create' %}">New Trip</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Traveler</th>
+                <th>Project</th>
+                <th>Destination</th>
+                <th>Start</th>
+                <th>End</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trip in trips %}
+            <tr>
+                <td><a href="{% url 'travel:trip-detail' trip.pk %}">{{ trip.traveler }}</a></td>
+                <td>{{ trip.project }}</td>
+                <td>{{ trip.destination }}</td>
+                <td>{{ trip.start_date }}</td>
+                <td>{{ trip.end_date }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No trips found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
