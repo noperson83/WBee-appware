@@ -121,11 +121,19 @@ class TimeCard(TimeStampedModel):
         help_text='Worker who worked these hours'
     )
     project = models.ForeignKey(
-        Project, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        Project,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
         help_text='Project worked on'
+    )
+    task = models.ForeignKey(
+        'todo.Task',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='timecards',
+        help_text='Specific task worked on'
     )
     
     # Time Tracking

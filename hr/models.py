@@ -584,6 +584,16 @@ class Worker(AbstractBaseUser, UUIDModel, TimeStampedModel):
     def primary_address(self):
         """Get the primary address"""
         return self.addresses.filter(is_primary=True, is_active=True).first()
+
+    @property
+    def assigned_task_set(self):
+        """Tasks currently assigned to this worker"""
+        return self.assigned_tasks.all()
+
+    @property
+    def timecard_set(self):
+        """Timecards recorded for this worker"""
+        return self.timecards.all()
     
     @property
     def current_clearances(self):
