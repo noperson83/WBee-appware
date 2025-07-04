@@ -36,8 +36,8 @@ class AssetAssignmentInline(admin.TabularInline):
     model = AssetAssignment
     extra = 0
     fields = (
-        'assigned_to_worker', 'assigned_to_project', 'start_date', 
-        'end_date', 'purpose', 'is_active'
+        'assigned_to_worker', 'assigned_to_project', 'assigned_location',
+        'start_date', 'end_date', 'status', 'is_active'
     )
     readonly_fields = ('created_at',)
 
@@ -636,8 +636,10 @@ class AssetAssignmentAdmin(admin.ModelAdmin):
     list_display = (
         'asset',
         'assignment_display',
+        'assigned_location',
         'start_date',
         'end_date',
+        'status',
         'duration_display',
         'is_active'
     )
@@ -646,7 +648,8 @@ class AssetAssignmentAdmin(admin.ModelAdmin):
         'start_date',
         'end_date',
         'is_active',
-        'asset__category'
+        'asset__category',
+        'status'
     )
     
     search_fields = (
@@ -654,7 +657,8 @@ class AssetAssignmentAdmin(admin.ModelAdmin):
         'asset__name',
         'assigned_to_worker__first_name',
         'assigned_to_worker__last_name',
-        'assigned_to_project__name'
+        'assigned_to_project__name',
+        'assigned_location__name'
     )
     
     def assignment_display(self, obj):
@@ -662,6 +666,8 @@ class AssetAssignmentAdmin(admin.ModelAdmin):
             return f"👤 {obj.assigned_to_worker.first_name} {obj.assigned_to_worker.last_name}"
         elif obj.assigned_to_project:
             return f"📋 {obj.assigned_to_project.name}"
+        elif obj.assigned_location:
+            return f"📍 {obj.assigned_location.name}"
         elif obj.assigned_to_office:
             return f"🏢 {obj.assigned_to_office.office_name}"
         return "Unassigned"

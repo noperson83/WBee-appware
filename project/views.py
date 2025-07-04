@@ -374,6 +374,7 @@ class ProjectListView(LoginRequiredMixin, OptimizedQuerysetMixin, ListView):
         Prefetch(
             "milestones", queryset=ProjectMilestone.objects.filter(is_critical=True)
         ),
+        "assets",
     ]
     annotations = {
         # Count tasks via related task lists to avoid FieldError when
@@ -381,6 +382,7 @@ class ProjectListView(LoginRequiredMixin, OptimizedQuerysetMixin, ListView):
         "task_count": Count("task_lists__tasks", distinct=True),
         "team_size": Count("team_members", distinct=True),
         "milestone_count": Count("milestones"),
+        "asset_count": Count("assets", distinct=True),
     }
 
     def get_queryset(self):
@@ -497,6 +499,7 @@ class ProjectDetailView(ProjectAccessMixin, DetailView):
                 "material_items",
                 "changes",
                 "milestones",
+                "assets",
             )
         )
 
@@ -542,6 +545,8 @@ class ProjectDetailView(ProjectAccessMixin, DetailView):
             context["material_costs"] = project.calculate_material_costs()
         except:
             context["material_costs"] = {}
+
+        context["allocated_assets"] = project.allocated_assets
 
         # Recent activity
         context["recent_activity"] = self._get_recent_activity(project)
