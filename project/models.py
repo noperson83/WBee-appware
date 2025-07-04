@@ -4,6 +4,7 @@ from django.db import models
 from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.contenttypes.fields import GenericRelation
+from django.utils import timezone
 from django.apps import apps
 from decimal import Decimal
 import uuid
@@ -15,7 +16,7 @@ from location.models import BusinessCategory, ConfigurableChoice, get_dynamic_ch
 from hr.models import Worker
 
 # from todo.models import Task
-from material.models import Product
+from material.models import Product, MaterialLifecycle
 
 
 class ProjectCategory(TimeStampedModel):
@@ -669,6 +670,20 @@ class ProjectMaterial(TimeStampedModel):
     status = models.CharField(max_length=20, default="quoted")
     installation_location = models.CharField(max_length=200, blank=True)
     serial_numbers = models.JSONField(default=list, blank=True)
+
+    def receive_stock(self, supplier=None, worker=None, when=None):
+        """Mark this material as received and create lifecycle record."""
+        when = when or timezone.now()
+        self.delivered_date = when.date()
+        self.status = "received"
+        self.save()
+
+        MaterialLifecycle.objects.create(
+            project_material=self,
+            purchased_from=supplier,
+            received_at=when,
+            prepared_by=worker,
+        )
 
     @property
     def total(self):
