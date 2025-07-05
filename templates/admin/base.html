@@ -6,18 +6,11 @@
 <link rel="stylesheet" href="{% block stylesheet %}{% static "admin/css/base.css" %}{% endblock %}">
 {% block dark-mode-vars %}
 {% endblock %}
-{% if not is_popup and is_nav_sidebar_enabled %}
-  <link rel="stylesheet" href="{% static "admin/css/nav_sidebar.css" %}">
-  <script src="{% static 'admin/js/nav_sidebar.js' %}" defer></script>
-{% endif %}
+{# Omit sidebar assets for a basic layout #}
 {% block extrastyle %}{% endblock %}
 {% if LANGUAGE_BIDI %}<link rel="stylesheet" href="{% block stylesheet_rtl %}{% static "admin/css/rtl.css" %}{% endblock %}">{% endif %}
 {% block extrahead %}{% endblock %}
-{% block responsive %}
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static "admin/css/responsive.css" %}">
-    {% if LANGUAGE_BIDI %}<link rel="stylesheet" href="{% static "admin/css/responsive_rtl.css" %}">{% endif %}
-{% endblock %}
+{# Responsive support removed for simplicity #}
 {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE">{% endblock %}
 </head>
 
@@ -78,11 +71,7 @@
     {% endif %}
 
     <div class="main" id="main">
-      {% if not is_popup and is_nav_sidebar_enabled %}
-        {% block nav-sidebar %}
-          {% include "admin/nav_sidebar.html" %}
-        {% endblock %}
-      {% endif %}
+      {# Sidebar removed for minimal template #}
       <main id="content-start" class="content" tabindex="-1">
         {% block messages %}
           {% if messages %}
