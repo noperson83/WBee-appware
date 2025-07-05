@@ -397,12 +397,12 @@ class ProjectAdmin(admin.ModelAdmin):
             margin = float(obj.profit_margin)
             return format_html(
                 '<div style="font-size: 11px;">'
-                '<strong>${:,.0f}</strong><br>'
-                '<span style="color: {};">{:.1f}% margin</span>'
+                '<strong>{}</strong><br>'
+                '<span style="color: {};">{}% margin</span>'
                 '</div>',
-                contract,
+                f"${contract:,.0f}",
                 '#28a745' if obj.is_profitable else '#dc3545',
-                margin
+                f"{margin:.1f}"
             )
         return "—"
     financial_summary.short_description = 'Financial'
@@ -425,9 +425,9 @@ class ProjectAdmin(admin.ModelAdmin):
         margin = float(obj.profit_margin)
         color = '#28a745' if margin > 0 else '#dc3545'
         return format_html(
-            '<span style="color: {}; font-weight: bold;">{:.2f}%</span>',
+            '<span style="color: {}; font-weight: bold;">{}</span>',
             color,
-            margin
+            f"{margin:.2f}%"
         )
     profit_margin_display.short_description = 'Profit Margin'
 
@@ -436,9 +436,9 @@ class ProjectAdmin(admin.ModelAdmin):
         balance = float(obj.outstanding_balance)
         color = '#dc3545' if balance > 0 else '#28a745'
         return format_html(
-            '<span style="color: {}; font-weight: bold;">${:,.2f}</span>',
+            '<span style="color: {}; font-weight: bold;">{}</span>',
             color,
-            balance
+            f"${balance:,.2f}"
         )
     outstanding_balance_display.short_description = 'Outstanding Balance'
 
@@ -482,8 +482,8 @@ class ProjectAdmin(admin.ModelAdmin):
         if obj.total_tasks > 0:
             percent = obj.task_completion_percentage
             return format_html(
-                '{:.1f}% ({}/{})',
-                percent, obj.completed_tasks, obj.total_tasks
+                '{} ({}/{})',
+                f"{percent:.1f}%", obj.completed_tasks, obj.total_tasks
             )
         return "No tasks"
     task_completion_display.short_description = 'Task Completion'
@@ -629,9 +629,9 @@ class ScopeOfWorkAdmin(admin.ModelAdmin):
             val = float(variance)
             color = '#dc3545' if val > 0 else '#28a745'
             return format_html(
-                '<span style="color: {};">${:,.2f}</span>',
+                '<span style="color: {};">{}</span>',
                 color,
-                val
+                f"${val:,.2f}"
             )
         return "—"
     cost_variance_display.short_description = 'Cost Variance'
@@ -666,9 +666,15 @@ class ProjectChangeAdmin(admin.ModelAdmin):
         """Display cost impact with color coding"""
         impact = float(obj.cost_impact)
         if impact > 0:
-            return format_html('<span style="color: #dc3545;">+${:,.2f}</span>', impact)
+            return format_html(
+                '<span style="color: #dc3545;">{}</span>',
+                f"+${impact:,.2f}"
+            )
         elif impact < 0:
-            return format_html('<span style="color: #28a745;">${:,.2f}</span>', impact)
+            return format_html(
+                '<span style="color: #28a745;">{}</span>',
+                f"${impact:,.2f}"
+            )
         return "$0.00"
     cost_impact_display.short_description = 'Cost Impact'
     

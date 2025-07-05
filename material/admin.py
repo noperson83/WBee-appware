@@ -693,8 +693,8 @@ class ProductAdmin(admin.ModelAdmin):
             color = '#dc3545'
         
         return format_html(
-            '<span style="color: {}; font-weight: bold;">{:.1f}%</span>',
-            color, margin
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color, f"{margin:.1f}%"
         )
     profit_margin_display.short_description = 'Margin'
 
@@ -874,9 +874,15 @@ class InventoryTransactionAdmin(admin.ModelAdmin):
     def quantity_display(self, obj):
         """Display quantity with +/- indicator"""
         if obj.quantity >= 0:
-            return format_html('<span style="color: #28a745;">+{:.2f}</span>', obj.quantity)
+            return format_html(
+                '<span style="color: #28a745;">{}</span>',
+                f"+{obj.quantity:.2f}"
+            )
         else:
-            return format_html('<span style="color: #dc3545;">{:.2f}</span>', obj.quantity)
+            return format_html(
+                '<span style="color: #dc3545;">{}</span>',
+                f"{obj.quantity:.2f}"
+            )
     quantity_display.short_description = 'Quantity'
 
     def stock_change(self, obj):

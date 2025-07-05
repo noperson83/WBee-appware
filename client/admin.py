@@ -454,8 +454,8 @@ class ProjectFinancialsAdmin(admin.ModelAdmin):
         variance = obj.labor_variance
         color = 'red' if variance > 0 else 'green'
         return format_html(
-            '<span style="color: {};">{:.2f} hours</span>',
-            color, variance
+            '<span style="color: {};">{}</span>',
+            color, f"{variance:.2f} hours"
         )
     labor_variance_display.short_description = 'Labor Variance'
     
@@ -463,7 +463,7 @@ class ProjectFinancialsAdmin(admin.ModelAdmin):
         variance = obj.material_variance
         color = 'red' if variance > 0 else 'green'
         return format_html(
-            '<span style="color: {};">${:,.2f}</span>',
-            color, variance
+            '<span style="color: {};">{}</span>',
+            color, f"${variance:,.2f}"
         )
     material_variance_display.short_description = 'Material Variance'
