@@ -282,13 +282,13 @@ class CompanyAdmin(admin.ModelAdmin):
         growth = obj.revenue_growth
         if growth > 0:
             return format_html(
-                '<span style="color: #28a745; font-weight: bold;">+{:.1f}%</span>',
-                growth
+                '<span style="color: #28a745; font-weight: bold;">{}</span>',
+                f"+{growth:.1f}%"
             )
         elif growth < 0:
             return format_html(
-                '<span style="color: #dc3545; font-weight: bold;">{:.1f}%</span>',
-                growth
+                '<span style="color: #dc3545; font-weight: bold;">{}</span>',
+                f"{growth:.1f}%"
             )
         else:
             return "0%"
@@ -486,8 +486,8 @@ class OfficeAdmin(admin.ModelAdmin):
                 color = '#28a745'  # Green - good utilization
             
             return format_html(
-                '<span style="color: {}; font-weight: bold;">{:.1f}%</span>',
-                color, rate
+                '<span style="color: {}; font-weight: bold;">{}</span>',
+                color, f"{rate:.1f}%"
             )
         return "—"
     utilization_display.short_description = 'Utilization'

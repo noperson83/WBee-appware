@@ -339,11 +339,11 @@ class TimeCardAdmin(admin.ModelAdmin):
     def hours_breakdown(self, obj):
         """Display hours breakdown"""
         return format_html(
-            '<strong>{:.2f}h</strong><br>'
-            '<small>Reg: {:.2f}h | OT: {:.2f}h</small>',
-            obj.total_hours,
-            obj.regular_hours,
-            obj.overtime_hours
+            '<strong>{}</strong><br>'
+            '<small>Reg: {}h | OT: {}h</small>',
+            f"{obj.total_hours:.2f}h",
+            f"{obj.regular_hours:.2f}",
+            f"{obj.overtime_hours:.2f}"
         )
     hours_breakdown.short_description = 'Hours'
 
@@ -371,9 +371,9 @@ class TimeCardAdmin(admin.ModelAdmin):
         
         if total_pay > 0:
             return format_html(
-                '<strong>${:.2f}</strong><br><small>@${:.2f}/hr</small>',
-                total_pay,
-                rate
+                '<strong>{}</strong><br><small>@{}/hr</small>',
+                f"${total_pay:.2f}",
+                f"${rate:.2f}"
             )
         return "—"
     pay_display.short_description = 'Pay'
@@ -634,19 +634,19 @@ class TimesheetSummaryAdmin(admin.ModelAdmin):
     def total_hours_display(self, obj):
         """Display total hours with breakdown"""
         return format_html(
-            '<strong>{:.1f}h</strong><br><small>R:{:.1f} | OT:{:.1f}</small>',
-            obj.total_hours,
-            obj.regular_hours,
-            obj.overtime_hours
+            '<strong>{}</strong><br><small>R:{} | OT:{}</small>',
+            f"{obj.total_hours:.1f}h",
+            f"{obj.regular_hours:.1f}",
+            f"{obj.overtime_hours:.1f}"
         )
     total_hours_display.short_description = 'Hours'
 
     def pay_summary(self, obj):
         """Display pay summary"""
         return format_html(
-            '<strong>${:.2f}</strong><br><small>+${:.2f} exp</small>',
-            obj.total_pay,
-            obj.total_expenses
+            '<strong>{}</strong><br><small>+{} exp</small>',
+            f"${obj.total_pay:.2f}",
+            f"${obj.total_expenses:.2f}"
         )
     pay_summary.short_description = 'Pay'
 
@@ -657,9 +657,15 @@ class TimesheetSummaryAdmin(admin.ModelAdmin):
         else:
             variance = obj.variance_hours
             if variance < 0:
-                return format_html('<span style="color: #ffc107;">⚠ Under ({:.1f}h)</span>', abs(variance))
+                return format_html(
+                    '<span style="color: #ffc107;">⚠ Under ({})</span>',
+                    f"{abs(variance):.1f}h"
+                )
             elif variance > 0:
-                return format_html('<span style="color: #fd7e14;">⚠ Over (+{:.1f}h)</span>', variance)
+                return format_html(
+                    '<span style="color: #fd7e14;">⚠ Over (+{})</span>',
+                    f"{variance:.1f}h"
+                )
             else:
                 return format_html('<span style="color: #007bff;">○ Exact</span>')
     completion_status.short_description = 'Completion'

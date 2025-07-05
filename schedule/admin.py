@@ -548,15 +548,18 @@ class EventAdmin(admin.ModelAdmin):
             variance = obj.cost_variance
             variance_color = '#dc3545' if variance > 0 else '#28a745'
             return format_html(
-                '<strong>${:.0f}</strong><br><small style="color: {};">Var: ${:.0f}</small>',
-                obj.actual_cost,
+                '<strong>{}</strong><br><small style="color: {};">Var: {}</small>',
+                f"${obj.actual_cost:.0f}",
                 variance_color,
-                variance
+                f"${variance:.0f}"
             )
         elif obj.estimated_cost:
-            return format_html('<strong>Est: ${:.0f}</strong>', obj.estimated_cost)
+            return format_html(
+                '<strong>Est: {}</strong>',
+                f"${obj.estimated_cost:.0f}"
+            )
         elif obj.actual_cost:
-            return format_html('<strong>${:.0f}</strong>', obj.actual_cost)
+            return format_html('<strong>{}</strong>', f"${obj.actual_cost:.0f}")
         return "No cost data"
     cost_summary.short_description = 'Cost'
 
