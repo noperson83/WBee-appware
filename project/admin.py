@@ -393,14 +393,16 @@ class ProjectAdmin(admin.ModelAdmin):
     def financial_summary(self, obj):
         """Display financial summary"""
         if obj.contract_value:
+            contract = float(obj.contract_value)
+            margin = float(obj.profit_margin)
             return format_html(
                 '<div style="font-size: 11px;">'
                 '<strong>${:,.0f}</strong><br>'
                 '<span style="color: {};">{:.1f}% margin</span>'
                 '</div>',
-                obj.contract_value,
+                contract,
                 '#28a745' if obj.is_profitable else '#dc3545',
-                obj.profit_margin
+                margin
             )
         return "—"
     financial_summary.short_description = 'Financial'
@@ -420,21 +422,23 @@ class ProjectAdmin(admin.ModelAdmin):
 
     def profit_margin_display(self, obj):
         """Display profit margin with color coding"""
-        margin = obj.profit_margin
+        margin = float(obj.profit_margin)
         color = '#28a745' if margin > 0 else '#dc3545'
         return format_html(
             '<span style="color: {}; font-weight: bold;">{:.2f}%</span>',
-            color, margin
+            color,
+            margin
         )
     profit_margin_display.short_description = 'Profit Margin'
 
     def outstanding_balance_display(self, obj):
         """Display outstanding balance"""
-        balance = obj.outstanding_balance
+        balance = float(obj.outstanding_balance)
         color = '#dc3545' if balance > 0 else '#28a745'
         return format_html(
             '<span style="color: {}; font-weight: bold;">${:,.2f}</span>',
-            color, balance
+            color,
+            balance
         )
     outstanding_balance_display.short_description = 'Outstanding Balance'
 
@@ -622,10 +626,12 @@ class ScopeOfWorkAdmin(admin.ModelAdmin):
         """Display cost variance"""
         variance = obj.cost_variance
         if variance is not None:
-            color = '#dc3545' if variance > 0 else '#28a745'
+            val = float(variance)
+            color = '#dc3545' if val > 0 else '#28a745'
             return format_html(
                 '<span style="color: {};">${:,.2f}</span>',
-                color, variance
+                color,
+                val
             )
         return "—"
     cost_variance_display.short_description = 'Cost Variance'
@@ -658,7 +664,7 @@ class ProjectChangeAdmin(admin.ModelAdmin):
     
     def cost_impact_display(self, obj):
         """Display cost impact with color coding"""
-        impact = obj.cost_impact
+        impact = float(obj.cost_impact)
         if impact > 0:
             return format_html('<span style="color: #dc3545;">+${:,.2f}</span>', impact)
         elif impact < 0:
