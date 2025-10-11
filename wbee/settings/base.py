@@ -5,6 +5,7 @@ Production-ready configuration with environment variables
 
 import os
 from pathlib import Path
+from django.urls import reverse_lazy
 from decouple import Csv, AutoConfig
 import dj_database_url
 
@@ -180,7 +181,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = reverse_lazy('home:index')
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login/'
 
