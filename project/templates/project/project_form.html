@@ -1,50 +1,559 @@
 {% extends "home/base.html" %}
 {% load static %}
+
 {% block title %}{% if form.instance.pk %}Edit Project{% else %}New Project{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --hover-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .page-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 2.5rem 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: var(--card-shadow);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse 15s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .page-header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .breadcrumb {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 10px;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .breadcrumb-item a {
+        color: rgba(255, 255, 255, 0.9);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .breadcrumb-item a:hover {
+        color: white;
+    }
+
+    .breadcrumb-item.active {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .form-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.3s, box-shadow 0.3s;
+        background: white;
+        overflow: hidden;
+    }
+
+    .form-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--hover-shadow);
+    }
+
+    .card-header-custom {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 1.5rem 2rem;
+        border: none;
+    }
+
+    .card-header-custom h6 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .card-header-custom i {
+        font-size: 1.5rem;
+    }
+
+    .form-section {
+        background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%);
+        border-left: 4px solid #667eea;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        border-radius: 0 10px 10px 0;
+    }
+
+    .form-section h5 {
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .form-label i {
+        color: #667eea;
+        font-size: 0.9rem;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s;
+        font-size: 0.95rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .form-control:hover, .form-select:hover {
+        border-color: #a0aec0;
+    }
+
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+    }
+
+    .form-text {
+        color: #718096;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .form-text::before {
+        content: '💡';
+        font-size: 1rem;
+    }
+
+    .text-danger {
+        color: #e53e3e !important;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: #fff5f5;
+        border-radius: 8px;
+        border-left: 3px solid #e53e3e;
+    }
+
+    .text-danger::before {
+        content: '⚠️';
+    }
+
+    .btn-action-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        padding: 2rem 0 1rem;
+        border-top: 2px solid #e2e8f0;
+        margin-top: 2rem;
+    }
+
+    .btn-save {
+        background: var(--primary-gradient);
+        border: none;
+        color: white;
+        padding: 0.875rem 2.5rem;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.9rem;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-save::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-save:hover::before {
+        left: 100%;
+    }
+
+    .btn-save:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-save:active {
+        transform: translateY(-1px);
+    }
+
+    .btn-cancel {
+        background: #f7fafc;
+        border: 2px solid #e2e8f0;
+        color: #4a5568;
+        padding: 0.875rem 2rem;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.9rem;
+    }
+
+    .btn-cancel:hover {
+        background: #edf2f7;
+        border-color: #cbd5e0;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .required-indicator {
+        color: #e53e3e;
+        margin-left: 0.25rem;
+        font-weight: bold;
+    }
+
+    .field-group {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s;
+    }
+
+    .field-group:hover {
+        border-color: #cbd5e0;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Animated save button icon */
+    .btn-save i {
+        transition: transform 0.3s;
+    }
+
+    .btn-save:hover i {
+        transform: scale(1.2) rotate(15deg);
+    }
+
+    /* Progress indicator for multi-step feel */
+    .form-progress {
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .form-progress-bar {
+        height: 100%;
+        background: var(--primary-gradient);
+        width: 0%;
+        transition: width 0.5s ease;
+    }
+
+    /* Styling for Django admin widgets */
+    .related-widget-wrapper {
+        display: block;
+    }
+
+    .related-widget-wrapper-link {
+        margin-left: 0.5rem;
+        color: #667eea;
+        transition: color 0.2s;
+    }
+
+    .related-widget-wrapper-link:hover {
+        color: #764ba2;
+    }
+
+    /* File input styling */
+    input[type="file"] {
+        padding: 0.5rem;
+        border: 2px dashed #cbd5e0;
+        border-radius: 10px;
+        background: #f7fafc;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    input[type="file"]:hover {
+        border-color: #667eea;
+        background: #edf2f7;
+    }
+
+    /* Checkbox and radio styling */
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        cursor: pointer;
+    }
+
+    /* Empty state message */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #718096;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #cbd5e0;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
 {% block extra_js %}
 {{ form.media }}
 <script src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
 <script src="{% static 'admin/js/popup_response.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Add icons to form labels based on field type
+    const fieldIcons = {
+        'email': 'fa-envelope',
+        'password': 'fa-lock',
+        'date': 'fa-calendar',
+        'time': 'fa-clock',
+        'url': 'fa-link',
+        'number': 'fa-hashtag',
+        'tel': 'fa-phone',
+        'text': 'fa-text-width'
+    };
+
+    $('input, select, textarea').each(function() {
+        const fieldType = $(this).attr('type') || 'text';
+        const label = $(this).closest('.mb-3').find('label');
+        
+        if (label.length && !label.find('i').length) {
+            const iconClass = fieldIcons[fieldType] || 'fa-edit';
+            label.prepend(`<i class="fas ${iconClass}"></i> `);
+        }
+    });
+
+    // Mark required fields
+    $('input[required], select[required], textarea[required]').each(function() {
+        const label = $(this).closest('.mb-3').find('label');
+        if (!label.find('.required-indicator').length) {
+            label.append('<span class="required-indicator">*</span>');
+        }
+    });
+
+    // Auto-resize textareas
+    $('textarea').on('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    }).trigger('input');
+
+    // Form progress indicator
+    let totalFields = $('input, select, textarea').not('[type="hidden"]').length;
+    let filledFields = 0;
+
+    function updateProgress() {
+        filledFields = $('input, select, textarea').not('[type="hidden"]').filter(function() {
+            return $(this).val() !== '';
+        }).length;
+        
+        const progress = (filledFields / totalFields) * 100;
+        $('.form-progress-bar').css('width', progress + '%');
+    }
+
+    $('input, select, textarea').on('change input', updateProgress);
+    updateProgress();
+
+    // Smooth scroll to first error
+    if ($('.text-danger').length) {
+        $('html, body').animate({
+            scrollTop: $('.text-danger').first().closest('.mb-3').offset().top - 100
+        }, 500);
+    }
+
+    // Add loading state to submit button
+    $('form').on('submit', function() {
+        const $btn = $('.btn-save');
+        $btn.prop('disabled', true);
+        $btn.html('<i class="fas fa-spinner fa-spin me-2"></i>Saving...');
+    });
+
+    // Confirm before leaving with unsaved changes
+    let formChanged = false;
+    $('input, select, textarea').on('change', function() {
+        formChanged = true;
+    });
+
+    $('form').on('submit', function() {
+        formChanged = false;
+    });
+
+    $(window).on('beforeunload', function() {
+        if (formChanged) {
+            return 'You have unsaved changes. Are you sure you want to leave?';
+        }
+    });
+
+    // Add tooltips to help text
+    $('[data-bs-toggle="tooltip"]').tooltip();
+
+    // Enhanced file input display
+    $('input[type="file"]').on('change', function() {
+        const fileName = $(this).val().split('\\').pop();
+        if (fileName) {
+            $(this).next('.form-text').html(`<i class="fas fa-check-circle text-success"></i> Selected: ${fileName}`);
+        }
+    });
+});
+</script>
 {% endblock %}
+
 {% block breadcrumb %}
-<li class="breadcrumb-item"><a href="{% url 'project:dashboard' %}">Projects</a></li>
-<li class="breadcrumb-item"><a href="{% url 'project:project-list' %}">List</a></li>
-<li class="breadcrumb-item active">{% if form.instance.pk %}Edit{% else %}Create{% endif %}</li>
+<li class="breadcrumb-item"><a href="{% url 'project:dashboard' %}"><i class="fas fa-home"></i> Projects</a></li>
+<li class="breadcrumb-item"><a href="{% url 'project:project-list' %}"><i class="fas fa-list"></i> List</a></li>
+<li class="breadcrumb-item active">
+    {% if form.instance.pk %}
+        <i class="fas fa-edit"></i> Edit
+    {% else %}
+        <i class="fas fa-plus"></i> Create
+    {% endif %}
+</li>
 {% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-8">
-    <div class="card shadow">
-      <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">
-          {% if form.instance.pk %}
-            <i class="fas fa-edit"></i> Edit Project
-          {% else %}
-            <i class="fas fa-plus"></i> Create Project
-          {% endif %}
-        </h6>
-      </div>
-      <div class="card-body">
-        <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          {% for field in form %}
-          <div class="mb-3">
-            {{ field.label_tag }}
-            {{ field }}
-            {% if field.help_text %}
-            <div class="form-text">{{ field.help_text }}</div>
-            {% endif %}
-            {% for error in field.errors %}
-            <div class="text-danger">{{ error }}</div>
-            {% endfor %}
-          </div>
-          {% endfor %}
-          <div class="text-end">
-            <button type="submit" class="btn btn-primary">Save</button>
-          </div>
-        </form>
-      </div>
+<div class="page-header">
+    <div class="form-progress">
+        <div class="form-progress-bar"></div>
     </div>
-  </div>
+    <h1>
+        {% if form.instance.pk %}
+            <i class="fas fa-edit"></i> Edit Project
+        {% else %}
+            <i class="fas fa-plus-circle"></i> Create New Project
+        {% endif %}
+    </h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="form-card card">
+            <div class="card-header-custom">
+                <h6>
+                    <i class="fas fa-file-alt"></i>
+                    {% if form.instance.pk %}Update Project Details{% else %}Enter Project Information{% endif %}
+                </h6>
+            </div>
+            <div class="card-body p-4">
+                {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Please correct the errors below:</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="field-group">
+                        {% for field in form %}
+                            <div class="mb-3">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="form-text">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="btn-action-group">
+                        <a href="{% url 'project:project-list' %}" class="btn btn-cancel">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-save">
+                            <i class="fas fa-save me-2"></i>Save Project
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if form.instance.pk %}
+        <div class="card mt-4 border-0 shadow-sm">
+            <div class="card-body text-center py-4" style="background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%); border-radius: 15px;">
+                <i class="fas fa-info-circle text-primary" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                <h5 class="text-primary mb-2">Quick Tip</h5>
+                <p class="text-muted mb-0">Make sure all required fields are filled out before saving. Your changes will be saved immediately.</p>
+            </div>
+        </div>
+        {% else %}
+        <div class="card mt-4 border-0 shadow-sm">
+            <div class="card-body text-center py-4" style="background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%); border-radius: 15px;">
+                <i class="fas fa-lightbulb" style="font-size: 2rem; margin-bottom: 1rem; color: #2d5016;"></i>
+                <h5 class="mb-2" style="color: #2d5016;">What's Next?</h5>
+                <p class="mb-0" style="color: #3d6928;">After creating your project, you'll be able to add tasks, assign team members, and track progress.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
