@@ -78,14 +78,9 @@
         border: none;
         border-radius: 15px;
         box-shadow: var(--card-shadow);
-        transition: transform 0.3s, box-shadow 0.3s;
         background: white;
         overflow: hidden;
-    }
-
-    .form-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--hover-shadow);
+        margin-bottom: 1.5rem;
     }
 
     .card-header-custom {
@@ -108,36 +103,72 @@
         font-size: 1.5rem;
     }
 
-    .form-section {
-        background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%);
-        border-left: 4px solid #667eea;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        border-radius: 0 10px 10px 0;
+    /* Table-based form layout */
+    .form-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 0;
     }
 
-    .form-section h5 {
-        color: #667eea;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+    .form-table tbody tr {
+        transition: background-color 0.2s;
     }
 
-    .form-label {
+    .form-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .form-table td {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        vertical-align: middle;
+    }
+
+    .form-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .form-table .label-cell {
+        width: 30%;
         font-weight: 600;
         color: #2d3748;
-        margin-bottom: 0.5rem;
+        background: linear-gradient(to right, #f8f9fa 0%, #ffffff 100%);
+        border-right: 3px solid #667eea;
+        position: relative;
+    }
+
+    .form-table .label-cell::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--primary-gradient);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .form-table tbody tr:hover .label-cell::before {
+        opacity: 1;
+    }
+
+    .form-table .label-cell label {
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        margin: 0;
         font-size: 0.95rem;
     }
 
-    .form-label i {
+    .form-table .label-cell i {
         color: #667eea;
-        font-size: 0.9rem;
+        font-size: 1.1rem;
+    }
+
+    .form-table .input-cell {
+        width: 70%;
     }
 
     .form-control, .form-select {
@@ -146,6 +177,7 @@
         padding: 0.75rem 1rem;
         transition: all 0.3s;
         font-size: 0.95rem;
+        width: 100%;
     }
 
     .form-control:focus, .form-select:focus {
@@ -159,13 +191,13 @@
     }
 
     textarea.form-control {
-        min-height: 120px;
+        min-height: 100px;
         resize: vertical;
     }
 
     .form-text {
         color: #718096;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         margin-top: 0.5rem;
         display: flex;
         align-items: center;
@@ -174,12 +206,12 @@
 
     .form-text::before {
         content: '💡';
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
 
     .text-danger {
         color: #e53e3e !important;
-        font-size: 0.875rem;
+        font-size: 0.85rem;
         margin-top: 0.5rem;
         display: flex;
         align-items: center;
@@ -194,13 +226,41 @@
         content: '⚠️';
     }
 
+    .required-indicator {
+        color: #e53e3e;
+        margin-left: 0.25rem;
+        font-weight: bold;
+    }
+
+    /* Section headers within table */
+    .section-header-row td {
+        background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+        padding: 1rem 1.5rem;
+        border-top: 2px solid #cbd5e0;
+        border-bottom: 2px solid #cbd5e0;
+        font-weight: 700;
+        color: #2d3748;
+        font-size: 1.1rem;
+    }
+
+    .section-header-row td i {
+        color: #667eea;
+        margin-right: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .section-header-row:hover td {
+        background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
+    }
+
+    /* Action buttons */
     .btn-action-group {
         display: flex;
         gap: 1rem;
         justify-content: flex-end;
-        padding: 2rem 0 1rem;
+        padding: 2rem;
+        background: #f8f9fa;
         border-top: 2px solid #e2e8f0;
-        margin-top: 2rem;
     }
 
     .btn-save {
@@ -239,8 +299,12 @@
         box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
     }
 
-    .btn-save:active {
-        transform: translateY(-1px);
+    .btn-save i {
+        transition: transform 0.3s;
+    }
+
+    .btn-save:hover i {
+        transform: scale(1.2) rotate(15deg);
     }
 
     .btn-cancel {
@@ -263,52 +327,24 @@
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
-    .required-indicator {
-        color: #e53e3e;
-        margin-left: 0.25rem;
-        font-weight: bold;
-    }
-
-    .field-group {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 10px;
-        margin-bottom: 1.5rem;
-        border: 1px solid #e2e8f0;
-        transition: all 0.3s;
-    }
-
-    .field-group:hover {
-        border-color: #cbd5e0;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    /* Animated save button icon */
-    .btn-save i {
-        transition: transform 0.3s;
-    }
-
-    .btn-save:hover i {
-        transform: scale(1.2) rotate(15deg);
-    }
-
-    /* Progress indicator for multi-step feel */
+    /* Progress bar */
     .form-progress {
         height: 4px;
-        background: #e2e8f0;
+        background: rgba(255, 255, 255, 0.3);
         border-radius: 2px;
         overflow: hidden;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
     }
 
     .form-progress-bar {
         height: 100%;
-        background: var(--primary-gradient);
+        background: rgba(255, 255, 255, 0.9);
         width: 0%;
         transition: width 0.5s ease;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
-    /* Styling for Django admin widgets */
+    /* Django admin widgets */
     .related-widget-wrapper {
         display: block;
     }
@@ -323,9 +359,9 @@
         color: #764ba2;
     }
 
-    /* File input styling */
+    /* File input */
     input[type="file"] {
-        padding: 0.5rem;
+        padding: 0.75rem;
         border: 2px dashed #cbd5e0;
         border-radius: 10px;
         background: #f7fafc;
@@ -338,25 +374,56 @@
         background: #edf2f7;
     }
 
-    /* Checkbox and radio styling */
+    /* Checkbox and radio */
     input[type="checkbox"],
     input[type="radio"] {
         width: 1.25rem;
         height: 1.25rem;
         cursor: pointer;
+        margin-right: 0.5rem;
     }
 
-    /* Empty state message */
-    .empty-state {
+    /* Info cards */
+    .info-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .info-card .card-body {
+        padding: 2rem;
         text-align: center;
-        padding: 3rem 2rem;
-        color: #718096;
     }
 
-    .empty-state i {
-        font-size: 4rem;
-        color: #cbd5e0;
+    .info-card i {
+        font-size: 2.5rem;
         margin-bottom: 1rem;
+    }
+
+    .info-card h5 {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-table .label-cell {
+            width: 100%;
+            display: block;
+            border-right: none;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .form-table .input-cell {
+            width: 100%;
+            display: block;
+        }
+        
+        .form-table td {
+            display: block;
+            padding: 0.75rem 1rem;
+        }
     }
 </style>
 {% endblock %}
@@ -367,33 +434,42 @@
 <script src="{% static 'admin/js/popup_response.js' %}"></script>
 <script>
 $(document).ready(function() {
-    // Add icons to form labels based on field type
+    // Field icons mapping
     const fieldIcons = {
         'email': 'fa-envelope',
         'password': 'fa-lock',
         'date': 'fa-calendar',
+        'datetime': 'fa-calendar-alt',
         'time': 'fa-clock',
         'url': 'fa-link',
         'number': 'fa-hashtag',
         'tel': 'fa-phone',
-        'text': 'fa-text-width'
+        'file': 'fa-file-upload',
+        'text': 'fa-edit',
+        'textarea': 'fa-align-left',
+        'select': 'fa-list',
+        'checkbox': 'fa-check-square',
+        'radio': 'fa-dot-circle'
     };
 
-    $('input, select, textarea').each(function() {
-        const fieldType = $(this).attr('type') || 'text';
-        const label = $(this).closest('.mb-3').find('label');
+    // Add icons to labels
+    $('.form-table .label-cell label').each(function() {
+        const $label = $(this);
+        const $td = $label.closest('td');
+        const $input = $td.next().find('input, select, textarea');
         
-        if (label.length && !label.find('i').length) {
+        if ($input.length && !$label.find('i').length) {
+            let fieldType = $input.attr('type') || $input.prop('tagName').toLowerCase();
             const iconClass = fieldIcons[fieldType] || 'fa-edit';
-            label.prepend(`<i class="fas ${iconClass}"></i> `);
+            $label.prepend(`<i class="fas ${iconClass}"></i> `);
         }
     });
 
     // Mark required fields
     $('input[required], select[required], textarea[required]').each(function() {
-        const label = $(this).closest('.mb-3').find('label');
-        if (!label.find('.required-indicator').length) {
-            label.append('<span class="required-indicator">*</span>');
+        const $label = $(this).closest('tr').find('label');
+        if (!$label.find('.required-indicator').length) {
+            $label.append('<span class="required-indicator">*</span>');
         }
     });
 
@@ -405,10 +481,9 @@ $(document).ready(function() {
 
     // Form progress indicator
     let totalFields = $('input, select, textarea').not('[type="hidden"]').length;
-    let filledFields = 0;
-
+    
     function updateProgress() {
-        filledFields = $('input, select, textarea').not('[type="hidden"]').filter(function() {
+        let filledFields = $('input, select, textarea').not('[type="hidden"]').filter(function() {
             return $(this).val() !== '';
         }).length;
         
@@ -422,7 +497,7 @@ $(document).ready(function() {
     // Smooth scroll to first error
     if ($('.text-danger').length) {
         $('html, body').animate({
-            scrollTop: $('.text-danger').first().closest('.mb-3').offset().top - 100
+            scrollTop: $('.text-danger').first().closest('tr').offset().top - 100
         }, 500);
     }
 
@@ -449,14 +524,16 @@ $(document).ready(function() {
         }
     });
 
-    // Add tooltips to help text
-    $('[data-bs-toggle="tooltip"]').tooltip();
-
     // Enhanced file input display
     $('input[type="file"]').on('change', function() {
         const fileName = $(this).val().split('\\').pop();
+        const $helpText = $(this).siblings('.form-text');
         if (fileName) {
-            $(this).next('.form-text').html(`<i class="fas fa-check-circle text-success"></i> Selected: ${fileName}`);
+            if ($helpText.length) {
+                $helpText.html(`<i class="fas fa-check-circle text-success"></i> Selected: ${fileName}`);
+            } else {
+                $(this).after(`<div class="form-text"><i class="fas fa-check-circle text-success"></i> Selected: ${fileName}</div>`);
+            }
         }
     });
 });
@@ -490,70 +567,105 @@ $(document).ready(function() {
 </div>
 
 <div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="form-card card">
-            <div class="card-header-custom">
-                <h6>
-                    <i class="fas fa-file-alt"></i>
-                    {% if form.instance.pk %}Update Project Details{% else %}Enter Project Information{% endif %}
-                </h6>
-            </div>
-            <div class="card-body p-4">
-                {% if form.errors %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Please correct the errors below:</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-                {% endif %}
-
-                <form method="post" enctype="multipart/form-data" novalidate>
-                    {% csrf_token %}
-                    
-                    <div class="field-group">
-                        {% for field in form %}
-                            <div class="mb-3">
-                                {{ field.label_tag }}
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <div class="form-text">{{ field.help_text }}</div>
-                                {% endif %}
-                                {% for error in field.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <div class="btn-action-group">
-                        <a href="{% url 'project:project-list' %}" class="btn btn-cancel">
-                            <i class="fas fa-times me-2"></i>Cancel
-                        </a>
-                        <button type="submit" class="btn btn-save">
-                            <i class="fas fa-save me-2"></i>Save Project
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        {% if form.instance.pk %}
-        <div class="card mt-4 border-0 shadow-sm">
-            <div class="card-body text-center py-4" style="background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%); border-radius: 15px;">
-                <i class="fas fa-info-circle text-primary" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                <h5 class="text-primary mb-2">Quick Tip</h5>
-                <p class="text-muted mb-0">Make sure all required fields are filled out before saving. Your changes will be saved immediately.</p>
-            </div>
-        </div>
-        {% else %}
-        <div class="card mt-4 border-0 shadow-sm">
-            <div class="card-body text-center py-4" style="background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%); border-radius: 15px;">
-                <i class="fas fa-lightbulb" style="font-size: 2rem; margin-bottom: 1rem; color: #2d5016;"></i>
-                <h5 class="mb-2" style="color: #2d5016;">What's Next?</h5>
-                <p class="mb-0" style="color: #3d6928;">After creating your project, you'll be able to add tasks, assign team members, and track progress.</p>
-            </div>
+    <div class="col-lg-11 col-xl-10">
+        {% if form.errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Please correct the errors below:</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         {% endif %}
+
+        <form method="post" enctype="multipart/form-data" novalidate>
+            {% csrf_token %}
+            
+            <div class="form-card card">
+                <div class="card-header-custom">
+                    <h6>
+                        <i class="fas fa-file-alt"></i>
+                        {% if form.instance.pk %}Update Project Details{% else %}Enter Project Information{% endif %}
+                    </h6>
+                </div>
+                
+                <table class="form-table">
+                    <tbody>
+                        {% for field in form %}
+                            {% if forloop.counter == 1 or forloop.counter0|divisibleby:5 %}
+                                {% if not forloop.first %}
+                                    <tr class="section-header-row">
+                                        <td colspan="2">
+                                            <i class="fas fa-layer-group"></i>
+                                            {% if forloop.counter <= 5 %}
+                                                Basic Information
+                                            {% elif forloop.counter <= 10 %}
+                                                Additional Details
+                                            {% else %}
+                                                Advanced Settings
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            {% endif %}
+                            
+                            <tr>
+                                <td class="label-cell">
+                                    {{ field.label_tag }}
+                                </td>
+                                <td class="input-cell">
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <div class="form-text">{{ field.help_text }}</div>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="btn-action-group">
+                    <a href="{% url 'project:project-list' %}" class="btn btn-cancel">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-save">
+                        <i class="fas fa-save me-2"></i>Save Project
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                {% if form.instance.pk %}
+                <div class="info-card card">
+                    <div class="card-body" style="background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);">
+                        <i class="fas fa-info-circle" style="color: #0369a1;"></i>
+                        <h5 style="color: #0c4a6e;">Quick Tip</h5>
+                        <p class="text-muted mb-0" style="color: #075985 !important;">Make sure all required fields are filled out before saving. Your changes will be saved immediately.</p>
+                    </div>
+                </div>
+                {% else %}
+                <div class="info-card card">
+                    <div class="card-body" style="background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);">
+                        <i class="fas fa-rocket" style="color: #15803d;"></i>
+                        <h5 style="color: #166534;">Getting Started</h5>
+                        <p class="mb-0" style="color: #15803d;">Fill out the form to create your project. Required fields are marked with a red asterisk (*).</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <div class="info-card card">
+                    <div class="card-body" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);">
+                        <i class="fas fa-lightbulb" style="color: #92400e;"></i>
+                        <h5 style="color: #78350f;">What's Next?</h5>
+                        <p class="mb-0" style="color: #92400e;">After saving, you can add tasks, assign team members, and track progress in your project dashboard.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
