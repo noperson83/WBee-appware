@@ -48,7 +48,7 @@
         z-index: 1;
     }
 
-    .breadcrumb {
+    .page-header .breadcrumb {
         background: rgba(255, 255, 255, 0.15);
         backdrop-filter: blur(10px);
         border-radius: 10px;
@@ -56,22 +56,46 @@
         margin-bottom: 1rem;
     }
 
-    .breadcrumb-item a {
+    .page-header .breadcrumb-item a {
         color: rgba(255, 255, 255, 0.9);
         text-decoration: none;
         transition: color 0.2s;
     }
 
-    .breadcrumb-item a:hover {
+    .page-header .breadcrumb-item a:hover {
         color: white;
     }
 
-    .breadcrumb-item.active {
+    .page-header .breadcrumb-item.active {
         color: rgba(255, 255, 255, 0.7);
     }
 
-    .breadcrumb-item + .breadcrumb-item::before {
+    .page-header .breadcrumb-item + .breadcrumb-item::before {
         color: rgba(255, 255, 255, 0.6);
+    }
+
+    .context-bar .breadcrumb {
+        background: transparent;
+        backdrop-filter: none;
+        border-radius: 0;
+        padding: 0;
+        margin-bottom: 0;
+    }
+
+    .context-bar .breadcrumb-item a {
+        color: #6c757d;
+    }
+
+    .context-bar .breadcrumb-item a:hover {
+        color: var(--accent-color);
+    }
+
+    .context-bar .breadcrumb-item.active {
+        color: #495057;
+    }
+
+    .context-bar .breadcrumb-item + .breadcrumb-item::before {
+        color: #dee2e6;
     }
 
     .form-card {
