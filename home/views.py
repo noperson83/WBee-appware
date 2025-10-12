@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.conf import settings
+from django.core.exceptions import FieldError
 from django import forms
 from django.utils import timezone
 from django.db.models import Q
@@ -15,6 +16,25 @@ from datetime import date, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+# Dashboard status helpers
+ACTIVE_PROJECT_STATUSES = ["active", "installing"]
+ACTIVE_TASK_STATUSES = ["todo", "in_progress", "review", "blocked"]
+ACTIVE_EVENT_STATUSES = ["confirmed", "tentative", "draft", "rescheduled"]
+ACTIVE_ASSET_STATUSES = ["available", "in_use", "assigned", "active"]
+
+
+def _filter_for_company(queryset, user, field_name="company", include_null=False):
+    """Safely filter a queryset for the user's company if available."""
+
+    user_company = getattr(user, "company", None)
+    if user_company:
+        company_filter = Q(**{field_name: user_company})
+        if include_null:
+            return queryset.filter(company_filter | Q(**{f"{field_name}__isnull": True}))
+        return queryset.filter(company_filter)
+    return queryset
 
 class ContactForm(forms.Form):
     from_email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
@@ -98,21 +118,21 @@ def load_scheduled_events(user):
         # Try to load from schedule app
         from schedule.models import Event
         
-        upcoming_events = (
-            Event.objects.filter(
-                Q(workers=user) |
-                Q(lead=user) |
-                Q(creator=user) |
-                Q(project__team_members=user) |
-                Q(project__team_leads=user) |
-                Q(project__project_manager=user),
-                start__gte=timezone.now(),
-                start__lte=timezone.now() + timedelta(days=30)
-            )
-            .select_related('project')
-            .distinct()
-            .order_by('start')[:5]
-        )
+        upcoming_events = Event.objects.filter(
+            Q(workers=user) |
+            Q(lead=user) |
+            Q(creator=user) |
+            Q(project__team_members=user) |
+            Q(project__team_leads=user) |
+            Q(project__project_manager=user),
+            start__gte=timezone.now(),
+            start__lte=timezone.now() + timedelta(days=30),
+            status__in=ACTIVE_EVENT_STATUSES,
+        ).select_related('project').distinct()
+
+        upcoming_events = _filter_for_company(
+            upcoming_events, user, field_name='project__company'
+        ).order_by('start')[:5]
         
         for event in upcoming_events:
             # Extract job number from title if it exists
@@ -148,8 +168,11 @@ def load_user_tools(user):
         user_assets = Asset.objects.filter(
             Q(assigned_worker=user) |
             Q(assignments__assigned_to_worker=user, assignments__is_active=True),
-            is_active=True
+            is_active=True,
+            status__in=ACTIVE_ASSET_STATUSES,
         ).select_related('category').order_by('category__name', 'name').distinct()
+
+        user_assets = _filter_for_company(user_assets, user)
         
         # Group by category like in the original
         current_category = None
@@ -197,15 +220,14 @@ def load_recent_projects(user):
     try:
         from project.models import Project
         
-        user_projects = (
-            Project.objects.filter(
-                Q(team_members=user) |
-                Q(team_leads=user) |
-                Q(project_manager=user)
-            )
-            .distinct()
-            .order_by('-updated_at')[:5]
-        )
+        user_projects = Project.objects.filter(
+            Q(team_members=user) |
+            Q(team_leads=user) |
+            Q(project_manager=user),
+            status__in=ACTIVE_PROJECT_STATUSES,
+        ).distinct()
+
+        user_projects = _filter_for_company(user_projects, user).order_by('-updated_at')[:5]
         
         for project in user_projects:
             projects.append({
@@ -236,20 +258,21 @@ def load_calendar_events(user):
         start_of_month = today.replace(day=1)
         end_of_month = (start_of_month + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         
-        monthly_events = (
-            Event.objects.filter(
-                Q(workers=user) |
-                Q(lead=user) |
-                Q(creator=user) |
-                Q(project__team_members=user) |
-                Q(project__team_leads=user) |
-                Q(project__project_manager=user),
-                start__date__gte=start_of_month,
-                start__date__lte=end_of_month
-            )
-            .distinct()
-            .order_by('start')
-        )
+        monthly_events = Event.objects.filter(
+            Q(workers=user) |
+            Q(lead=user) |
+            Q(creator=user) |
+            Q(project__team_members=user) |
+            Q(project__team_leads=user) |
+            Q(project__project_manager=user),
+            start__date__gte=start_of_month,
+            start__date__lte=end_of_month,
+            status__in=ACTIVE_EVENT_STATUSES,
+        ).distinct()
+
+        monthly_events = _filter_for_company(
+            monthly_events, user, field_name='project__company'
+        ).order_by('start')
         
         for event in monthly_events:
             events.append({
@@ -275,9 +298,17 @@ def load_priority_tasks(user):
         
         priority_tasks = Task.objects.filter(
             assigned_to=user,
-            is_complete=False
+            completed=False,
+            status__in=ACTIVE_TASK_STATUSES,
+        )
+
+        priority_tasks = _filter_for_company(
+            priority_tasks,
+            user,
+            field_name='task_list__project__company',
+            include_null=True,
         ).order_by('-priority', 'due_date')[:5]
-        
+
         for task in priority_tasks:
             tasks.append({
                 'id': task.id,
@@ -287,8 +318,10 @@ def load_priority_tasks(user):
                 'priority': getattr(task, 'priority', 'normal'),
                 'project': getattr(task, 'project', None),
             })
-            
-    except (ImportError, AttributeError):
+
+    except (ImportError, AttributeError, FieldError) as exc:
+        if isinstance(exc, FieldError):
+            logger.debug(f"Task filtering failed: {exc}")
         # Create sample tasks if no todo app
         tasks = create_sample_tasks()
     
@@ -306,59 +339,74 @@ def load_dashboard_stats(user):
     
     try:
         from asset.models import Asset
-        stats['total_assets'] = (
-            Asset.objects.filter(
-                Q(assigned_worker=user) |
-                Q(assignments__assigned_to_worker=user, assignments__is_active=True),
-                is_active=True
-            )
-            .distinct()
-            .count()
-        )
-    except (ImportError, AttributeError):
+
+        asset_qs = Asset.objects.filter(
+            Q(assigned_worker=user) |
+            Q(assignments__assigned_to_worker=user, assignments__is_active=True),
+            is_active=True,
+            status__in=ACTIVE_ASSET_STATUSES,
+        ).distinct()
+
+        stats['total_assets'] = _filter_for_company(asset_qs, user).count()
+    except (ImportError, AttributeError, FieldError) as exc:
+        if isinstance(exc, FieldError):
+            logger.debug(f"Asset filtering failed: {exc}")
         pass
 
     try:
         from todo.models import Task
-        stats['pending_tasks'] = Task.objects.filter(
+        task_qs = Task.objects.filter(
             assigned_to=user,
-            status__in=['todo', 'in_progress', 'review', 'blocked']
+            status__in=ACTIVE_TASK_STATUSES,
+            completed=False,
+        )
+
+        stats['pending_tasks'] = _filter_for_company(
+            task_qs,
+            user,
+            field_name='task_list__project__company',
+            include_null=True,
         ).count()
-    except (ImportError, AttributeError):
+    except (ImportError, AttributeError, FieldError) as exc:
+        if isinstance(exc, FieldError):
+            logger.debug(f"Task stats filtering failed: {exc}")
         pass
-    
+
     try:
         from project.models import Project
-        stats['active_projects'] = (
-            Project.objects.filter(
-                Q(team_members=user) | Q(team_leads=user) | Q(project_manager=user),
-                status__in=['active', 'planning']
-            )
-            .distinct()
-            .count()
-        )
-    except (ImportError, AttributeError):
+        project_qs = Project.objects.filter(
+            Q(team_members=user) | Q(team_leads=user) | Q(project_manager=user),
+            status__in=ACTIVE_PROJECT_STATUSES,
+        ).distinct()
+
+        stats['active_projects'] = _filter_for_company(project_qs, user).count()
+    except (ImportError, AttributeError, FieldError) as exc:
+        if isinstance(exc, FieldError):
+            logger.debug(f"Project filtering failed: {exc}")
         pass
-    
+
     try:
         from schedule.models import Event
-        stats['upcoming_events'] = (
-            Event.objects.filter(
-                Q(workers=user) |
-                Q(lead=user) |
-                Q(creator=user) |
-                Q(project__team_members=user) |
-                Q(project__team_leads=user) |
-                Q(project__project_manager=user),
-                start__gte=timezone.now(),
-                start__lte=timezone.now() + timedelta(days=7)
-            )
-            .distinct()
-            .count()
-        )
-    except (ImportError, AttributeError):
+        event_qs = Event.objects.filter(
+            Q(workers=user) |
+            Q(lead=user) |
+            Q(creator=user) |
+            Q(project__team_members=user) |
+            Q(project__team_leads=user) |
+            Q(project__project_manager=user),
+            start__gte=timezone.now(),
+            start__lte=timezone.now() + timedelta(days=7),
+            status__in=ACTIVE_EVENT_STATUSES,
+        ).distinct()
+
+        stats['upcoming_events'] = _filter_for_company(
+            event_qs, user, field_name='project__company'
+        ).count()
+    except (ImportError, AttributeError, FieldError) as exc:
+        if isinstance(exc, FieldError):
+            logger.debug(f"Event filtering failed: {exc}")
         pass
-    
+
     return stats
 
 
@@ -381,8 +429,11 @@ def load_backward_compatibility_data(user):
         user_assets = Asset.objects.filter(
             Q(assigned_worker=user) |
             Q(assignments__assigned_to_worker=user, assignments__is_active=True),
-            is_active=True
+            is_active=True,
+            status__in=ACTIVE_ASSET_STATUSES,
         ).distinct()
+
+        user_assets = _filter_for_company(user_assets, user)
         
         # Original template variables
         data['ladder_list'] = user_assets.filter(asset_type__icontains='ladder')[:10]
@@ -410,30 +461,31 @@ def load_backward_compatibility_data(user):
     
     try:
         from project.models import Project
-        data['worker_project_list'] = (
-            Project.objects.filter(
-                Q(team_members=user) | Q(team_leads=user) | Q(project_manager=user)
-            )
-            .distinct()[:10]
-        )
+        project_qs = Project.objects.filter(
+            Q(team_members=user) | Q(team_leads=user) | Q(project_manager=user),
+            status__in=ACTIVE_PROJECT_STATUSES,
+        ).distinct()
+
+        data['worker_project_list'] = _filter_for_company(project_qs, user)[:10]
     except (ImportError, AttributeError):
         pass
     
     try:
         from schedule.models import Event
-        data['project_event_list'] = (
-            Event.objects.filter(
-                Q(workers=user) |
-                Q(lead=user) |
-                Q(creator=user) |
-                Q(project__team_members=user) |
-                Q(project__team_leads=user) |
-                Q(project__project_manager=user),
-                start__gte=timezone.now()
-            )
-            .distinct()
-            .order_by('start')[:10]
-        )
+        event_qs = Event.objects.filter(
+            Q(workers=user) |
+            Q(lead=user) |
+            Q(creator=user) |
+            Q(project__team_members=user) |
+            Q(project__team_leads=user) |
+            Q(project__project_manager=user),
+            start__gte=timezone.now(),
+            status__in=ACTIVE_EVENT_STATUSES,
+        ).distinct()
+
+        data['project_event_list'] = _filter_for_company(
+            event_qs, user, field_name='project__company'
+        ).order_by('start')[:10]
     except (ImportError, AttributeError):
         pass
     
