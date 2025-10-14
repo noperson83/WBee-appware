@@ -25,6 +25,31 @@ ACTIVE_EVENT_STATUSES = ["confirmed", "tentative", "draft", "rescheduled"]
 ACTIVE_ASSET_STATUSES = ["available", "in_use", "assigned", "active"]
 
 
+def _user_can_view_company_data(user):
+    """Return True when the user should see company-wide metrics."""
+
+    privileged_roles = {
+        "admin",
+        "project_manager",
+        "supervisor",
+        "office_manager",
+    }
+
+    if getattr(user, "is_superuser", False) or getattr(user, "is_staff", False):
+        return True
+
+    has_role = getattr(user, "has_role", None)
+    if callable(has_role):
+        if any(has_role(role) for role in privileged_roles):
+            return True
+
+    primary_role = getattr(user, "role", None)
+    if primary_role in privileged_roles:
+        return True
+
+    return False
+
+
 def _filter_for_company(queryset, user, field_name="company", include_null=False):
     """Safely filter a queryset for the user's company if available."""
 
@@ -337,17 +362,26 @@ def load_dashboard_stats(user):
         'upcoming_events': 0,
     }
     
+    can_view_company = _user_can_view_company_data(user)
+
     try:
         from asset.models import Asset
 
         asset_qs = Asset.objects.filter(
-            Q(assigned_worker=user) |
-            Q(assignments__assigned_to_worker=user, assignments__is_active=True),
             is_active=True,
             status__in=ACTIVE_ASSET_STATUSES,
-        ).distinct()
+        )
 
-        stats['total_assets'] = _filter_for_company(asset_qs, user).count()
+        if can_view_company:
+            asset_qs = _filter_for_company(asset_qs, user)
+        else:
+            asset_qs = asset_qs.filter(
+                Q(assigned_worker=user)
+                | Q(assignments__assigned_to_worker=user, assignments__is_active=True)
+            ).distinct()
+            asset_qs = _filter_for_company(asset_qs, user)
+
+        stats['total_assets'] = asset_qs.count()
     except (ImportError, AttributeError, FieldError) as exc:
         if isinstance(exc, FieldError):
             logger.debug(f"Asset filtering failed: {exc}")
@@ -374,12 +408,16 @@ def load_dashboard_stats(user):
 
     try:
         from project.models import Project
-        project_qs = Project.objects.filter(
-            Q(team_members=user) | Q(team_leads=user) | Q(project_manager=user),
-            status__in=ACTIVE_PROJECT_STATUSES,
-        ).distinct()
+        project_qs = Project.objects.filter(status__in=ACTIVE_PROJECT_STATUSES)
 
-        stats['active_projects'] = _filter_for_company(project_qs, user).count()
+        project_qs = _filter_for_company(project_qs, user)
+
+        if not can_view_company:
+            project_qs = project_qs.filter(
+                Q(team_members=user) | Q(team_leads=user) | Q(project_manager=user)
+            )
+
+        stats['active_projects'] = project_qs.distinct().count()
     except (ImportError, AttributeError, FieldError) as exc:
         if isinstance(exc, FieldError):
             logger.debug(f"Project filtering failed: {exc}")
@@ -388,20 +426,29 @@ def load_dashboard_stats(user):
     try:
         from schedule.models import Event
         event_qs = Event.objects.filter(
-            Q(workers=user) |
-            Q(lead=user) |
-            Q(creator=user) |
-            Q(project__team_members=user) |
-            Q(project__team_leads=user) |
-            Q(project__project_manager=user),
             start__gte=timezone.now(),
             start__lte=timezone.now() + timedelta(days=7),
             status__in=ACTIVE_EVENT_STATUSES,
-        ).distinct()
+        )
 
-        stats['upcoming_events'] = _filter_for_company(
-            event_qs, user, field_name='project__company'
-        ).count()
+        if can_view_company:
+            event_qs = _filter_for_company(
+                event_qs, user, field_name='project__company'
+            )
+        else:
+            event_qs = event_qs.filter(
+                Q(workers=user)
+                | Q(lead=user)
+                | Q(creator=user)
+                | Q(project__team_members=user)
+                | Q(project__team_leads=user)
+                | Q(project__project_manager=user)
+            ).distinct()
+            event_qs = _filter_for_company(
+                event_qs, user, field_name='project__company'
+            )
+
+        stats['upcoming_events'] = event_qs.count()
     except (ImportError, AttributeError, FieldError) as exc:
         if isinstance(exc, FieldError):
             logger.debug(f"Event filtering failed: {exc}")
