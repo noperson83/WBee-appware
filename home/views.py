@@ -54,12 +54,22 @@ def _filter_for_company(queryset, user, field_name="company", include_null=False
     """Safely filter a queryset for the user's company if available."""
 
     user_company = getattr(user, "company", None)
-    if user_company:
-        company_filter = Q(**{field_name: user_company})
+    if not user_company:
+        return queryset
+
+    company_filter = Q(**{field_name: user_company})
+
+    try:
         if include_null:
-            return queryset.filter(company_filter | Q(**{f"{field_name}__isnull": True}))
+            return queryset.filter(
+                company_filter | Q(**{f"{field_name}__isnull": True})
+            )
         return queryset.filter(company_filter)
-    return queryset
+    except FieldError as exc:
+        logger.debug(
+            "Company filter skipped for %s due to FieldError: %s", field_name, exc
+        )
+        return queryset
 
 class ContactForm(forms.Form):
     from_email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
