@@ -712,4 +712,3 @@ def schedule_demo(request):
 def permission_denied_view(request, exception=None):
     """Render custom 403 page."""
     return render(request, "403.html", status=403)
-

@@ -1,4 +1,4 @@
-Django==5.2
+Django==5.2.13
 django-extensions
 easy-thumbnails
 django-mptt
